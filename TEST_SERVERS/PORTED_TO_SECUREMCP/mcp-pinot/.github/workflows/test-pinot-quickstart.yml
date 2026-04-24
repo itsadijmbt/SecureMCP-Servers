@@ -1,0 +1,97 @@
+name: Test Pinot Quickstart
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  test-pinot-quickstart:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+    - uses: actions/checkout@v6
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Install dependencies
+      run: |
+        uv venv
+        source .venv/bin/activate
+        uv pip install -e ".[dev]"
+    
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v4
+    
+    - name: Start Pinot containers
+      run: |
+        docker run -d \
+          --name pinot-quickstart \
+          -p 9000:9000 \
+          -p 8000:8000 \
+          apachepinot/pinot:latest \
+          QuickStart -type batch
+        .github/scripts/setup_python_test_env.sh
+    
+    - name: Create test environment file
+      run: |
+        cat > .env << EOL
+        PINOT_CONTROLLER_URL=http://localhost:9000
+        PINOT_BROKER_HOST=localhost
+        PINOT_BROKER_PORT=8000
+        PINOT_BROKER_SCHEME=http
+        PINOT_USE_MSQE=true
+        MCP_PORT=8080
+        EOL
+    
+    - name: Run quickstart test
+      run: |
+        cat .env
+        source .venv/bin/activate
+        # Start server in background
+        uv --directory . run mcp_pinot/server.py > server.log 2>&1 &
+        SERVER_PID=$!
+
+        # Wait for server to start (avoid race with uv syncing in background)
+        # Note: /mcp may return 406 depending on Accept headers; any HTTP response means it's up.
+        for i in $(seq 1 60); do
+          STATUS_CODE="$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/mcp || true)"
+          if [ "${STATUS_CODE}" != "000" ]; then
+            echo "MCP server is up (HTTP ${STATUS_CODE})"
+            break
+          fi
+          sleep 1
+        done
+
+        if [ "${STATUS_CODE}" = "000" ]; then
+          echo "MCP server failed to start in time"
+          cat server.log || true
+          exit 1
+        fi
+
+        # Run the client test
+        uv --directory . run examples/example_client.py
+
+        # Clean up server process
+        kill $SERVER_PID || true
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        docker stop pinot-quickstart || true
+        docker rm pinot-quickstart || true
