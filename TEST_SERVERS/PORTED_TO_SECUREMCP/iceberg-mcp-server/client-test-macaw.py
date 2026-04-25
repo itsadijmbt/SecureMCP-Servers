@@ -47,13 +47,7 @@ async def main():
     print("ICEBERG-MCP TOOL TESTS")
     print("=" * 50)
 
-    # ----------------------------------------------------------------
-    # TEST 1 — get_schema (no args)
-    # Easiest possible test. Calls `SHOW TABLES` against Impala.
-    # If Impala is reachable, returns a JSON list of table names.
-    # If not, returns "Error: ..." but the call still completes
-    # (handler runs, exception caught inside impala_tools.get_schema).
-    # ----------------------------------------------------------------
+
     print("\n[TEST 1] get_schema — list tables in current Impala database")
     try:
         result = await client.call_tool("get_schema", {})
@@ -61,11 +55,7 @@ async def main():
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # ----------------------------------------------------------------
-    # TEST 2 — execute_query with `SHOW TABLES`
-    # Verifies the SQL path works for read-only commands.
-    # `SHOW` is in the readonly_prefixes allowlist (impala_tools.py:47).
-    # ----------------------------------------------------------------
+ 
     print("\n[TEST 2] execute_query — SHOW TABLES")
     try:
         result = await client.call_tool("execute_query", {"query": "SHOW TABLES"})
@@ -74,11 +64,7 @@ async def main():
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # ----------------------------------------------------------------
-    # TEST 3 — execute_query with a SELECT
-    # Simplest valid SELECT. Doesn't depend on any specific table
-    # existing in the cluster.
-    # ----------------------------------------------------------------
+
     print("\n[TEST 3] execute_query — SELECT 1")
     try:
         result = await client.call_tool("execute_query", {"query": "SELECT 1"})
@@ -86,14 +72,7 @@ async def main():
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # ----------------------------------------------------------------
-    # TEST 4 — Read-only enforcement
-    # Sending a write query should return the readonly rejection
-    # message ("Only read-only queries are allowed.") because
-    # impala_tools.execute_query checks the first word against an
-    # allowlist (select / show / describe / with).
-    # This proves the upstream's safety check still runs under SecureMCP.
-    # ----------------------------------------------------------------
+
     print("\n[TEST 4] execute_query — write attempt (should be rejected)")
     try:
         result = await client.call_tool(
