@@ -1,0 +1,37 @@
+[project]
+name = "alibabacloud-rds-openapi-mcp-server"
+version = "3.1.2"
+description = "MCP server for RDS Services via OPENAPI."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "alibabacloud-bssopenapi20171214>=5.0.0",
+    "alibabacloud-das20200116==2.7.1",
+    "alibabacloud-rds20140815>=11.0.0",
+    "alibabacloud-vpc20160428>=6.11.4",
+    "httpx>=0.28.1",
+    "mcp[cli]>=1.11.0",
+#    "psycopg2>=2.9.10",
+    "pymysql>=1.1.1",
+    "pyodbc>=5.2.0",
+]
+
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+authors = [
+    {name = "AlibabaCloud RDS"}
+]
+
+[project.urls]
+Homepage = "https://github.com/aliyun/alibabacloud-rds-openapi-mcp-server"
+Documentation = "https://github.com/aliyun/alibabacloud-rds-openapi-mcp-server/"
+Source = "https://github.com/aliyun/alibabacloud-rds-openapi-mcp-server.git"
+"Bug Tracker" = "https://github.com/aliyun/alibabacloud-rds-openapi-mcp-server/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/alibabacloud_rds_openapi_mcp_server"]
+
+[project.scripts]
+alibabacloud-rds-openapi-mcp-server = "alibabacloud_rds_openapi_mcp_server.server:main"
+alibabacloud-rds-instances-manage = "alibabacloud_rds_openapi_mcp_server.run_tool:main"

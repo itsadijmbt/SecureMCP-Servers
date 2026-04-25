@@ -1,0 +1,34 @@
+# alibabacloud-rds-instances-manage 用 skill 清单（可选）
+name: alibabacloud-rds-instances-manage
+version: "1.0.0"
+description: 通过阿里云 RDS OpenAPI 与只读 SQL 管理 RDS 实例，支持 OpenClaw、Claude Code 等以 Skill 形式调用。
+author: Alibaba Cloud RDS
+
+# 能力简述，供 LLM 选择
+capabilities:
+  - 查询 RDS 实例列表、详情、监控、慢日志、参数、账号、数据库、白名单
+  - 执行只读 SQL（query_sql、explain_sql、show_create_table 等）
+  - 创建/修改实例、账号、参数、规格、重启、公网连接等 OpenAPI 操作
+
+# 运行技能时的入口：使用已安装的 alibabacloud-rds-instances-manage 命令
+entry_points:
+  - type: cli
+    command: alibabacloud-rds-instances-manage list
+    description: 列出可用工具
+  - type: cli
+    command: alibabacloud-rds-instances-manage run <tool_name> '<json_args>'
+    description: 执行指定工具
+
+# 依赖：需在平台配置 entries 时为本 skill 注入 env，便于后续使用
+# 例如 OpenClaw 在 ~/.openclaw/openclaw.json 的 skills.entries 中配置：
+#   "alibabacloud-rds-instances-manage": { "enabled": true, "env": { "ALIBABA_CLOUD_ACCESS_KEY_ID": "...", "ALIBABA_CLOUD_ACCESS_KEY_SECRET": "..." } }
+requires:
+  bins: [uv]
+  env:
+    - ALIBABA_CLOUD_ACCESS_KEY_ID
+    - ALIBABA_CLOUD_ACCESS_KEY_SECRET
+  optional_env:
+    - ALIBABA_CLOUD_SECURITY_TOKEN
+    - MCP_TOOLSETS
+
+os: [darwin, linux]

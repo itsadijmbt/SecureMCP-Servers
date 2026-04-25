@@ -1,0 +1,7 @@
+# 阿里云 RDS AI 助手工具依赖
+
+## Python 依赖包
+
+alibabacloud_rdsai20250507>=1.0.0
+alibabacloud_tea_openapi>=0.3.0
+alibabacloud_tea_util>=0.3.0
