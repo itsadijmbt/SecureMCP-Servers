@@ -1,0 +1,3 @@
+-> changed py version to >=3.11 in *.toml
+-> Though Uses FastMcp package from OpenAPI, but is portable unlike alpaca as it is not open_api tool heavy (alpaca-mcp-server  │ from fastmcp import FastMCP │ from_openapi(), MCPType, mount(), lifespan — heavy use of fastmcp 2.x exclusives)
+-> Simple wrapper changed.

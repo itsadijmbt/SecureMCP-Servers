@@ -42,6 +42,30 @@ async def main():
       print("\n" + "=" * 50)
       print("PINOT-MCP TOOL TESTS")
       print("=" * 50)
+      # ============================================================
+      # NOTE ON JWT / OAuth TESTING
+      # ============================================================
+      # The original Pinot server (FastMCP path) used JWTVerifier +
+      # OAuthProxy for caller authentication at the HTTP layer.
+      # Those classes were *deleted* during the SecureMCP port —
+      # MACAW replaces caller auth with cryptographically signed mesh
+      # invocations validated by the Local Agent before the handler
+      # runs. There is no JWT to send and no HTTP listener to send
+      # it to.
+      #
+      # Therefore THIS SCRIPT DOES NOT TEST JWT. It cannot — the
+      # JWT-bearing surface no longer exists. What this script DOES
+      # test is the SecureMCP equivalent: that a registered MACAW
+      # caller (`Client(client_type)` above) is authenticated by the
+      # mesh, signed every invocation, and was allowed by MAPL policy
+      # to reach the handler.
+      #
+      # Every TEST below succeeding is implicitly proof that:
+      #   - the caller's MACAW signature was valid,
+      #   - MAPL policy did not deny the call,
+      #   - the audit entry was written (visible in MACAW console),
+      #   - the FastMCP -> SecureMCP port was successful.
+      # ============================================================
 
       # Test 1: Verify Pinot connectivity
       print("\n[TEST 1] test_connection")
