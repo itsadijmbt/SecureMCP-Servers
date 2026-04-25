@@ -1,0 +1,4 @@
+Just changed import
+Remoevd mcp.types that imported TextContent as macaw return result={"result":}
+chnaged fn prepare_res 's return as it retuend a textContent
+changed *.toml -> py>=3.11
