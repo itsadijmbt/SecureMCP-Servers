@@ -1,5 +1,5 @@
 """
-MACAW client smoke test for esp-rainmaker-mcp
+MACAW client smoke test for ydp-mcp
 (post FastMCP -> SecureMCP port).
 
 Usage:

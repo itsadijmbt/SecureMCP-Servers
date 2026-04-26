@@ -1,0 +1,178 @@
+mcp-server-couchbase -- FastMCP -> SecureMCP migration
+========================================================
+
+Class: medium-easy. ~6 files touched. The interesting work is in
+flattening the lifespan to module-level state. Tool bodies are
+nearly untouched.
+
+Why this server is medium, not trivial
+--------------------------------------
+- FastMCP's @asynccontextmanager `app_lifespan` yielded an
+  AppContext containing the cluster + read_only_mode flags.
+- Every tool reached that context via:
+      ctx.request_context.lifespan_context
+- That whole chain is FastMCP-only. SecureMCP's Context object
+  has no `request_context` attribute (verified at
+  secureAI/macaw_adapters/mcp/mcp.py:46-50).
+- So we had to move the AppContext + cluster into module globals
+  and rewrite the choke-point helper that every tool used.
+
+Why this is NOT vulnerable to the loop-reuse trap
+-------------------------------------------------
+The Couchbase SDK used here is `couchbase.cluster.Cluster` --
+the SYNC variant, not `couchbase.asyncio`. Sync clients don't
+bind their internal state to an event loop, so SecureMCP's
+per-call asyncio.run() doesn't break anything between calls.
+Same safety class as alibaba and conan. (See
+DOCS/POSSIBLE_IMPROVEMENTS_IN_SECUREMCP/01_async_sdk_event_loop.md
+for the loop-reuse story we hit in YDB.)
+
+Changes
+-------
+
+1. Import swap (mcp_server.py)
+   - from mcp.server.fastmcp import FastMCP
+   + from macaw_adapters.mcp import SecureMCP
+
+2. Delete app_lifespan (mcp_server.py)
+   The original @asynccontextmanager had no `await` in its body.
+   It just built an AppContext dataclass and yielded it. We
+   delete it entirely and move the AppContext init into
+   utils.context as a module global, populated by
+   initialize_app_context() called from main().
+
+3. Drop FastMCP-only kwargs at construction (mcp_server.py)
+   - mcp = FastMCP(MCP_SERVER_NAME, lifespan=app_lifespan, **config)
+   + mcp = SecureMCP(MCP_SERVER_NAME)
+   `lifespan=`, `host=`, `port=` are not accepted by SecureMCP.
+   The CLI flags --host, --port, --transport stay on the surface
+   for back-compat but are cosmetic; MACAW provides the mesh
+   transport regardless.
+
+4. Translate add_tool to decorator-as-function (mcp_server.py)
+   - mcp.add_tool(tool, annotations=annotations)
+   + mcp.tool(name=tool.__name__, description=tool.__doc__ or "")(tool)
+   SecureMCP exposes only the decorator factory. `annotations=` is
+   dropped because SecureMCP only accepts (name, description, prompts).
+
+5. Add initialize_app_context() call (mcp_server.py)
+   Right before `mcp.run()`:
+       initialize_app_context(
+           read_only_mode=read_only_mode,
+           read_only_query_mode=read_only_query_mode,
+       )
+   Replaces what app_lifespan used to do. Must run before any tool
+   call so get_app_context() returns a valid object.
+
+6. Rewrite the choke-point helper (utils/context.py)
+   Moved from "read AppContext through ctx.request_context" to two
+   module-level globals:
+       _APP_CONTEXT  -- the dataclass (read_only_mode etc.).
+       _CLUSTER      -- the Couchbase cluster, lazy-built on first
+                        tool call.
+   Two new functions:
+       initialize_app_context(read_only_mode, read_only_query_mode)
+       get_app_context() -> AppContext
+   And one rewritten:
+       get_cluster_connection() -> Cluster   (no `ctx` arg anymore)
+   The old `_set_cluster_in_lifespan_context(ctx)` helper is gone;
+   its lazy-init body is inlined into get_cluster_connection().
+
+7. Update the tool files (kv.py, query.py, server.py, index.py)
+   Three mechanical edits per file:
+
+   (a) Context import swap:
+       - from mcp.server.fastmcp import Context
+       + from macaw_adapters.mcp import Context
+
+   (b) Drop the `ctx` arg from every cluster fetch:
+       - cluster = get_cluster_connection(ctx)
+       + cluster = get_cluster_connection()
+       The original line is kept as a `# PORT:` comment above each
+       new line for traceability.
+
+   (c) Replace ctx.request_context.lifespan_context reads with
+       module-global reads:
+       - app_context = ctx.request_context.lifespan_context
+       + app_context = get_app_context()        # query.py
+       In server.py the cluster_connected check was rewritten to
+       read utils.context._CLUSTER directly via the imported module
+       (NOT via `from utils.context import _CLUSTER`, which would
+       freeze a stale reference at import time).
+
+What we did NOT need
+--------------------
+- No _metadata bridge (no per-call secrets).
+- No vault writes (no persistent per-user state).
+- No companion process (no OAuth flow).
+- No tool-body rewrites beyond the choke-point helper call.
+- No HTTP transport branch to delete (SecureMCP doesn't run HTTP).
+- No async-SDK loop-reuse fix (the SDK is sync).
+
+Two auth layers (kept independent)
+----------------------------------
+- Caller auth (added by this port): MACAW signs every call with
+  the caller's keypair; Local Agent verifies before the handler
+  runs. Pre-port: anyone on stdio could call any tool. Post-port:
+  only signed MACAW callers permitted by MAPL policy.
+- Upstream auth (unchanged): Couchbase username + password (or
+  client cert + key for mTLS) supplied via CLI flags / env vars
+  at server startup. Process-global, set once. Same shape as
+  alibaba's env-var fallback or rainmaker's CLI-login config.
+
+Verification
+------------
+client-test-macaw.py runs three escalating proofs:
+
+  TEST 1  get_server_configuration_status  (no upstream call)
+          -> always passes; proves caller-auth + dispatch.
+
+  TEST 2  test_cluster_connection
+          -> with creds:    {"status": "success", "cluster_connected": true}
+          -> without creds: {"status": "error", "cluster_connected": false}
+
+  TEST 3  get_buckets_in_cluster
+          -> with creds:    list of bucket names
+          -> without creds: SDK exception caught & wrapped
+
+Either branch verifies the port. The creds branch additionally
+verifies the upstream Couchbase connection.
+
+Files touched
+-------------
+- src/mcp_server.py        : import swap, delete app_lifespan,
+                              drop FastMCP-only kwargs, switch to
+                              decorator-as-function registration,
+                              call initialize_app_context() before
+                              mcp.run().
+- src/utils/context.py     : module-global _APP_CONTEXT and
+                              _CLUSTER + initialize_app_context(),
+                              get_app_context(), no-arg
+                              get_cluster_connection().
+- src/tools/kv.py          : Context import swap; ctx-arg dropped
+                              from get_cluster_connection() calls
+                              (originals kept as PORT comments).
+- src/tools/query.py       : same as kv.py + lifespan_context read
+                              replaced with get_app_context().
+- src/tools/server.py      : same as kv.py + cluster_connected
+                              check now reads
+                              utils.context._CLUSTER via module
+                              import.
+- src/tools/index.py       : Context import swap only (it doesn't
+                              touch the cluster directly).
+- client-test-macaw.py     : new (3-test smoke harness).
+- MIGRATION.txt            : this file.
+
+Files NOT touched
+-----------------
+- src/utils/connection.py     : the actual Couchbase connect call.
+- src/utils/config.py         : Click-context settings reader.
+- src/utils/elicitation.py    : confirmation-flow utilities.
+- src/utils/index_utils.py    : index helpers.
+- src/utils/query_utils.py    : query plan helpers.
+- src/utils/__init__.py       : re-exports.
+- src/tools/__init__.py       : tool registry + TOOL_ANNOTATIONS
+                                 (the dict still exists, just no
+                                 longer consumed by mcp_server.py).
+
+Status: PORTED, ready for smoke test (no live Couchbase yet).
