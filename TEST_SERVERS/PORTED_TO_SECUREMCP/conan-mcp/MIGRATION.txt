@@ -1,0 +1,31 @@
+
+
+1. Import swap (main.py:6-7)
+   - from mcp.server.fastmcp import FastMCP
+   + from macaw_adapters.mcp import SecureMCP
+   - from pydantic import Field          (no longer used; see #3)
+
+2. Class swap (main.py:9)
+   - mcp = FastMCP("conan-mcp")
+   + mcp = SecureMCP("conan-mcp")
+
+3. Drop pydantic Field from tool parameter defaults (all 7 tools)
+   Original used:
+       name: str = Field(description="...")
+       version: str = Field(default="*", description="...")
+   Rewritten to:
+       name: str
+       version: str = "*"
+   The per-param descriptions are preserved at the tool-level
+   docstring inside @mcp.tool(description="""...""") so callers
+   still see them. No info lost; one source of truth.
+
+4. Reorder one signature for Python's "no non-default after default"
+   that have actual defaults:
+       template: str,
+       name: str,
+       work_dir: str,        # moved here
+       version: str = "0.1",
+       requires: list[str] = None,
+       tool_requires: list[str] = None,
+ 
