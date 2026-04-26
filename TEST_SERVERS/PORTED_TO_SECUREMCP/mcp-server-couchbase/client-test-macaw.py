@@ -9,24 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-Two layers being checked:
-
-  Caller auth -- "is this caller really who they say they are?"
-  MACAW signs every invoke_tool call with this caller's keypair.
-  If MACAW didn't trust us, none of these calls would even reach
-  the server. Any response coming back is the proof.
-
-  Upstream auth -- "what credentials does the server use to talk
-  to Couchbase?" The server reads connection-string + username +
-  password from CLI flags / env vars at startup (process-global,
-  set once, used for every call). Same shape as alibaba's env-var
-  fallback or rainmaker's CLI-login config.
-
-  Two outcome branches both prove the port:
-    - No Couchbase reachable -> tool returns/raises a clear error,
-      flowing through the SecureMCP handler chain.
-    - Couchbase reachable     -> tools return real data (lists,
-      dicts) from the cluster.
 """
 
 import asyncio
@@ -41,11 +23,6 @@ def get_server(name, client):
         a for a in agents
         if name in a.get("agent_id", "")
         and "/tool." not in a.get("agent_id", "")
-        # Exclude client agents (their IDs start with "securemcp-client-").
-        # The server we want is "securemcp-<NAME>", and a substring filter
-        # like "couchbase" would otherwise also match "securemcp-client-
-        # couchbase-test-client" -- the caller itself.
-        and "securemcp-client-" not in a.get("agent_id", "")
     ]
     if not server:
         print(f"No server found matching: {name}")
