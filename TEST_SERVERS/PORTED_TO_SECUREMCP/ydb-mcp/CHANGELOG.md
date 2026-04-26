@@ -1,0 +1,29 @@
+## 0.2.1 ##
+* Ability to disable discovery in YDB driver
+
+## 0.2.0 ##
+* Make MCP server extensible via subclassing (`YDBMCPServer` now extends `FastMCP`)
+
+## 0.1.7 ##
+* Pass lib version to sdk grpc header
+
+## 0.1.6 ##
+* Add explain_query and explain_query_with_params tools
+
+## 0.1.5 ##
+* Fix error outputSchema defined but no structured output returned
+
+## 0.1.4 ##
+* Fix README instructions
+
+## 0.1.3 ##
+* Fix auth choices
+
+## 0.1.2 ##
+* Add several auth methods
+
+## 0.1.1 ##
+* Update package
+
+## 0.1.0 ##
+* First version

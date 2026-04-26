@@ -1,0 +1,161 @@
+ydb-mcp -- FastMCP -> SecureMCP migration
+==========================================
+
+Class: medium. ~50-line diff. No bridge, no per-caller plumbing,
+no external component. The interesting work is in the WRAPPER
+CLASS DESIGN, not the auth model.
+
+Why this server is different from alibaba/rainmaker
+---------------------------------------------------
+- It is a LIBRARY, not just an internal server. The class
+  YDBMCPServer is exported and the docstring advertises
+  subclassing as the public API:
+      class MyServer(YDBMCPServer):
+          @self.tool()                    # was inherited
+          async def my_tool(...): ...
+- Inheritance from FastMCP was the original delivery mechanism
+  for tool registration. SecureMCP cannot be inherited the same
+  way -- it is a peer class with a narrower surface.
+- So the port has to keep the subclassing API working without
+  inheritance. That is the central design problem.
+
+Upstream auth (unchanged shape)
+-------------------------------
+YDB has 4 auth modes set once at process startup via CLI flags
+or env vars: anonymous, login-password, access-token,
+service-account. Same shape as rainmaker -- single set of creds
+for the whole server, no per-caller plumbing required.
+
+So MACAW does not multi-tenant the upstream YDB connection. It
+gatekeeps the MCP surface (caller signature + MAPL policy +
+audit). Pre-port: anyone on stdio could run any SQL. Post-port:
+only signed MACAW callers permitted by MAPL policy can.
+
+Changes
+-------
+
+1. Import swap (server.py)
+   - from mcp.server.fastmcp import FastMCP
+   + from macaw_adapters.mcp import SecureMCP
+
+2. Class declaration (server.py)
+   - class YDBMCPServer(FastMCP):
+   + class YDBMCPServer:
+   No superclass. Composition wrapper, like alibaba's RdsMCP.
+
+3. Build SecureMCP as a PUBLIC field, not _mcp (server.py)
+   - super().__init__("YDB MCP Server", **kwargs)
+   + self.mcp = SecureMCP("YDB MCP Server")
+   The leading underscore is reserved for private state. This
+   field is reached by subclassers (`@self.mcp.tool()`) and by
+   register_generic_tools (`server.mcp.tool(...)(fn)`), so it is
+   part of the public API and named accordingly.
+
+4. Drop **kwargs forwarding (server.py)
+   The original __init__ took **kwargs: Any and forwarded them
+   into super().__init__(). That accepted FastMCP-only kwargs
+   like lifespan=, dependencies=, stateless_http=, host=, port=.
+   None of those exist on SecureMCP. **kwargs: Any in this slot
+   is technical debt -- silent breakage waiting to happen. We
+   could drop it explicitly; for now it is retained but no
+   longer forwarded (super() call is gone). Subclasser code that
+   relied on kwarg forwarding will get a quiet no-op rather than
+   a TypeError. Acceptable for now; tighten in a follow-up.
+
+5. Forward run() to the SecureMCP child (server.py)
+   - super().run(transport=transport)
+   + self.mcp.run()
+   No protocol-side change -- SecureMCP.run() handles transport.
+   NOTE: aclose() exists but is still not called on shutdown
+   (same gap the original had). Optional follow-up: wrap in
+   try/finally with asyncio.run(self.aclose()).
+
+6. Strip the TextContent envelope (tools.py)
+   - from mcp.types import TextContent
+   - async def ydb_query(sql) -> list[TextContent]:
+   -     return [TextContent(type="text", text=...)]
+   + (no import)
+   + async def ydb_query(sql) -> str:
+   +     return ...
+   TextContent is an MCP-wire-protocol type. SecureMCP runs over
+   the MACAW mesh, not raw MCP JSON-RPC, and auto-wraps non-dict
+   returns as {"result": <value>}. Wrapping in TextContent
+   produced a double envelope. All 7 tool functions converted.
+
+7. Convert imperative add_tool to decorator-as-function (tools.py)
+   - server.add_tool(fn, name=..., description=...)
+   + server.mcp.tool(name=..., description=...)(fn)
+   SecureMCP exposes only the decorator factory; no add_tool.
+   The (...)(fn) form is the canonical translation -- same
+   behavior, half the API surface.
+
+8. YDB-domain methods kept verbatim (server.py)
+   _build_credentials, _ensure_connected, execute, explain,
+   list_directory, describe_path, _describe_table, aclose --
+   all unchanged. They live on the wrapper because they are
+   YDB-domain capabilities, independent of the MCP protocol.
+   Tool callbacks reach them as `await server.execute(sql)`
+   exactly as before.
+
+What we did NOT need
+--------------------
+- No _metadata bridge (no per-call secrets).
+- No vault writes (creds are static, configured at startup).
+- No companion process (no OAuth flow).
+- No tool-body sweep (no with-block to inject).
+- No middleware to remove (server had no auth middleware).
+- No __main__.py changes (server.run() forwards correctly).
+- No __init__.py changes (class names unchanged).
+
+Architectural takeaway: composition with visible child
+------------------------------------------------------
+The chosen pattern -- expose `self.mcp` as a public field rather
+than write tool()/add_tool() forwarders on the wrapper -- is
+generalizable. Anytime you wrap a class whose API is already
+correct and you only want to ADD capabilities next to it,
+visible composition beats a facade:
+
+  - Less code on the wrapper (no forwarders to maintain).
+  - Explicit boundary at the call site (`self.mcp.tool` says
+    "this is the protocol surface").
+  - Domain logic and protocol logic stay on different objects;
+    no monkey-patching the inner one.
+
+Trade-off accepted: subclassers must update `@self.tool()` to
+`@self.mcp.tool()`. Since this server has no real downstream
+subclasser base, the breaking change is theoretical and paid
+for by a cleaner internal model.
+
+Files touched
+-------------
+- ydb_mcp/server.py   : import swap, drop inheritance, build
+                        SecureMCP child as self.mcp, drop super
+                        calls, forward run().
+- ydb_mcp/tools.py    : drop TextContent import, change tool
+                        return-type annotations, switch from
+                        add_tool to decorator-as-function.
+- MIGRATION.txt       : this file.
+
+Files NOT touched
+-----------------
+- ydb_mcp/__main__.py  : server.run() still works.
+- ydb_mcp/__init__.py  : exports unchanged.
+- ydb_mcp/params.py    : pure data, no MCP coupling.
+- ydb_mcp/serialization.py : pure data, no MCP coupling.
+- All YDB-domain methods on the wrapper.
+
+Open follow-ups (non-blocking)
+------------------------------
+- Drop **kwargs: Any from __init__ explicitly + add CHANGELOG
+  entry listing the FastMCP-only kwargs no longer accepted.
+- Wrap run() in try/finally to call aclose() on shutdown.
+- Update the class docstring example to use @self.mcp.tool().
+- Write client-test-macaw.py with a 3-test smoke harness:
+    TEST 1: ydb_status (no SQL needed -- proves caller-auth
+            and dispatch chain).
+    TEST 2: ydb_query("SELECT 1") with anonymous mode against
+            a local YDB or expected-failure error string.
+    TEST 3: ydb_list_directory("/") -- exercises the scheme
+            client path through the SDK.
+
+Status: PORTED, untested. Smoke-test pending.

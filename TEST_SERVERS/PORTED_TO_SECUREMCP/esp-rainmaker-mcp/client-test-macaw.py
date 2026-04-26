@@ -101,20 +101,13 @@ async def main():
 
     # ----------------------------------------------------------------
     # TEST 2 — check_login_status
-    # This tool calls ensure_login_session() which constructs
-    # rmaker_lib.session.Session(). The Session ctor reads a local
-    # config file written by `esp-rainmaker-cli login`.
+
     #
     # Two valid outcomes — BOTH prove the port works:
     #   A) NO creds on host  -> tool returns the SDK-translated string
-    #      "Login required. Please run the 'login_instructions' tool
-    #      ..." (this comes from the ValueError raised in
-    #      ensure_login_session when InvalidUserError/InvalidConfigError
-    #      bubbles up). That string can ONLY appear if the tool body
-    #      ran, which means MACAW + SecureMCP wiring is correct.
+    #      "
     #   B) CREDS on host     -> tool returns
-    #      "Login session is active for user: <username>"
-    #      which proves SDK auth flowed through the same wired path.
+    #     
     #
     # ----------------------------------------------------------------
     print("\n[TEST 2]  exercises the SDK auth path")
