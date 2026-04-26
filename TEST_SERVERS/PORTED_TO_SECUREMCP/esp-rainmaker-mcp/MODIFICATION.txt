@@ -1,0 +1,128 @@
+esp-rainmaker-mcp — FastMCP -> SecureMCP migration
+====================================================
+
+Class: easy. ~15-line diff. No bridge, no per-caller plumbing, no
+external component. Tool bodies untouched.
+
+Why this server is in the easy class
+------------------------------------
+- Upstream auth = the rmaker_lib SDK reads a local config file
+  written by `esp-rainmaker-cli login`. Single-user per host.
+- No HTTP listener, no per-call AK/SK (unlike alibaba), no OAuth
+  redirect (unlike box).
+- The original FastMCP lifespan held NO state — it only logged
+  config info and yielded None. So lifespan flattens to module-
+  level code; nothing else needs to migrate.
+- All 13 tools route through one helper, ensure_login_session(),
+  which calls rainmaker_session.Session(). The SDK refreshes
+  tokens internally. The MCP server owns zero auth code.
+
+Changes
+-------
+
+1. Import swap
+   - from mcp.server.fastmcp import FastMCP, Context
+   + from macaw_adapters.mcp import SecureMCP, Context
+
+2. Drop unsupported kwargs at construction
+   - mcp = FastMCP("ESP-RainMaker-MCP",
+                   lifespan=rainmaker_lifespan,
+                   dependencies=["esp-rainmaker-cli"])
+   + mcp = SecureMCP("ESP-RainMaker-MCP")
+
+   Reasons:
+   - lifespan=  : SecureMCP has no startup-hook primitive.
+   - dependencies= : FastMCP-CLI metadata for `mcp install`;
+                     irrelevant under MACAW.
+
+3. Lifespan flattened to a module-level config probe
+   The @asynccontextmanager only logged config info and yielded
+   None. Replaced by a try/except at import time that runs the
+   same logging. Wrapped in try/except so a fresh host without
+   esp-rainmaker-cli login warns instead of crashing startup.
+
+4. Tool bodies: UNCHANGED
+   All 13 @mcp.tool functions kept byte-identical. SecureMCP's
+   .tool() decorator is shape-compatible with FastMCP's for the
+   kwargs this server uses (none beyond the function itself).
+   ctx: Context still works because both classes export a
+   Context with the parameters this code touches.
+
+5. ensure_login_session() helper: UNCHANGED
+   Continues to construct rainmaker_session.Session() per call
+   via asyncio.to_thread. Token refresh and config-file reading
+   stay inside the SDK.
+
+What we did NOT need
+--------------------
+- No _metadata bridge (no per-caller secret to plumb).
+- No vault writes (SDK persists tokens to its own file).
+- No companion process (no OAuth redirect to host).
+- No tool-body sweep (no with-block to inject around bodies).
+- No middleware to remove (server had no auth middleware to
+  begin with — all auth lived inside rmaker_lib).
+
+Two auth layers (kept independent)
+----------------------------------
+- Caller auth (added by this port): MACAW signs every call with
+  the caller's keypair; Local Agent verifies before the handler
+  runs. New gatekeeping that did not exist before — anyone who
+  could reach stdio could previously call any tool.
+- Upstream auth (unchanged): rmaker_lib reads
+  ~/.espressif/... config, refreshes tokens internally. Server
+  is single-user-per-host by SDK design, same as before.
+
+Verification
+------------
+client-test-macaw.py runs three escalating proofs:
+
+  TEST 1  login_instructions  (static markdown, no SDK call)
+          -> proves caller-auth + dispatch chain.
+
+  TEST 2  check_login_status  (calls Session() ctor)
+          -> without creds: "Login required..." (SDK raises
+             InvalidConfigError; ensure_login_session translates
+             to ValueError; tool returns str(e)).
+          -> with creds:   "Login session is active for user:
+                            <email>".
+
+  TEST 3  get_nodes  (calls upstream RainMaker API)
+          -> without creds: "Login required..." (short-circuits
+             before network).
+          -> with creds:   list of node IDs OR
+                           "No nodes found for this user."
+
+Both branches verified end-to-end on this host:
+  no-creds  -> all 3 tests PASS with translated-error branch.
+  with-creds -> all 3 tests PASS; TEST 3 returned a real
+                upstream response confirming the full vertical
+                (caller-auth -> mesh -> SecureMCP -> tool ->
+                 SDK -> ESP cloud -> back).
+
+Known minor quirks (not port issues)
+------------------------------------
+- TEST 1 may show "[Could not determine login URL]" placeholders
+  even after a successful login. This is a quirk of how the SDK
+  exposes login URLs through Config() vs Session() — unrelated
+  to the port. The string still proves dispatch + exception
+  fallback work.
+- MACAW audit-event POST to api.macawsecurity.ai may time out
+  with "Read timed out (read timeout=2.0)". Tool execution
+  succeeds; only the audit ship is delayed. Pre-existing across
+  all servers in this workspace, not a rainmaker-specific issue.
+
+Files touched
+-------------
+- server.py          : import swap, lifespan flatten, drop
+                       unsupported kwargs at construction.
+- client-test-macaw.py : new (3-test smoke harness).
+- MODIFICATION.txt   : this file.
+
+Files NOT touched
+-----------------
+- Tool bodies (all 13).
+- ensure_login_session().
+- pyproject.toml (deps unchanged for this round; mcp[cli] can
+  be removed once the FastMCP CLI runner is no longer used).
+
+Status: PORTED, verified.
