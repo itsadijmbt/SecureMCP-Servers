@@ -1,0 +1,138 @@
+optuna-mcp -- FastMCP -> SecureMCP migration
+==============================================
+
+Class: medium-easy. Single-file port (~700 lines, 22 tools).
+No auth, no lifespan, no async, no upstream creds.
+
+Why this server is different from the previous ones
+---------------------------------------------------
+- It's a class-based server (`OptunaMCP(FastMCP)`) but with no
+  public subclassers. Internal usage only.
+- Tools use a FastMCP-only decorator kwarg `structured_output=`
+  on ~15 sites that SecureMCP rejects.
+- Tools return pydantic BaseModel instances (StudyResponse,
+  TrialResponse). MACAW serializes returns as JSON; pydantic
+  models aren't JSON-native.
+- ~10 plot tools return `Image(data=..., format="png")`, which
+  is a FastMCP wire-format type SecureMCP doesn't ship.
+- Errors raised as `McpError(ErrorData(...))` (FastMCP-typed).
+
+None of these are blockers; each has a small mechanical fix.
+
+Changes
+-------
+
+1. Import swap (server.py).
+   Removed (kept as comments above the new imports):
+       from mcp.server.fastmcp import FastMCP, Image
+       from mcp.shared.exceptions import McpError
+       from mcp.types import ErrorData, INTERNAL_ERROR
+   Added:
+       from macaw_adapters.mcp import SecureMCP
+       import base64
+
+2. Class swap with composition wrapper (server.py).
+   Was:  class OptunaMCP(FastMCP):
+             super().__init__(...)
+   Now:  class OptunaMCP:
+             self.mcp = SecureMCP(name)
+   Domain state (storage, study, dashboard) stays on the wrapper.
+   Protocol concerns live on self.mcp.
+
+3. Add tool() forwarder on the wrapper (server.py).
+   def tool(self, *args, **kwargs):
+       supported = {"name", "description", "prompts"}
+       filtered = {k: v for k, v in kwargs.items() if k in supported}
+       return self.mcp.tool(*args, **filtered)
+   Why: ~15 sites use @mcp.tool(structured_output=True). SecureMCP
+   only accepts (name, description, prompts). The forwarder filters
+   the unsupported kwarg once instead of editing 15 call sites.
+   Acceptable here because OptunaMCP has no public subclassers.
+
+4. Forward run() (server.py).
+   def run(self):
+       self.mcp.run()
+
+5. .model_dump() at BaseModel return sites (~11 places).
+   Was:  return StudyResponse(study_name=name)
+   Now:  return StudyResponse(study_name=name).model_dump()
+   Why: SecureMCP serializes returns to JSON. pydantic BaseModel
+   isn't JSON-native; .model_dump() converts to a plain dict at
+   the boundary. Class definitions kept unchanged -- they still
+   document the response shape.
+
+6. Image returns rewritten as base64 dicts (~10 plot tools).
+   Was:  return Image(data=plotly.io.to_image(fig), format="png")
+   Now:  return {
+             "image_format": "png",
+             "image_base64": base64.b64encode(plotly.io.to_image(fig)).decode(),
+         }
+   Why: Image is FastMCP's protocol-aware binary type. SecureMCP
+   doesn't ship it. The base64 dict is JSON-safe and any client
+   can decode. Original `Image(...)` returns kept as `# was: ...`
+   comments immediately above the new dicts.
+
+7. McpError -> RuntimeError (~16 raise sites).
+   Was:  raise McpError(ErrorData(code=INTERNAL_ERROR, message="..."))
+   Now:  raise RuntimeError("...")
+   Why: McpError is FastMCP's typed error envelope. SecureMCP
+   catches exceptions generically; the specific class doesn't
+   matter on the wire. Plain RuntimeError carries the same
+   message with one fewer dependency. Originals kept as
+   `# was: ...` comments above each replacement.
+
+8. in *.toml pyversion >=3.11
+What we did NOT need
+--------------------
+- No bridge (no per-call upstream creds).
+- No vault / session storage (no per-user state).
+- No lifespan flatten (none existed).
+- No async-loop fix (all tools are sync `def`).
+- No tool-body rewrites beyond return-shape adapters.
+- No CLI rewrites (already plain argparse, not click).
+- No removal of pydantic (BaseModel definitions kept; only the
+  return sites adapt with .model_dump()).
+
+Two auth layers (independent)
+-----------------------------
+- Caller auth (added by this port): MACAW signs every call with
+  the caller's keypair. Pre-port: anyone on stdio could call any
+  tool. Post-port: only signed MACAW callers permitted by MAPL.
+- Upstream auth: none. Optuna writes to a local SQLite or in-
+  memory storage by default. The `--storage` CLI flag points at
+  a different backend if needed; no creds plumbed through tools.
+
+Verification
+------------
+client-test-macaw.py runs a holistic 6-test workflow:
+
+  TEST 1  create_study              (BaseModel return path)
+  TEST 2  get_all_study_names       (list[BaseModel] return path)
+  TEST 3  ask                       (study state mutation +
+                                     BaseModel return)
+  TEST 4  tell + best_trial         (full optimization round-trip)
+  TEST 5  plot_optimization_history (Image -> base64 dict path)
+  TEST 6  no-study error path       (exception translation)
+
+Each test exercises a different return-shape adapter. Together
+they cover every adapter we added. The 6th test triggers a known
+RuntimeError to verify the McpError replacement flows back
+cleanly.
+
+Files touched
+-------------
+- optuna_mcp/server.py     : import swap, class composition, tool
+                             forwarder, run forwarder, model_dump
+                             at returns, base64 dict for images,
+                             RuntimeError for raises. Originals
+                             preserved as `# was: ...` comments.
+- client-test-macaw.py     : new (6-test holistic harness).
+- MIGRATION.txt            : this file.
+
+Files NOT touched
+-----------------
+- optuna_mcp/__main__.py   : argparse + main() unchanged.
+- optuna_mcp/__init__.py   : exports unchanged.
+- optuna_mcp/version.py    : version string only.
+
+Status: PORTED. Smoke test pending live run.
