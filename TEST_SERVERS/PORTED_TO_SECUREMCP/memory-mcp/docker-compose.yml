@@ -1,0 +1,46 @@
+services:
+  event-logger:
+    image: public.ecr.aws/s2e1n3u8/event-logger:latest
+    env_file:
+      - environment/.env.event-logger
+    networks:
+      - mcp-network
+    environment:
+      - PORT=8181
+  ai-memory:
+    image: public.ecr.aws/s2e1n3u8/ai-memory:latest
+    env_file:
+      - environment/.env.ai-memory
+    depends_on:
+      - event-logger
+    networks:
+      - mcp-network
+    environment:
+      - PORT=8182
+  semantic-cache:
+    image: public.ecr.aws/s2e1n3u8/semantic-cache:latest
+    env_file:
+      - environment/.env.semantic-cache
+    depends_on:
+      - event-logger
+    networks:
+      - mcp-network
+    environment:
+      - PORT=8183
+  memory-mcp:
+    build: .
+    env_file:
+      - environment/.env.memory-mcp
+    depends_on:
+      - event-logger
+      - ai-memory
+      - semantic-cache
+    networks:
+      - mcp-network
+    ports:
+      - 8080:8080
+
+networks:
+  mcp-network:
+    driver: bridge
+    name: mcp-network

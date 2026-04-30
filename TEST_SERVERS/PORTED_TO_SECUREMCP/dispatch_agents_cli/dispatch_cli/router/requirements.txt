@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+httpx
+pydantic
+grpcio
+protobuf

@@ -1,0 +1,78 @@
+[project]
+
+name = "databricks-labs-mcp"
+dynamic = ["version", "readme"]
+description = "Databricks MCP servers"
+authors = [{ name = "renardeinside", email = "polarpersonal@gmail.com" }]
+requires-python = ">=3.10"
+keywords = ["databricks", "unity catalog", "mcp", "agents", "llm", "automation", "genie"]
+
+dependencies = [
+    "mcp>=1.9.2",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.7.1",
+    "unitycatalog-ai>=0.1.0",
+    "databricks-sdk>=0.55.0",
+    "databricks-openai>=0.4.1",
+]
+license-files = ["LICENSE", "NOTICE"]
+
+[tool.uv]
+dev-dependencies = [
+    "black>=25.1.0",
+    "pyright>=1.1.393",
+    "ruff>=0.9.4",
+    "pytest>=8.3.4",
+    "isort>=6.0.1",
+    "hatchling>=1.27.0",
+    "mcp[cli]>=1.9.2",
+]
+
+[tool.uv.workspace]
+exclude = ["examples"]
+
+[tool.hatch.build.hooks.custom]
+path = "hooks/apps_build.py"
+
+[project.scripts]
+unitycatalog-mcp = "databricks.labs.mcp.servers.unity_catalog:main"
+
+[build-system]
+requires = ["hatchling", "hatch-fancy-pypi-readme", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+# for compatability with databricks.labs.* layout
+[tool.hatch.build]
+sources = ["src"]
+include = ["src"]
+
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/databricks/labs/mcp/_version.py"
+
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+# replace relative links with absolute links
+pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
+replacement = '[\1](https://github.com/databrickslabs/mcp/tree/main/\g<2>)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+# replace relative image links with absolute links
+pattern = '<img (.*?)src="((?!https?://)\S+?)"(.*?)>'
+replacement = '<img \1src="https://raw.githubusercontent.com/databrickslabs/mcp/refs/heads/main/\g<2>"\g<3>>'
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

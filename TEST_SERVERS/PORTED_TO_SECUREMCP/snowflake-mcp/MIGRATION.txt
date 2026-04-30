@@ -1,39 +1,11 @@
-================================================================================
-MIGRATION: snowflake-mcp  ->  SecureMCP
-================================================================================
-
-Goal: take the upstream Snowflake MCP server (built on the standalone
-fastmcp v2 package) and re-wire it so its tools run through MACAW's
-security layer instead of fastmcp's HTTP/stdio transport.
-
-Hard rule kept throughout:
-  Do NOT modify SecureMCP (secureAI/macaw_adapters/mcp/mcp.py).
-  All edits live inside snowflake-mcp.
-
-Difference from earlier ports:
-  Snowflake imports `from fastmcp import FastMCP` -- the standalone v2
-  package, NOT `mcp.server.fastmcp`. Same import-line shape, but v2 has
-  a class-based middleware system (Middleware + on_call_tool +
-  call_next). That is the one structural thing that made this port
-  different from qdrant / chroma / pinot.
 
 
---------------------------------------------------------------------------------
-1. WHAT WE CHANGED (file by file)
---------------------------------------------------------------------------------
-
-File: mcp_server_snowflake/server.py
-
-  a) Import swap
+  1 Import swap
        was: from fastmcp import FastMCP
        new: from macaw_adapters.mcp import SecureMCP
 
-     Type hints in three function signatures (`server: FastMCP`) updated
-     to `server: SecureMCP` so import-time annotation evaluation does
-     not NameError. `fastmcp.utilities.logging.get_logger` is still
-     imported -- it is a harmless utility, not the framework.
 
-  b) Lifespan body inlined into main()
+  2 Lifespan body inlined into main()
      fastmcp's `lifespan=create_lifespan(args)` ran the lifespan
      coroutine automatically at startup -- it built SnowflakeService,
      registered tools/resources, attached middleware, then yielded.
@@ -55,54 +27,27 @@ File: mcp_server_snowflake/server.py
      The `create_lifespan` function is left in the file as dead code
      for diff visibility (per the project's comment-don't-delete rule).
 
-  c) Transport branching removed
+  3 Transport branching removed
      was:
          if args.transport in ["http","sse","streamable-http"]:
              server.run(transport=..., host=..., port=..., path=...)
          else:
              server.run(transport=args.transport or "stdio")
      new:
-         server.run()
+         server.run() 
 
-     Under MACAW the transport is the mesh. There is no HTTP server
-     under SecureMCP, so host/port/endpoint flags become no-ops. They
-     remain in argparse for backward compat (so existing wrapper
-     scripts don't break); they just aren't read in main() anymore.
-
-  d) Middleware import swapped
+  4 Middleware import swapped
      was: from mcp_server_snowflake.server_utils import initialize_middleware
      new: from mcp_server_snowflake.server_utils import install_query_check
 
 
 File: mcp_server_snowflake/server_utils.py
 
-  e) CheckQueryType middleware -> install_query_check installer
-
-     ORIGINAL (fastmcp v2 middleware):
-       - class CheckQueryType(Middleware)
-       - on_call_tool(context, call_next) ran before every tool call
-       - inspected context.message.name and context.message.arguments
-       - dispatched on tool name:
-           run_snowflake_query   -> validate_sql_type(statement, ...)
-           create_*, drop_*      -> validate_object_tool(name, ...)
-       - raised ToolError if invalid, else `await call_next(context)`
-       - attached via server.add_middleware(CheckQueryType(...))
+  1 CheckQueryType middleware -> install_query_check installer
 
      SecureMCP has no middleware system. The replacement runs ONCE,
      after tool registration, and walks server._tools to wrap the
      handlers in place:
-
-         install_query_check(server, allow, deny):
-             for tool_name, info in server._tools.items():
-                 if tool_name == "run_snowflake_query":
-                     info["handler"] = wrap_with_statement_check(...)
-                 elif tool_name.startswith("create"|"drop"):
-                     info["handler"] = wrap_with_object_check(...)
-
-     The wrappers use functools.wraps so the original function's name
-     and docstring are preserved (SecureMCP's parameter introspection
-     happens at registration time, before this wrap, so the schema is
-     already locked in -- but @wraps is the safe habit).
 
      Same dispatch rules, same allow/deny lists, same error message
      prefix. Two losses on port:
@@ -112,121 +57,3 @@ File: mcp_server_snowflake/server_utils.py
 
 
 --------------------------------------------------------------------------------
-2. WHY THIS APPROACH (vs alternatives)
---------------------------------------------------------------------------------
-
-Three ways to put the SQL check back, ranked by churn:
-
-  A) MAPL intent_policy at SecureMCP.__init__
-     - Zero file edits beyond the kwarg.
-     - Ruled out: MAPL evaluates by tool NAME only. The check needs
-       the SQL string (an argument), so MAPL cannot express it.
-
-  B) Per-tool decorator at every @server.tool site
-     - ~6 sites across query_manager/tools.py and object_manager/tools.py
-     - Cleanest design, most diff. Forgetting to apply at one site
-       silently bypasses the check.
-
-  C) Post-registration wrapper installer  <-- chosen
-     - Mutates server._tools once, no tool file changes.
-     - Same dispatch as the old middleware (which also worked
-       post-registration internally).
-     - Trade-off: depends on SecureMCP's internal dict shape. For our
-       use case (one server, internal use) this is acceptable.
-
-
---------------------------------------------------------------------------------
-3. WHAT WE DID NOT CHANGE
---------------------------------------------------------------------------------
-
-- mcp_server_snowflake/object_manager/tools.py   -- untouched
-- mcp_server_snowflake/query_manager/tools.py    -- untouched
-- mcp_server_snowflake/semantic_manager/tools.py -- untouched
-- mcp_server_snowflake/cortex_services/tools.py  -- untouched
-- mcp_server_snowflake/utils.py                  -- untouched
-- mcp_server_snowflake/environment.py            -- untouched
-- SnowflakeService class                         -- untouched
-- All tool function bodies                       -- untouched
-
-Tools already use `@server.tool(name=..., description=...)` -- both
-kwargs SecureMCP accepts. No `annotations=`, `structured_output=`, or
-other v1 FastMCP-only kwargs. Tool returns are mostly
-`pydantic_model.model_dump_json()` strings, so no `.model_dump()`
-sweep was needed.
-
-
---------------------------------------------------------------------------------
-4. ORDER OF OPERATIONS IN main() -- MANDATORY
---------------------------------------------------------------------------------
-
-  1. parse_arguments
-  2. build SnowflakeService          (was inside lifespan)
-  3. server = SecureMCP("snowflake-mcp")
-  4. initialize_tools(...)           (registers handlers in server._tools)
-  5. initialize_resources(...)
-  6. install_query_check(...)        (wraps already-registered handlers)
-  7. server.run()                    (mesh accepts calls)
-  8. cleanup in finally              (was the lifespan's finally block)
-
-If you flip step 4 with step 6, the installer has nothing to wrap and
-the SQL check silently disappears.
-
-
---------------------------------------------------------------------------------
-5. VERIFICATION (client-test-macaw.py)
---------------------------------------------------------------------------------
-
-Four tests, no Snowflake creds required for the port-correctness ones:
-
-  TEST 1  Tool list        -- proves: server registers, tools advertise
-  TEST 2  SELECT 1         -- proves: wrapper allow path lets calls through
-  TEST 3  DROP TABLE ...   -- proves: wrapper statement-arg deny path
-  TEST 4  drop_object      -- proves: wrapper name-prefix deny path
-
-TESTS 3 and 4 are the direct replacement-correctness proof for the
-middleware-to-installer rewrite. They do not need a real Snowflake.
-
-Run:
-  # Terminal 1
-  python3 -m mcp_server_snowflake.server \
-      --service-config-file services/configuration.yaml
-
-  # Terminal 2
-  python3 client-test-macaw.py "snowflake" snowflake-test-client
-
-
---------------------------------------------------------------------------------
-6. KNOWN GAPS (not blockers, worth knowing)
---------------------------------------------------------------------------------
-
-- Argparse retains --transport, --host, --port, --endpoint. They are
-  parsed but not read in the new main(). Cosmetic; could be cleaned
-  up later without changing behaviour.
-
-- ToolError -> RuntimeError is a behavioural change: server-side code
-  that catches ToolError specifically would no longer trigger. None
-  of the snowflake codebase does, so this is internal-only.
-
-- install_query_check reads server._tools, which is SecureMCP's
-  internal registry. If SecureMCP renames that attribute upstream,
-  this installer breaks. Acceptable for now; revisit if SecureMCP
-  exposes a public "wrap handler" hook.
-
-
---------------------------------------------------------------------------------
-7. LINES CHANGED
---------------------------------------------------------------------------------
-
-  server.py        ~80 lines edited (mostly comment blocks preserving
-                    the original code for review visibility; the real
-                    code change is the lifespan-to-main inline + the
-                    transport-branching removal)
-  server_utils.py  fully rewritten; original middleware preserved as
-                    a commented block; new install_query_check ~40
-                    lines of actual logic
-  client-test-macaw.py  new file (~210 lines including comments)
-
-Net behavioural change:
-  - Framework: FastMCP v2 -> SecureMCP
-  - SQL allow/deny: middleware -> handler wrapper (same enforcement)
-  - Transport: HTTP/stdio -> MACAW mesh

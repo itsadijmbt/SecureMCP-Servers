@@ -1,0 +1,253 @@
+DISPATCH OPERATOR MCP -- SECUREMCP MIGRATION
+============================================
+
+What we ported
+--------------
+Two files. That is the entire change surface.
+
+  dispatch_cli/mcp/operator/server.py     -- 26 lines, 1 framework swap
+  dispatch_cli/mcp/operator/tools.py      -- 2557 lines, 34 tool rewrites
+
+Nothing outside dispatch_cli/mcp/operator/ was touched. The CLI auth
+modules (auth.py, auth_login.py, auth_session.py, keychain.py), the
+dispatch backend client (dispatch_cli/mcp/client.py), the model
+definitions (dispatch_cli/mcp/models.py), and every command handler
+(dispatch_cli/commands/*) were left as-is.
+
+Why this server is straightforward to port
+------------------------------------------
+Unlike agentforce-mcp, this server has none of the things that block a
+SecureMCP port:
+
+  - no @mcp.custom_route HTTP routes
+  - no inbound auth middleware (the CLI handles auth, not the MCP server)
+  - no widget / outputTemplate / structured_content
+  - no http_app, no uvicorn, no Starlette anywhere
+  - no lifespan / on_call_tool middleware
+
+It is a pure stdio MCP server. Tools call subprocesses, files, and
+outbound HTTP. SecureMCP supports all of that without changes.
+
+The five mechanical changes (applied to every tool)
+---------------------------------------------------
+1. Framework swap.
+   from mcp.server.fastmcp import Context, FastMCP
+   from mcp.server.session import ServerSession
+       ->
+   from macaw_adapters.mcp import SecureMCP, Context
+
+   FastMCP("dispatch-operator", instructions=OPERATOR_INSTRUCTIONS)
+       ->
+   SecureMCP("dispatch-operator")
+
+   `instructions=` is dropped because SecureMCP.__init__ does not
+   declare it (verified at secureAI/macaw_adapters/mcp/mcp.py:417-424).
+   It was a hint surfaced to MCP clients describing how to use the
+   server. Dropping it removes a discoverability hint; tool execution
+   is unaffected. OPERATOR_INSTRUCTIONS the constant is kept in the
+   module for reference.
+
+2. Pydantic-model-as-input flattening.
+   Every tool used to take `request: SomeRequestModel`. Example:
+
+       async def list_agents(request: ListAgentsRequest) -> ListAgentsResponse:
+           ns = _get_namespace(request.namespace)
+           ...
+
+   SecureMCP's _extract_parameters (mcp.py:827-859) reads the function
+   signature with inspect.signature and maps types via a small dict:
+   str / int / float / bool / dict / list. Pydantic models are not in
+   that map, so they fall through to "string" -- the tool would get
+   advertised with a single `request: string` parameter. Wrong schema.
+
+   Fix: flatten the pydantic fields into typed kwargs.
+
+       async def list_agents(namespace: str, limit: int = 50) -> dict:
+           ns = _get_namespace(namespace)
+           ...
+
+   Field descriptions from pydantic Field(description=...) are lost in
+   this flattening -- SecureMCP only reads type annotations, not Field
+   metadata. The information is moved into the docstring's Args section
+   so the LLM caller still has it, just less structured.
+
+3. Context generic params.
+   `ctx: Context[ServerSession, None]` -> `ctx: Context`.
+   The official MCP SDK's Context is generic over (session, lifespan).
+   SecureMCP's Context is a plain @dataclass (mcp.py:37) with no
+   generics. Removing the brackets is a syntactic fix; behavior is the
+   same. The `from mcp.server.session import ServerSession` import was
+   commented out as a side effect.
+
+4. Sync ctx.* logging methods.
+   The original code awaited every log call:
+       await ctx.info(...)
+       await ctx.debug(...)
+       await ctx.error(...)
+
+   SecureMCP's Context log methods are sync (mcp.py:319-352). `ctx.info`
+   returns None. `await None` raises TypeError at runtime. Every call
+   site (44 of them, found via grep) had `await` stripped.
+
+5. Pydantic response -> dict via .model_dump().
+   SecureMCP coerces non-dict tool returns by wrapping them in
+   {"result": <obj>} (mcp.py:815-817). A pydantic ListAgentsResponse
+   is not a dict, so it would round-trip to the client as
+   {"result": <ListAgentsResponse object at 0x...>} -- opaque.
+
+   Fix: append .model_dump() to every pydantic response construction.
+   For tools returning client.<method>(...) results, we use
+   `if hasattr(result, "model_dump")` to convert when needed and pass
+   plain dicts through.
+
+Schedule tools (special case)
+-----------------------------
+The five schedule tools (create_schedule, list_schedules, get_schedule,
+update_schedule, delete_schedule) used to pass the request model
+straight through:
+
+       return await client.create_schedule(request)
+
+The dispatch backend client expects pydantic models on this code path
+(it serializes them itself). After flattening, we reconstruct the
+pydantic model inside the tool body before calling the client:
+
+       request = CreateScheduleRequest(agent_name=..., function_name=..., ...)
+       result = await client.create_schedule(request)
+
+Same data flowing to the same client method. The model is now built at
+the boundary instead of received as a parameter.
+
+Submit_feedback (same pattern as schedules)
+-------------------------------------------
+SubmitFeedbackRequest is a nested class defined inside the tools module
+(not in models.py). The flattening pattern is identical: accept fields
+as kwargs, build the pydantic model locally, call client.submit_feedback
+on the .model_dump() output (which is what the original did anyway).
+
+What we did NOT change
+----------------------
+  - No tool body logic. Subprocess calls, asyncio orchestration, pydantic
+    response construction, file I/O, httpx/aiohttp outbound calls, error
+    handling -- all preserved verbatim.
+  - No CLI command surface. `dispatch mcp serve operator --namespace ...`
+    still launches the server; same flags, same options.
+  - No auth changes. The dispatch CLI's own auth (auth_login, keychain,
+    credential_provider) is unrelated to MACAW and stays as-is. MACAW
+    handles user -> MCP-server identity; dispatch CLI handles
+    MCP-server -> dispatch backend identity. They are different
+    upstream/downstream legs (see the upstream/downstream notes in
+    DOCS).
+  - No models.py edits. The pydantic request models are still defined
+    and still imported -- they are now constructed inside the tools that
+    need them (schedule tools, submit_feedback) instead of received as
+    parameters.
+  - No removal of dead code. The Request model classes that are no
+    longer referenced (e.g. ListAgentsRequest) remain in the file. They
+    are not harmful, and a follow-up cleanup pass can prune them.
+
+Behavior change worth flagging
+------------------------------
+Before the port: `dispatch mcp serve operator` ran a stdio MCP server.
+MCP clients (Claude Desktop, Codex, Cursor) configured via
+`dispatch mcp serve operator --register claude` would spawn the server
+as a subprocess and talk to it over stdin/stdout.
+
+After the port: the server now registers with the MACAW mesh on startup
+and sleeps. It does NOT serve stdio MCP traffic. MCP clients that were
+spawning it expecting stdio cannot reach it directly -- they would need
+to go through a MACAW-aware client.
+
+Practical impact: the `--register claude` and similar registration paths
+in commands/mcp.py still write the same .mcp.json config (we did not
+touch that code), but the spawned server will not respond to the MCP
+client's stdio JSON-RPC. To use this server post-port, either:
+  a) connect via a MACAW user client that invokes tools through the
+     mesh (see client-test-macaw-operator.py for the shape), or
+  b) revert this server and use SecureMCPProxy in front of the
+     pre-port version.
+
+We did not address this gap in the port itself because the team's
+preference was to migrate the framework first and decide on the
+client-onboarding path separately.
+
+How to run it
+-------------
+Server side (one process, the same command as before):
+
+    # 1. Make sure the MACAW Local Agent is up.
+    # 2. Make sure macaw_client + secureAI are installed:
+    pip install ./macaw_client-0.9.4-cp311-cp311-manylinux_2_17_x86_64.whl
+    pip install "./secureAI[all]"
+
+    # 3. Make sure dispatch CLI auth is set so tools can reach the
+    #    dispatch backend:
+    dispatch auth login        # OR set the relevant env vars
+
+    # 4. Start the server. This will register with the mesh as
+    #    securemcp-dispatch-operator and sit in SecureMCP's run loop.
+    dispatch mcp serve operator --namespace <your-namespace>
+
+Client side (test client, separate terminal):
+
+    cd TEST_SERVERS/OFFICIAL_PY_INTE_SECUREMCP/dispatch_agents_cli
+    python3 client-test-macaw-operator.py "dispatch-operator" operator-test
+
+What the test client checks
+---------------------------
+  TEST 1  Tool list comes back with all 31 expected tools.
+          Proves: registration ran, every @mcp.tool() landed in the
+          MACAW tool registry.
+
+  TEST 2  list_agents input schema shows `namespace` and `limit` as
+          flat parameters, not a single `request` param.
+          Proves: the pydantic-flattening rewrite was applied
+          consistently and SecureMCP advertised the right schema.
+
+  TEST 3  list_namespaces (no args) round-trips. Result is either
+          actual namespace data (with dispatch creds) or a backend
+          error (without). Either way, no SecureMCP-layer error.
+          Proves: handler is reachable; the no-arg path works.
+
+  TEST 4  list_agents(namespace=..., limit=5) round-trips. Same
+          two-outcome story.
+          Proves: flattened kwargs reach the function body intact;
+          `_get_namespace(namespace)` and the rest of the body don't
+          fail with NameError or AttributeError.
+
+If TESTS 1 and 2 pass, the port is structurally correct. TESTS 3 and 4
+only need real dispatch credentials to turn green end-to-end.
+
+What success / failure points to
+--------------------------------
+  TEST 1 missing tools     -> the SecureMCP registration step did not
+                              run for some tools. Check the
+                              create_operator_mcp body for an indent
+                              or import error.
+  TEST 2 single `request`  -> a tool somewhere still has
+     parameter             `def my_tool(request: SomeRequest)`. Search
+                              for `request:` outside the comment blocks.
+  TEST 3/4 TypeError       -> a tool body still references
+                              `request.<field>` after the signature was
+                              flattened. The flattening pass missed it.
+
+Verification we already did locally
+-----------------------------------
+  python3 -c "import ast; ast.parse(open('tools.py').read())"   -> OK
+  python3 -c "import ast; ast.parse(open('server.py').read())"  -> OK
+  grep -nE "[^#].*request:|[^#].*ServerSession|[^#].*await ctx\.|[^#].*: Context\["
+       tools.py                                                  -> 0 active hits
+
+The remaining hits for those patterns are all inside the commented
+`# PORT (original):` blocks above each tool, kept for review.
+
+Changes summary
+---------------
+  Active code lines edited:    ~520  (signatures, ctx.* sites, return wrappers)
+  Tool-original blocks added:  34    (commented references)
+  Files modified:              2     (server.py, tools.py)
+  Files added:                 2     (this doc, client-test-macaw-operator.py)
+  SDK changes:                 0     (per project rule)
+  Business logic changes:      0     (every subprocess / HTTP / pydantic
+                                      construction call was preserved
+                                      verbatim)

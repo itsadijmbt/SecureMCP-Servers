@@ -1,0 +1,55 @@
+============================================================
+MCP SERVER TEST RESULTS SUMMARY
+============================================================
+Test Run Time: 2025-07-09T13:22:41.556451+00:00
+Total Tests: 10
+Passed: 10
+Failed: 0
+Success Rate: 100.0%
+
+DETAILED RESULTS:
+------------------------------
+✅ test_list_tools - PASSED
+   tools_count: 6
+   tool_names: ['hybrid_search', 'search_web', 'store_memory', 'retrieve_memory', 'semantic_cache_response', 'check_semantic_cache']
+
+✅ test_store_memory - PASSED
+   response_type: dict
+
+✅ test_retrieve_memory - PASSED
+   has_related_conversation: True
+   has_conversation_summary: True
+   has_similar_memories: True
+
+✅ test_semantic_cache_store_and_check - PASSED
+   store_success: True
+   check_success: True
+
+✅ test_hybrid_search - PASSED
+   results_count: 0
+   has_results_key: True
+
+✅ test_web_search - PASSED
+   response_type: list
+   results_count: 5
+
+✅ test_hybrid_search_with_different_weights - PASSED
+   keyword_results_count: 0
+   semantic_results_count: 0
+   weight_difference_test: True
+
+✅ test_error_handling_invalid_user_id - PASSED
+   expected_error: True
+   error_type: ToolError
+
+✅ test_error_handling_invalid_message_type - PASSED
+   expected_error: True
+   error_type: ToolError
+   invalid_message_type: invalid_type
+
+✅ test_concurrent_operations - PASSED
+   successful_calls: 3
+   total_calls: 3
+   elapsed_time: 12.75s
+   concurrent_success: True
+

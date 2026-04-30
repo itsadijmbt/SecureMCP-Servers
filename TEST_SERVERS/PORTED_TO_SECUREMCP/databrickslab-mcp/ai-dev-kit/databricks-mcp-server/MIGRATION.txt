@@ -1,0 +1,198 @@
+databricks-mcp-server: FastMCP -> SecureMCP migration
+=======================================================
+
+WHAT WE DID
+-----------
+
+server.py -- replaced wholesale:
+
+  1. Import swap: from fastmcp import FastMCP   ->
+                  from macaw_adapters.mcp import SecureMCP
+
+  2. Constructor swap: FastMCP("...", tasks=False?) ->
+                       SecureMCP("Databricks MCP Server")
+
+  3. Removed all FastMCP-internal monkey-patching:
+     - _patch_tool_decorator_for_async
+       (wrapped sync tools in asyncio.to_thread; FastMCP-specific)
+     - _docket_lifespan override
+       (disabled FastMCP's docket worker on Windows)
+     - tasks=False kwarg to FastMCP()
+     The original code is preserved as a comment block in server.py
+     so reviewers can see what was removed and why.
+
+  4. Removed: mcp.add_middleware(TimeoutHandlingMiddleware()).
+     SecureMCP has no middleware hook. Replaced by a post-registration
+     installer (see new file error_wrapper.py).
+
+  5. Kept untouched: _patch_subprocess_stdin (Windows fix). It is
+     independent of the MCP framework -- it patches subprocess to
+     stop child processes from inheriting the JSON-RPC stdio pipe.
+
+tools/*.py -- 18 files, 44 decorators stripped:
+
+  - All occurrences of @mcp.tool(timeout=N) -> @mcp.tool()
+  - SecureMCP's tool() decorator does not accept a timeout kwarg.
+    Leaving the kwarg in raises TypeError at import time.
+
+run_server.py -- unchanged. mcp.run(transport="stdio") works under
+SecureMCP because SecureMCP.run() has the same signature.
+
+middleware.py -- left in place but no longer imported by server.py.
+Useful as a record of the original behavior and as the source if
+someone later restores the dropped features.
+
+
+NEW FILES
+---------
+
+error_wrapper.py:
+  install_error_handling(server) walks SecureMCP._tools after every
+  @mcp.tool decoration has run, replacing each handler with a
+  wrapper that catches any exception and returns a structured JSON
+  dict instead of crashing. Sync and async handlers both supported.
+
+client-test-macaw.py (planned):
+  Standard mesh smoke test. Lists tools, calls a couple of harmless
+  ones (e.g. user info, manage_warehouse list). Does not test
+  end-to-end Databricks behavior -- that requires a real workspace.
+
+
+WHY (one line per change)
+-------------------------
+
+1. SecureMCP is the MACAW-instrumented MCP server class. The import
+   is the only thing that connects this server to the MACAW mesh.
+
+2. Same reason as 1 -- the constructor call has to reference the
+   new class.
+
+3. The three removed patches are FastMCP-internal:
+     - asyncio.to_thread wrapping: SecureMCP calls handlers
+       differently (mcp.py:807-813); the patch would fail to attach.
+     - _docket_lifespan: SecureMCP has no docket worker.
+     - tasks=False: SecureMCP has no tasks kwarg.
+
+4. SecureMCP exposes no middleware. The only stable plug point is
+   the _tools dict's "handler" reference. Mutating that after
+   registration is the same pattern snowflake-mcp uses for
+   install_query_check.
+
+5. _patch_subprocess_stdin solves a real cross-cutting Windows
+   problem (stdio pipe inheritance) and has nothing to do with
+   the MCP framework. Removing it would re-introduce the bug.
+
+6. (tools strip) timeout=N is fastmcp-only syntax. Stripping it is
+   mechanical and required for the file to import under SecureMCP.
+
+
+BROKEN ON PURPOSE -- features intentionally dropped
+---------------------------------------------------
+
+These are features the original FastMCP implementation provided
+and that this port does NOT preserve. They are recoverable later
+with explicit work; we chose not to do that work as part of the
+port itself, so reviewers and future maintainers know exactly
+what changed.
+
+(a) Per-tool timeout enforcement.
+
+    Original: @mcp.tool(timeout=60) caused FastMCP to wrap the call
+    in asyncio.wait_for(..., timeout=60). The middleware then turned
+    a TimeoutError into a structured JSON message:
+
+      "Operation may still be in progress. Do NOT retry. Use the
+       appropriate get/status tool to check current state."
+
+    The point of that message was to stop agents from retrying
+    long-running Databricks operations (job runs, pipeline updates,
+    cluster provisioning) and creating duplicate cloud resources.
+
+    Port behavior: timeouts are no longer enforced per tool. Calls
+    run as long as they run; the MCP client (or agent) sees its own
+    transport-level timeout and may retry blindly.
+
+    Restoring this is straightforward (~10-15 lines in server.py +
+    asyncio.wait_for in error_wrapper._wrap):
+      - capture timeout=N at registration via a wrapper around
+        mcp.tool that records TOOL_TIMEOUTS[name] = N
+      - in _wrap, await asyncio.wait_for(fn(...), timeout=...)
+      - in _error_dict, branch on TimeoutError to emit the
+        "do not retry" message.
+
+    We did NOT add this because the porting task is to swap the
+    framework, not to re-implement guardrails the original framework
+    happened to provide. Restoring it is a follow-up if production
+    use exposes the duplicate-resource risk.
+
+(b) structured_content propagation.
+
+    Original: FastMCP populated ToolResult.structured_content from
+    the tool's return value when the function had a return type
+    annotation (e.g. -> Dict[str, Any]). The middleware also had a
+    fixup branch that parsed the JSON text content and filled
+    structured_content in if FastMCP missed it.
+
+    Port behavior: SecureMCP wraps any non-dict return as
+    {"result": result} (mcp.py:815-817). It has no structured_content
+    concept. Tools that returned typed dicts still return typed
+    dicts, but consumers expecting the MCP-protocol-level
+    structuredContent field will not see it.
+
+    Restoring this is not straightforward -- it requires changes
+    inside the SecureMCP SDK itself, which is out of scope for any
+    integration. Effectively: if a downstream consumer relies on
+    structuredContent, they need to read the dict result directly.
+
+(c) Cancellation handling for async tools.
+
+    Original: the middleware caught anyio CancelledError and re-raised
+    it so the MCP SDK could clean up properly, avoiding "Request
+    already responded to" assertion errors documented in
+    https://github.com/modelcontextprotocol/python-sdk/pull/1153 .
+
+    Port behavior: SecureMCP's call path (mcp.py:807-813) does not
+    expose the same cancellation surface. The race the original was
+    avoiding does not exist in the same form here. We did not add
+    cancellation handling because there is currently nothing to
+    handle.
+
+
+VERIFICATION
+------------
+
+The port boots cleanly under SecureMCP if:
+  - subprocess.run / subprocess.Popen continue to behave correctly
+    on Windows (verified by stdin=DEVNULL default).
+  - All 18 tool files import without raising on the (now stripped)
+    @mcp.tool() decorator.
+  - install_error_handling(mcp) runs after the tool imports.
+
+End-to-end runtime verification needs a Databricks workspace and
+valid auth -- without those, every tool call fails at the Databricks
+API layer (similar to snowflake/datacloud test patterns). The port
+itself is verified by the boot succeeding and tools advertising on
+the mesh.
+
+
+KNOWN GAPS
+----------
+
+- This port has not yet been runtime-tested against a live
+  Databricks workspace. The change list above is correct but the
+  client-test-macaw.py mesh smoke test is recommended before
+  marking this server as production-ready.
+
+- middleware.py is dead code now. Leaving it in place serves as
+  documentation of the original behavior; if it accumulates rot it
+  can be deleted later. Do not delete it as part of the port itself.
+
+
+LINES CHANGED
+-------------
+
+server.py     : rewritten end-to-end, ~120 lines net (was ~173).
+error_wrapper.py: new file, ~80 lines.
+tools/*.py    : 44 lines edited across 18 files (timeout strip).
+run_server.py : unchanged.
+middleware.py : unchanged (dead code, kept for reference).

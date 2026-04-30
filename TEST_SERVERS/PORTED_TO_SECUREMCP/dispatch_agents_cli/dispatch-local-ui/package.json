@@ -1,0 +1,54 @@
+{
+  "name": "dispatch-local-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local UI development for Dispatch CLI - React components compiled to Web Components",
+  "scripts": {
+    "dev": "node pack/dev.js",
+    "build": "node pack/build.js",
+    "sync-components": "node pack/sync-components.js",
+    "clean": "rm -rf ../dispatch_cli/router/static/components.*",
+    "deploy-update": "npm run build && cd ../.. && uv tool install ./cli --reinstall && echo '✅ CLI updated! Ready to test with: dispatch router start'"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.1.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.487.0",
+    "marked": "^17.0.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.9",
+    "@babel/preset-env": "^7.25.9",
+    "@babel/preset-react": "^7.25.9",
+    "@babel/preset-typescript": "^7.25.9",
+    "autoprefixer": "^10.4.20",
+    "babel-loader": "^9.2.1",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "mini-css-extract-plugin": "^2.9.2",
+    "postcss": "^8.5.0",
+    "postcss-loader": "^8.1.1",
+    "style-loader": "^4.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.2.0"
+  },
+  "keywords": [
+    "dispatch",
+    "cli",
+    "local-ui",
+    "web-components",
+    "react"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DataDog/dispatch_agents.git"
+  }
+}

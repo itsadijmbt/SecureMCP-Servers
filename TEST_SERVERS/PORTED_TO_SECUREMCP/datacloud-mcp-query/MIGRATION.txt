@@ -1,0 +1,30 @@
+
+
+1. Import swap.
+   - from mcp.server.fastmcp import FastMCP   (legacy MCP SDK FastMCP)
+   + from macaw_adapters.mcp import SecureMCP
+
+2. Server constructor swap.
+   - mcp = FastMCP("Demo")
+   + mcp = SecureMCP("Demo")
+
+3. Dropped pydantic.Field from tool signatures across 3 tools
+   (query, list_tables, describe_table). Each Field(...) became a
+   plain Python default; per-arg description text moved into the
+   @mcp.tool(description=...) block.
+
+   Examples:
+     - dataspace: str = Field(default="default", description=...)
+     + dataspace: str = "default"
+
+     - sql: str = Field(description="...")     # required, no default
+     + sql: str                                 # required, no default
+
+     - query_settings: Optional[dict[str, str]] = Field(default=None, ...)
+     + query_settings: Optional[dict[str, str]] = None
+
+4. The pydantic Field import was removed.
+   - from pydantic import Field
+
+mcp.run() at the bottom was already correct -- no transport edit.
+

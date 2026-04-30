@@ -1,0 +1,122 @@
+{
+  "timestamp": "2025-07-09T13:22:41.556451+00:00",
+  "tests": [
+    {
+      "test_name": "test_list_tools",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:41.650928+00:00",
+      "details": {
+        "tools_count": 6,
+        "tool_names": [
+          "hybrid_search",
+          "search_web",
+          "store_memory",
+          "retrieve_memory",
+          "semantic_cache_response",
+          "check_semantic_cache"
+        ]
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_store_memory",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:42.790127+00:00",
+      "details": {
+        "response_type": "dict"
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_retrieve_memory",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:44.397292+00:00",
+      "details": {
+        "has_related_conversation": true,
+        "has_conversation_summary": true,
+        "has_similar_memories": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_semantic_cache_store_and_check",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:45.515361+00:00",
+      "details": {
+        "store_success": true,
+        "check_success": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_hybrid_search",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:48.510738+00:00",
+      "details": {
+        "results_count": 0,
+        "has_results_key": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_web_search",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:51.619257+00:00",
+      "details": {
+        "response_type": "list",
+        "results_count": 5
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_hybrid_search_with_different_weights",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:55.648174+00:00",
+      "details": {
+        "keyword_results_count": 0,
+        "semantic_results_count": 0,
+        "weight_difference_test": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_error_handling_invalid_user_id",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:55.697525+00:00",
+      "details": {
+        "expected_error": true,
+        "error_type": "ToolError"
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_error_handling_invalid_message_type",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:22:55.751456+00:00",
+      "details": {
+        "expected_error": true,
+        "error_type": "ToolError",
+        "invalid_message_type": "invalid_type"
+      },
+      "error": null
+    },
+    {
+      "test_name": "test_concurrent_operations",
+      "status": "PASSED",
+      "timestamp": "2025-07-09T13:23:08.521591+00:00",
+      "details": {
+        "successful_calls": 3,
+        "total_calls": 3,
+        "elapsed_time": "12.75s",
+        "concurrent_success": true
+      },
+      "error": null
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "errors": []
+  }
+}

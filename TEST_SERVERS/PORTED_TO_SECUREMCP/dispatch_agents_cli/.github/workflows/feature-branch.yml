@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version_policy:
+    uses: ./.github/workflows/version-policy-reusable.yml
+    with:
+      mode: feature-branch
+
+  ci:
+    name: CI
+    needs: version_policy
+    uses: ./.github/workflows/ci-reusable.yml

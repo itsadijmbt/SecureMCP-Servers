@@ -5,24 +5,10 @@ MACAW client smoke test for snowflake-mcp
 Usage:
     python3 client-test-macaw.py "snowflake" snowflake-test-client
 
-Args:
-    1. server filter substring (matches against agent_id)
-    2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness: server registered, tools advertised on the mesh.
-    2. SQL allow path: SELECT goes through the install_query_check wrapper.
-    3. SQL deny path (statement-arg): DROP via run_snowflake_query rejected.
-    4. SQL deny path (tool-name prefix): drop_object rejected before snowflake.
-
-Without a real Snowflake connection, tests 2 will fail at the upstream
-connector (expected). Tests 3 and 4 do NOT need Snowflake -- the wrapper
-rejects them before the tool body runs. That is the port-correctness
-proof for the middleware -> wrapper rewrite.
 """
 
 import asyncio
-import json
 import sys
 
 from macaw_adapters.mcp import Client
@@ -78,13 +64,6 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 1 -- list_tools came back, run_snowflake_query is in it
-    #
-    # Pure port-correctness check. If the server registered on the
-    # mesh and the tool registry shows expected tools, we know:
-    #   - SecureMCP boot succeeded (lifespan body inlined correctly)
-    #   - initialize_tools registered handlers
-    #   - install_query_check did not crash on _tools iteration
-    # No upstream Snowflake call yet.
     # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     if "run_snowflake_query" in seen:
@@ -101,18 +80,6 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 2 -- run_snowflake_query with SELECT (allow path)
-    #
-    # SELECT is in the default allow list. The wrapper should pass
-    # the call through to the real handler. Two valid outcomes:
-    #
-    #   a) Snowflake reachable + creds correct: returns query result.
-    #   b) No Snowflake / bad creds: connector raises, the tool body
-    #      catches it and returns an error JSON, OR the exception
-    #      propagates as a RuntimeError on the wire.
-    #
-    # Either outcome PROVES the install_query_check wrapper allowed
-    # the call through (it did NOT raise "Statement type ... not
-    # allowed" before the handler ran).
     # --------------------------------------------------------------
     print("\n[TEST 2] run_snowflake_query with SELECT -- allow path")
     try:
@@ -146,18 +113,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 3 -- run_snowflake_query with DROP (deny path, statement-arg)
-    #
-    # This is THE test for the middleware-to-wrapper rewrite on the
-    # statement-argument branch. The wrapper:
-    #   - sees tool_name == "run_snowflake_query"
-    #   - reads kwargs["statement"]
-    #   - calls validate_sql_type, gets back ("Drop", False)
-    #   - raises RuntimeError BEFORE the real handler runs
-    #
-    # The connection to Snowflake is never opened, the SQL never
-    # leaves the process. That is the security guarantee.
-    #
-    # Expectation: RuntimeError whose message contains "not allowed".
+
     # --------------------------------------------------------------
     print("\n[TEST 3] run_snowflake_query with DROP -- statement-arg deny")
     try:
@@ -190,42 +146,19 @@ async def main():
                   "snowflake refused. Print the full error to diagnose.")
 
     # --------------------------------------------------------------
-    # TEST 4 -- drop_object (deny path, tool-name prefix)
-    #
-    # Same wrapper, different branch. The tool name starts with
-    # "drop", so the wrapper takes the name-only check path:
-    #   - validate_object_tool(tool_name, allow, deny)
-    # No statement to inspect; the tool name alone is enough.
-    #
-    # Params have to be present so Python doesn't TypeError before
-    # we reach the wrapper. The wrapper's validation runs FIRST,
-    # rejects the call, and the params are never used.
-    #
-    # If your YAML allows DROP for objects (uncommon), this test
-    # falls through to the snowflake call and you'll see a
-    # connector error. That's a config-dependent inconclusive,
-    # not a failure of the wrapper.
+    # TEST 4 -- drop_object (deny path, tool-name prefix
     # --------------------------------------------------------------
-    # Note on target_object shape:
-    # Upstream parse_object() at object_manager/tools.py:153 only handles
-    # `target_object` when it arrives as a JSON STRING (it then parses
-    # it into a SnowflakeTable Pydantic model). If we pass a plain dict,
-    # parse_object falls into its else-branch (`return target_object`)
-    # and the dict reaches drop_object(), which expects a Pydantic model
-    # with a .get_core_object() method -> AttributeError.
-    # So we serialise the dict to a JSON string here. Same data, the
-    # branch upstream actually supports.
     print("\n[TEST 4] drop_object -- name-prefix deny")
     try:
         result = await client.call_tool(
             "drop_object",
             {
                 "object_type": "table",
-                "target_object": json.dumps({
+                "target_object": {
                     "name": "__macaw_smoke_fake__",
                     "database_name": "__macaw_db__",
                     "schema_name": "__macaw_schema__",
-                }),
+                },
                 "if_exists": True,
             },
         )

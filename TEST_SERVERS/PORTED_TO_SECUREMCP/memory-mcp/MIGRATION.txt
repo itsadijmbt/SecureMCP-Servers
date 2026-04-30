@@ -1,0 +1,40 @@
+
+
+
+
+1. src/server.py
+----------------
+ import swap
+    -  from fastmcp import FastMCP
+    +  from macaw_adapters.mcp import SecureMCP
+
+server constructor
+    -  mcp = FastMCP("MongoDB Memory MCP Server")
+    +  mcp = SecureMCP("MongoDB-Memory-MCP-Server")
+
+ transport
+
+
+
+2. tools/cache_tools.py
+-----------------------
+import swap + type hint
+    -  from fastmcp import FastMCP
+    +  from macaw_adapters.mcp import SecureMCP
+       ...
+    -  def register_cache_tools(mcp: FastMCP):
+    +  def register_cache_tools(mcp: SecureMCP):
+
+
+
+3. tools/memory_tools.py
+------------------------
+
+  Same two-line swap as cache_tools.py for the same reason.
+
+
+4. tools/search_tools.py
+------------------------
+
+  Same two-line swap.
+

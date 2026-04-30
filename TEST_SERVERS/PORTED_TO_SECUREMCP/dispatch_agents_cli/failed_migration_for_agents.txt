@@ -1,0 +1,28 @@
+
+-----------------------------
+
+Look at agent/tools.py around lines 44-92. This is what happens
+at server startup:
+
+  1. The server makes an HTTP call:
+       agent_info = client.get_agent_info(config.agent_name)
+     This call goes to the dispatch backend and returns whatever
+     functions the deployed agent has declared. Different agent ->
+     different functions. Same code, different tools.
+
+  2. For each function in agent_info["functions"], the server
+     creates a Tool object whose inputSchema field comes directly
+     from the backend response:
+       tool = Tool(
+           name=tool_name,
+           description=...,
+           inputSchema=function.get("input_schema", {}),
+           outputSchema=function.get("output_schema"),
+       )
+     The schema is JSON data from the backend. It is NOT derived
+     from any Python signature.
+
+  3. The actual handler is a single generic function,
+     handle_dynamic_agent_function, that takes a name + arguments
+     dict and forwards them to the backend's invoke API. There is
+     no per-tool Python function.

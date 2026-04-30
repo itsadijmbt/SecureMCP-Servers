@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+.claude/
+AGENTS.md
+CLAUDE.md
+.venv/
+__pycache__
+.env
+.dispatch/
+
+# Webpack source maps for the local router UI — regenerated on every
+# `npm run deploy-update` in cli/dispatch-local-ui. No runtime use and
+# embeds our JSX source; leave them untracked.
+dispatch_cli/router/static/*.map

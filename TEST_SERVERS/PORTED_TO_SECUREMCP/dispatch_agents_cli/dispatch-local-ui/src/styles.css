@@ -1,0 +1,219 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  --font-family-unna: 'Victor Mono', monospace;
+  --background: var(--color-warm-gray-50);
+  --foreground: var(--color-warm-gray-700);
+  --card: #ffffff;
+  --card-foreground: var(--color-warm-gray-700);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-warm-gray-700);
+  --primary: var(--color-brand-blue-600);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-steel-blue);
+  --secondary-foreground: #ffffff;
+  --accent-subtle: var(--color-purple-accent);
+  --accent-subtle-foreground: #ffffff;
+  --muted: var(--color-warm-gray-100);
+  --muted-foreground: var(--color-warm-gray-500);
+  --accent: var(--color-warm-gray-100);
+  --accent-foreground: var(--color-warm-gray-900);
+  --destructive: var(--color-status-red-500);
+  --destructive-foreground: #ffffff;
+  --warning: var(--color-warning-amber);
+  --warning-foreground: #ffffff;
+  --border: var(--color-warm-gray-200);
+  --input: transparent;
+  --input-background: var(--color-warm-gray-100);
+  --input-border: var(--color-warm-gray-300);
+  --switch-background: var(--color-warm-gray-300);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.375rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #030213;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --color-warm-gray-50: #f5f5f4;
+  --color-warm-gray-100: #f0f0ef;
+  --color-warm-gray-200: #e7e5e4;
+  --color-warm-gray-300: #d6d3d1;
+  --color-warm-gray-400: #a8a29e;
+  --color-warm-gray-500: #78716c;
+  --color-warm-gray-600: #57534e;
+  --color-warm-gray-700: #44403c;
+  --color-warm-gray-800: #292524;
+  --color-warm-gray-900: #1c1917;
+  --color-steel-blue: #475569;
+  --color-steel-blue-light: #64748b;
+  --color-steel-blue-dark: #334155;
+  --color-blue-light-bg: #e0f2fe;
+  --color-purple-accent: #6366f1;
+  --color-purple-accent-light: #a5b4fc;
+  --color-purple-accent-dark: #4338ca;
+  --color-warning-amber: #f59e0b;
+  --color-warning-amber-light: #fbbf24;
+  --color-warning-amber-bg: #fffbeb;
+  --color-brand-blue-50: #eff6ff;
+  --color-brand-blue-100: #dbeafe;
+  --color-brand-blue-200: #bfdbfe;
+  --color-brand-blue-300: #93c5fd;
+  --color-brand-blue-400: #60a5fa;
+  --color-brand-blue-500: #3b82f6;
+  --color-brand-blue-600: #2563eb;
+  --color-brand-blue-700: #1d4ed8;
+  --color-brand-blue-800: #1e40af;
+  --color-brand-blue-900: #1e3a8a;
+  --color-brand-blue-950: #172554;
+  --color-aqua-50: #f0f9ff;
+  --color-aqua-100: #e0f2fe;
+  --color-aqua-200: #bae6fd;
+  --color-aqua-300: #7dd3fc;
+  --color-aqua-500: #0ea5e9;
+  --color-aqua-600: #0284c7;
+  --color-aqua-700: #0369a1;
+  --color-brand-indigo-50: #eef2ff;
+  --color-brand-indigo-100: #e0e7ff;
+  --color-brand-indigo-400: #818cf8;
+  --color-brand-indigo-600: #4338ca;
+  --color-brand-cyan-50: #f0fdff;
+  --color-brand-cyan-100: #e0f2fe;
+  --color-brand-sky-400: #38bdf8;
+  --color-brand-sky-500: #0ea5e9;
+  --color-status-green-50: #f0fdf4;
+  --color-status-green-100: #dcfce7;
+  --color-status-green-200: #bbf7d0;
+  --color-status-green-500: #22c55e;
+  --color-status-green-600: #16a34a;
+  --color-status-green-700: #15803d;
+  --color-status-red-50: #fef2f2;
+  --color-status-red-100: #fee2e2;
+  --color-status-red-200: #fecaca;
+  --color-status-red-500: #ef4444;
+  --color-status-red-600: #dc2626;
+  --color-status-red-700: #b91c1c;
+  --color-status-yellow-50: #fefce8;
+  --color-status-yellow-100: #fef3c7;
+  --color-status-yellow-200: #fde68a;
+  --color-status-yellow-500: #eab308;
+  --color-status-yellow-600: #ca8a04;
+  --color-status-yellow-700: #a16207;
+  --brand-shadow-light: 0 12px 24px rgba(37, 99, 235, 0.08);
+  --brand-shadow-medium: 0 16px 28px rgba(99, 102, 241, 0.18);
+  --brand-shadow-heavy: 0 18px 40px rgba(15, 23, 42, 0.28);
+  --brand-border-light: rgba(226, 232, 240, 0.8);
+  --brand-border-medium: rgba(37, 99, 235, 0.35);
+  --brand-border-strong: rgba(59, 130, 246, 0.35);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: var(--color-brand-blue-600);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: var(--color-status-red-500);
+  --destructive-foreground: #ffffff;
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}
+
+/* Base styles - matching web-app */
+* {
+  border-color: var(--border);
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Typography hierarchy - matching web-app */
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--foreground);
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+  margin: 0;
+}
+
+h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--foreground);
+  margin: 0;
+}
+
+/* Markdown content styling (for marked HTML output) */
+.markdown-content h1 { font-size: 1.125rem; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.5rem; color: #111827; }
+.markdown-content h2 { font-size: 1rem; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.5rem; color: #111827; }
+.markdown-content h3 { font-size: 0.875rem; font-weight: 700; margin-top: 0.5rem; margin-bottom: 0.25rem; color: #111827; }
+.markdown-content p { margin-bottom: 0.5rem; }
+.markdown-content p:last-child { margin-bottom: 0; }
+.markdown-content code { background-color: #e5e7eb; color: #1f2937; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-size: 0.75rem; font-family: ui-monospace, monospace; }
+.markdown-content pre { background-color: #1f2937; color: #f3f4f6; padding: 0.75rem; border-radius: 0.375rem; overflow-x: auto; margin: 0.5rem 0; font-size: 0.75rem; }
+.markdown-content pre code { background-color: transparent; color: inherit; padding: 0; font-family: ui-monospace, monospace; }
+.markdown-content ul { list-style-type: disc; list-style-position: inside; margin-bottom: 0.5rem; }
+.markdown-content ol { list-style-type: decimal; list-style-position: inside; margin-bottom: 0.5rem; }
+.markdown-content li { color: #374151; }
+.markdown-content a { color: #4f46e5; text-decoration: underline; }
+.markdown-content a:hover { color: #6366f1; }
+.markdown-content strong { font-weight: 600; color: #111827; }
+.markdown-content em { font-style: italic; }
+.markdown-content blockquote { border-left: 4px solid #d1d5db; padding-left: 0.75rem; margin: 0.5rem 0; color: #4b5563; font-style: italic; }
+.markdown-content table { min-width: 100%; border: 1px solid #d1d5db; font-size: 0.75rem; margin: 0.5rem 0; border-collapse: collapse; }
+.markdown-content th { border: 1px solid #d1d5db; padding: 0.25rem 0.5rem; background-color: #f3f4f6; font-weight: 600; text-align: left; }
+.markdown-content td { border: 1px solid #d1d5db; padding: 0.25rem 0.5rem; }
+.markdown-content hr { margin: 0.75rem 0; border-color: #d1d5db; }
+
+/* Remove manual icon initialization styles */

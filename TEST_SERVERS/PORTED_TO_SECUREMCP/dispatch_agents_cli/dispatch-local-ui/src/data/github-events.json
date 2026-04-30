@@ -1,0 +1,511 @@
+{
+  "events": {
+    "check_run": [
+      {
+        "class": "CheckRunCompleted",
+        "topic": "github.check_run.completed",
+        "action": "completed",
+        "description": "Payload for github.check_run.completed events."
+      },
+      {
+        "class": "CheckRunCreated",
+        "topic": "github.check_run.created",
+        "action": "created",
+        "description": "Payload for github.check_run.created events."
+      },
+      {
+        "class": "CheckRunRequestedAction",
+        "topic": "github.check_run.requested_action",
+        "action": "requested_action",
+        "description": "Payload for github.check_run.requested_action events."
+      },
+      {
+        "class": "CheckRunRerequested",
+        "topic": "github.check_run.rerequested",
+        "action": "rerequested",
+        "description": "Payload for github.check_run.rerequested events."
+      }
+    ],
+    "check_suite": [
+      {
+        "class": "CheckSuiteCompleted",
+        "topic": "github.check_suite.completed",
+        "action": "completed",
+        "description": "Payload for github.check_suite.completed events."
+      },
+      {
+        "class": "CheckSuiteRequested",
+        "topic": "github.check_suite.requested",
+        "action": "requested",
+        "description": "Payload for github.check_suite.requested events."
+      },
+      {
+        "class": "CheckSuiteRerequested",
+        "topic": "github.check_suite.rerequested",
+        "action": "rerequested",
+        "description": "Payload for github.check_suite.rerequested events."
+      }
+    ],
+    "create": [
+      {
+        "class": "Create",
+        "topic": "github.create",
+        "action": null,
+        "description": "Payload for github.create events."
+      }
+    ],
+    "delete": [
+      {
+        "class": "Delete",
+        "topic": "github.delete",
+        "action": null,
+        "description": "Payload for github.delete events."
+      }
+    ],
+    "fork": [
+      {
+        "class": "Fork",
+        "topic": "github.fork",
+        "action": null,
+        "description": "Payload for github.fork events."
+      }
+    ],
+    "installation": [
+      {
+        "class": "InstallationCreated",
+        "topic": "github.installation.created",
+        "action": "created",
+        "description": "Payload for github.installation.created events."
+      },
+      {
+        "class": "InstallationDeleted",
+        "topic": "github.installation.deleted",
+        "action": "deleted",
+        "description": "Payload for github.installation.deleted events."
+      },
+      {
+        "class": "InstallationNewPermissionsAccepted",
+        "topic": "github.installation.new_permissions_accepted",
+        "action": "new_permissions_accepted",
+        "description": "Payload for github.installation.new_permissions_accepted events."
+      },
+      {
+        "class": "InstallationSuspend",
+        "topic": "github.installation.suspend",
+        "action": "suspend",
+        "description": "Payload for github.installation.suspend events."
+      },
+      {
+        "class": "InstallationUnsuspend",
+        "topic": "github.installation.unsuspend",
+        "action": "unsuspend",
+        "description": "Payload for github.installation.unsuspend events."
+      }
+    ],
+    "installation_repositories": [
+      {
+        "class": "InstallationRepositoriesAdded",
+        "topic": "github.installation_repositories.added",
+        "action": "added",
+        "description": "Payload for github.installation_repositories.added events."
+      },
+      {
+        "class": "InstallationRepositoriesRemoved",
+        "topic": "github.installation_repositories.removed",
+        "action": "removed",
+        "description": "Payload for github.installation_repositories.removed events."
+      }
+    ],
+    "issue_comment": [
+      {
+        "class": "IssueCommentCreated",
+        "topic": "github.issue_comment.created",
+        "action": "created",
+        "description": "Payload for github.issue_comment.created events."
+      },
+      {
+        "class": "IssueCommentDeleted",
+        "topic": "github.issue_comment.deleted",
+        "action": "deleted",
+        "description": "Payload for github.issue_comment.deleted events."
+      },
+      {
+        "class": "IssueCommentEdited",
+        "topic": "github.issue_comment.edited",
+        "action": "edited",
+        "description": "Payload for github.issue_comment.edited events."
+      }
+    ],
+    "issues": [
+      {
+        "class": "IssueAssigned",
+        "topic": "github.issues.assigned",
+        "action": "assigned",
+        "description": "Payload for github.issues.assigned events."
+      },
+      {
+        "class": "IssueClosed",
+        "topic": "github.issues.closed",
+        "action": "closed",
+        "description": "Payload for github.issues.closed events."
+      },
+      {
+        "class": "IssueDemilestoned",
+        "topic": "github.issues.demilestoned",
+        "action": "demilestoned",
+        "description": "Payload for github.issues.demilestoned events."
+      },
+      {
+        "class": "IssueEdited",
+        "topic": "github.issues.edited",
+        "action": "edited",
+        "description": "Payload for github.issues.edited events."
+      },
+      {
+        "class": "IssueLabeled",
+        "topic": "github.issues.labeled",
+        "action": "labeled",
+        "description": "Payload for github.issues.labeled events."
+      },
+      {
+        "class": "IssueLocked",
+        "topic": "github.issues.locked",
+        "action": "locked",
+        "description": "Payload for github.issues.locked events."
+      },
+      {
+        "class": "IssueMilestoned",
+        "topic": "github.issues.milestoned",
+        "action": "milestoned",
+        "description": "Payload for github.issues.milestoned events."
+      },
+      {
+        "class": "IssueOpened",
+        "topic": "github.issues.opened",
+        "action": "opened",
+        "description": "Payload for github.issues.opened events."
+      },
+      {
+        "class": "IssuePinned",
+        "topic": "github.issues.pinned",
+        "action": "pinned",
+        "description": "Payload for github.issues.pinned events."
+      },
+      {
+        "class": "IssueReopened",
+        "topic": "github.issues.reopened",
+        "action": "reopened",
+        "description": "Payload for github.issues.reopened events."
+      },
+      {
+        "class": "IssueTransferred",
+        "topic": "github.issues.transferred",
+        "action": "transferred",
+        "description": "Payload for github.issues.transferred events."
+      },
+      {
+        "class": "IssueUnassigned",
+        "topic": "github.issues.unassigned",
+        "action": "unassigned",
+        "description": "Payload for github.issues.unassigned events."
+      },
+      {
+        "class": "IssueUnlabeled",
+        "topic": "github.issues.unlabeled",
+        "action": "unlabeled",
+        "description": "Payload for github.issues.unlabeled events."
+      },
+      {
+        "class": "IssueUnlocked",
+        "topic": "github.issues.unlocked",
+        "action": "unlocked",
+        "description": "Payload for github.issues.unlocked events."
+      },
+      {
+        "class": "IssueUnpinned",
+        "topic": "github.issues.unpinned",
+        "action": "unpinned",
+        "description": "Payload for github.issues.unpinned events."
+      }
+    ],
+    "pull_request": [
+      {
+        "class": "PullRequestAssigned",
+        "topic": "github.pull_request.assigned",
+        "action": "assigned",
+        "description": "Payload for github.pull_request.assigned events."
+      },
+      {
+        "class": "PullRequestClosed",
+        "topic": "github.pull_request.closed",
+        "action": "closed",
+        "description": "Payload for github.pull_request.closed events."
+      },
+      {
+        "class": "PullRequestConvertedToDraft",
+        "topic": "github.pull_request.converted_to_draft",
+        "action": "converted_to_draft",
+        "description": "Payload for github.pull_request.converted_to_draft events."
+      },
+      {
+        "class": "PullRequestEdited",
+        "topic": "github.pull_request.edited",
+        "action": "edited",
+        "description": "Payload for github.pull_request.edited events."
+      },
+      {
+        "class": "PullRequestLabeled",
+        "topic": "github.pull_request.labeled",
+        "action": "labeled",
+        "description": "Payload for github.pull_request.labeled events."
+      },
+      {
+        "class": "PullRequestLocked",
+        "topic": "github.pull_request.locked",
+        "action": "locked",
+        "description": "Payload for github.pull_request.locked events."
+      },
+      {
+        "class": "PullRequestOpened",
+        "topic": "github.pull_request.opened",
+        "action": "opened",
+        "description": "Payload for github.pull_request.opened events."
+      },
+      {
+        "class": "PullRequestReadyForReview",
+        "topic": "github.pull_request.ready_for_review",
+        "action": "ready_for_review",
+        "description": "Payload for github.pull_request.ready_for_review events."
+      },
+      {
+        "class": "PullRequestReopened",
+        "topic": "github.pull_request.reopened",
+        "action": "reopened",
+        "description": "Payload for github.pull_request.reopened events."
+      },
+      {
+        "class": "PullRequestReviewRequestRemoved",
+        "topic": "github.pull_request.review_request_removed",
+        "action": "review_request_removed",
+        "description": "Payload for github.pull_request.review_request_removed events."
+      },
+      {
+        "class": "PullRequestReviewRequested",
+        "topic": "github.pull_request.review_requested",
+        "action": "review_requested",
+        "description": "Payload for github.pull_request.review_requested events."
+      },
+      {
+        "class": "PullRequestSynchronize",
+        "topic": "github.pull_request.synchronize",
+        "action": "synchronize",
+        "description": "Payload for github.pull_request.synchronize events."
+      },
+      {
+        "class": "PullRequestUnassigned",
+        "topic": "github.pull_request.unassigned",
+        "action": "unassigned",
+        "description": "Payload for github.pull_request.unassigned events."
+      },
+      {
+        "class": "PullRequestUnlabeled",
+        "topic": "github.pull_request.unlabeled",
+        "action": "unlabeled",
+        "description": "Payload for github.pull_request.unlabeled events."
+      },
+      {
+        "class": "PullRequestUnlocked",
+        "topic": "github.pull_request.unlocked",
+        "action": "unlocked",
+        "description": "Payload for github.pull_request.unlocked events."
+      }
+    ],
+    "pull_request_review": [
+      {
+        "class": "PullRequestReviewDismissed",
+        "topic": "github.pull_request_review.dismissed",
+        "action": "dismissed",
+        "description": "Payload for github.pull_request_review.dismissed events."
+      },
+      {
+        "class": "PullRequestReviewEdited",
+        "topic": "github.pull_request_review.edited",
+        "action": "edited",
+        "description": "Payload for github.pull_request_review.edited events."
+      },
+      {
+        "class": "PullRequestReviewSubmitted",
+        "topic": "github.pull_request_review.submitted",
+        "action": "submitted",
+        "description": "Payload for github.pull_request_review.submitted events."
+      }
+    ],
+    "pull_request_review_comment": [
+      {
+        "class": "PullRequestReviewCommentCreated",
+        "topic": "github.pull_request_review_comment.created",
+        "action": "created",
+        "description": "Payload for github.pull_request_review_comment.created events."
+      },
+      {
+        "class": "PullRequestReviewCommentDeleted",
+        "topic": "github.pull_request_review_comment.deleted",
+        "action": "deleted",
+        "description": "Payload for github.pull_request_review_comment.deleted events."
+      },
+      {
+        "class": "PullRequestReviewCommentEdited",
+        "topic": "github.pull_request_review_comment.edited",
+        "action": "edited",
+        "description": "Payload for github.pull_request_review_comment.edited events."
+      }
+    ],
+    "pull_request_review_thread": [
+      {
+        "class": "PullRequestReviewThreadResolved",
+        "topic": "github.pull_request_review_thread.resolved",
+        "action": "resolved",
+        "description": "Payload for github.pull_request_review_thread.resolved events."
+      },
+      {
+        "class": "PullRequestReviewThreadUnresolved",
+        "topic": "github.pull_request_review_thread.unresolved",
+        "action": "unresolved",
+        "description": "Payload for github.pull_request_review_thread.unresolved events."
+      }
+    ],
+    "push": [
+      {
+        "class": "Push",
+        "topic": "github.push",
+        "action": null,
+        "description": "Payload for github.push events."
+      }
+    ],
+    "release": [
+      {
+        "class": "ReleaseCreated",
+        "topic": "github.release.created",
+        "action": "created",
+        "description": "Payload for github.release.created events."
+      },
+      {
+        "class": "ReleaseDeleted",
+        "topic": "github.release.deleted",
+        "action": "deleted",
+        "description": "Payload for github.release.deleted events."
+      },
+      {
+        "class": "ReleaseEdited",
+        "topic": "github.release.edited",
+        "action": "edited",
+        "description": "Payload for github.release.edited events."
+      },
+      {
+        "class": "ReleasePrereleased",
+        "topic": "github.release.prereleased",
+        "action": "prereleased",
+        "description": "Payload for github.release.prereleased events."
+      },
+      {
+        "class": "ReleasePublished",
+        "topic": "github.release.published",
+        "action": "published",
+        "description": "Payload for github.release.published events."
+      },
+      {
+        "class": "ReleaseReleased",
+        "topic": "github.release.released",
+        "action": "released",
+        "description": "Payload for github.release.released events."
+      },
+      {
+        "class": "ReleaseUnpublished",
+        "topic": "github.release.unpublished",
+        "action": "unpublished",
+        "description": "Payload for github.release.unpublished events."
+      }
+    ],
+    "star": [
+      {
+        "class": "StarCreated",
+        "topic": "github.star.created",
+        "action": "created",
+        "description": "Payload for github.star.created events."
+      },
+      {
+        "class": "StarDeleted",
+        "topic": "github.star.deleted",
+        "action": "deleted",
+        "description": "Payload for github.star.deleted events."
+      }
+    ],
+    "workflow_job": [
+      {
+        "class": "WorkflowJobCompleted",
+        "topic": "github.workflow_job.completed",
+        "action": "completed",
+        "description": "Payload for github.workflow_job.completed events."
+      },
+      {
+        "class": "WorkflowJobInProgress",
+        "topic": "github.workflow_job.in_progress",
+        "action": "in_progress",
+        "description": "Payload for github.workflow_job.in_progress events."
+      },
+      {
+        "class": "WorkflowJobQueued",
+        "topic": "github.workflow_job.queued",
+        "action": "queued",
+        "description": "Payload for github.workflow_job.queued events."
+      },
+      {
+        "class": "WorkflowJobWaiting",
+        "topic": "github.workflow_job.waiting",
+        "action": "waiting",
+        "description": "Payload for github.workflow_job.waiting events."
+      }
+    ],
+    "workflow_run": [
+      {
+        "class": "WorkflowRunCompleted",
+        "topic": "github.workflow_run.completed",
+        "action": "completed",
+        "description": "Payload for github.workflow_run.completed events."
+      },
+      {
+        "class": "WorkflowRunInProgress",
+        "topic": "github.workflow_run.in_progress",
+        "action": "in_progress",
+        "description": "Payload for github.workflow_run.in_progress events."
+      },
+      {
+        "class": "WorkflowRunRequested",
+        "topic": "github.workflow_run.requested",
+        "action": "requested",
+        "description": "Payload for github.workflow_run.requested events."
+      }
+    ]
+  },
+  "event_types": [
+    "check_run",
+    "check_suite",
+    "create",
+    "delete",
+    "fork",
+    "installation",
+    "installation_repositories",
+    "issue_comment",
+    "issues",
+    "pull_request",
+    "pull_request_review",
+    "pull_request_review_comment",
+    "pull_request_review_thread",
+    "push",
+    "release",
+    "star",
+    "workflow_job",
+    "workflow_run"
+  ],
+  "total": 75
+}

@@ -1,0 +1,21 @@
+Component,Origin,License,Copyright
+aiohttp,pypi,Apache-2.0,Copyright aiohttp contributors
+black,pypi,MIT,Copyright Łukasz Langa and contributors
+fastapi,pypi,MIT,Copyright Sebastián Ramírez
+grpcio,pypi,Apache-2.0,Copyright The gRPC Authors
+isort,pypi,MIT,Copyright Timothy Crosley
+mcp,pypi,MIT,Copyright Anthropic PBC
+packaging,pypi,Apache-2.0 OR BSD-2-Clause,Copyright Donald Stufft and contributors
+pathspec,pypi,MPL-2.0,Copyright Caleb P. Burns
+platformdirs,pypi,MIT,Copyright Bernát Gábor and contributors
+protobuf,pypi,BSD-3-Clause,Copyright Google LLC
+questionary,pypi,MIT,Copyright Tom Bocklisch
+requests,pypi,Apache-2.0,Copyright Kenneth Reitz
+requests-toolbelt,pypi,Apache-2.0,Copyright Ian Cordasco and Cory Benfield
+rich,pypi,MIT,Copyright Will McGugan
+toml,pypi,MIT,Copyright William Pearson
+tomlkit,pypi,MIT,Copyright Sébastien Eustace
+typer,pypi,MIT,Copyright Sebastián Ramírez
+types-toml,pypi,Apache-2.0,Copyright typeshed contributors
+uvicorn,pypi,BSD-3-Clause,Copyright Tom Christie
+watchfiles,pypi,MIT,Copyright Samuel Colvin
