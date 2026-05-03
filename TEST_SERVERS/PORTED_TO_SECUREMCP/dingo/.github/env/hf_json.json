@@ -1,0 +1,15 @@
+{
+    "input_path": "chupei/format-json",
+    "dataset": {
+        "source": "hugging_face",
+        "format": "json"
+    },
+    "evaluator": [
+        {
+            "fields": {"prompt": "origin_prompt", "content": "prediction"},
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}

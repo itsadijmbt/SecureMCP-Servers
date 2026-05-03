@@ -1,0 +1,14 @@
+{
+    "input_path": "chupei/format-text",
+    "dataset": {
+        "source": "hugging_face",
+        "format": "plaintext"
+    },
+    "evaluator": [
+        {
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}

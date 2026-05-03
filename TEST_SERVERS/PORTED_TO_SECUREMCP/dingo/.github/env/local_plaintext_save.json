@@ -1,0 +1,19 @@
+{
+    "input_path": "test/data/test_local_plaintext.txt",
+    "dataset": {
+        "source": "local",
+        "format": "plaintext"
+    },
+    "executor": {
+        "result_save": {
+            "bad": true
+        }
+    },
+    "evaluator": [
+        {
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}

@@ -1,0 +1,125 @@
+bicscan-mcp: FastMCP -> SecureMCP port
+=======================================
+
+WHAT WE DID (in plain English)
+------------------------------
+
+bicscan-mcp is the smallest port we've done. The original is a
+117-line FastMCP server with 2 tools (get_risk_score, get_assets)
+that hit the BICScan REST API. No lifespan, no Field defaults, no
+ctx logging, no decorator kwargs. The framework boundary swap is
+fully mechanical.
+
+WHAT CHANGED
+------------
+
+src/bicscan_mcp/server.py -- 4 line edits:
+
+  1. Import swap:
+       from mcp.server import FastMCP
+     ->
+       from macaw_adapters.mcp import SecureMCP
+     (Original commented above.)
+
+  2. Constructor swap:
+       mcp = FastMCP("BICScan")
+     ->
+       mcp = SecureMCP("BICScan")
+     (Original commented immediately above.)
+
+  3. async main() with `await mcp.run_stdio_async()` ->
+     sync main() with `mcp.run()`. Same pattern as every prior
+     port. Original kept as a comment block.
+
+  4. `if __name__ == "__main__": asyncio.run(main())` ->
+     `if __name__ == "__main__": main()`. main() is sync now.
+
+  5. `import asyncio` commented (no longer used in this file).
+
+src/bicscan_mcp/__init__.py -- 1 line edit:
+  asyncio.run(server.main()) -> server.main()
+  Same reason as the bottom of server.py.
+
+NEW FILES
+---------
+
+client-test-macaw.py:
+  2-test mesh smoke. List tools (expects both), call
+  get_risk_score with a sample EOA. Treats real-output-or-error-
+  json as PASS for handler reachability.
+
+MIGRATION.txt:
+  This file.
+
+WHY (one line per change)
+-------------------------
+
+1, 2. SecureMCP is the MACAW-instrumented MCP server class.
+3, 4. SecureMCP.run() is sync; the original async main with
+      run_stdio_async would conflict with SecureMCP's internal
+      asyncio.run().
+
+BROKEN ON PURPOSE -- features intentionally lost
+------------------------------------------------
+
+(a) Tool result envelope shape.
+
+    Original: tools returned dict; FastMCP wrapped them as the MCP
+    result envelope.
+
+    Port: SecureMCP carries dict returns through unchanged
+    (mcp.py:815-817 only wraps non-dicts as {"result": ...}).
+    Mesh consumers see the same dict the BICScan API returned.
+    Same pattern as every prior port.
+
+VERIFICATION
+------------
+
+Boot:
+  PYTHONPATH=src python -c "from bicscan_mcp.server import mcp; print(list(mcp._tools.keys()))"
+  Expected: ['get_risk_score', 'get_assets']
+  Note: requires BICSCAN_API_KEY to be set OR the env-var read to
+  not raise at import. Looking at server.py the read uses
+  os.getenv (no default raise), so import-time should be OK with
+  no key set.
+
+Mesh smoke:
+  python3 client-test-macaw.py "BICScan" bicscan-test-client
+  Expected:
+    TEST 1 PASS -- both expected tools advertised.
+    TEST 2 PASS -- get_risk_score returns BICScan response or
+                   auth-failure JSON.
+
+End-to-end runtime verification (real risk score / asset queries)
+requires a valid BICSCAN_API_KEY -- out of scope for this smoke
+test.
+
+KNOWN GAPS
+----------
+
+- Per-parameter inputSchema descriptions: original had only
+  function-level docstrings, no Field metadata. Nothing lost.
+
+- Result envelope: dict pass-through. Documented above.
+
+LINES CHANGED
+-------------
+
+src/bicscan_mcp/server.py:
+  Before: 117 lines.
+  After:  ~125 lines (mostly comment additions).
+
+src/bicscan_mcp/__init__.py:
+  Before: 11 lines. After: ~14 lines.
+
+client-test-macaw.py: new, ~115 lines.
+MIGRATION.txt:        this file.
+
+NOT TOUCHED
+-----------
+
+  - Both tool function bodies (get_risk_score, get_assets) --
+    byte-for-byte unchanged.
+  - post_request helper (the httpx wrapper).
+  - logging setup, env var reads, BICSCAN_API_BASE constant.
+  - pyproject.toml, README, Dockerfile.

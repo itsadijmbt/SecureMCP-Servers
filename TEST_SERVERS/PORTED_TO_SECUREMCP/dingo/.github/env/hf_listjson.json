@@ -1,0 +1,15 @@
+{
+    "input_path": "chupei/format-listjson",
+    "dataset": {
+        "source": "hugging_face",
+        "format": "listjson"
+    },
+    "evaluator": [
+        {
+            "fields": {"prompt": "instruction", "content": "output"},
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}

@@ -1,0 +1,67 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Test
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+  workflow_dispatch:
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        if [ -f requirements/runtime.txt ]; then pip install -r requirements/runtime.txt; fi
+        if [ -f requirements/datasource.txt ]; then pip install -r requirements/datasource.txt; fi
+        pip install pyspark
+        pip install tavily-python
+        pip install -e .
+
+    - name: Check Python syntax and imports
+      run: |
+        python .github/scripts/check_imports.py
+
+    - name: Integration Test(local plaintext)
+      run: |
+        dingo eval --input .github/env/local_plaintext.json
+        dingo eval --input .github/env/local_plaintext_save.json
+    - name: Integration Test(local json)
+      run: |
+        dingo eval --input .github/env/local_json.json
+    - name: Integration Test(local jsonl)
+      run: |
+        dingo eval --input .github/env/local_jsonl.json
+    - name: Integration Test(local listjson)
+      run: |
+        dingo eval --input .github/env/local_listjson.json
+    - name: Integration Test(huggingface plaintext)
+      run: |
+        dingo eval --input .github/env/hf_plaintext.json
+    - name: Integration Test(huggingface json)
+      run: |
+        dingo eval --input .github/env/hf_json.json
+    - name: Integration Test(huggingface jsonl)
+      run: |
+        dingo eval --input .github/env/hf_jsonl.json
+    - name: Integration Test(huggingface listjson)
+      run: |
+        dingo eval --input .github/env/hf_listjson.json
+    - name: Integration Test(custom config)
+      run: |
+        dingo eval --input .github/env/custom_config_rule.json
+    - name: Run unit tests
+      run: |
+        pytest test/scripts --ignore=test/scripts/data

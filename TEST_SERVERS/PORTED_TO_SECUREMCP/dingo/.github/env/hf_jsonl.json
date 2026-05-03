@@ -1,0 +1,15 @@
+{
+    "input_path": "chupei/format-jsonl",
+    "dataset": {
+        "source": "hugging_face",
+        "format": "jsonl"
+    },
+    "evaluator": [
+        {
+            "fields": {"content": "content"},
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}

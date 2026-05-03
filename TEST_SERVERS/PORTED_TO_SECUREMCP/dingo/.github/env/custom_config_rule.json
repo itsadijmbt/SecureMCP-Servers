@@ -1,0 +1,16 @@
+{
+    "input_path": "test/data/test_local_json.json",
+    "dataset": {
+        "source": "local",
+        "format": "json"
+    },
+    "evaluator": [
+        {
+            "fields": {"content": "prediction"},
+            "evals": [
+                {"name": "RuleSpecialCharacter", "config": {"pattern": "[�^□]|\\{\\/U\\}"}},
+                {"name": "RuleWatermark", "config": {"key_list": ["谢邀", "Architecture of dingo"]}}
+            ]
+        }
+    ]
+}

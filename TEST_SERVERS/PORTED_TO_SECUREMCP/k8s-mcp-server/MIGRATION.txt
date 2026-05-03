@@ -1,0 +1,234 @@
+k8s-mcp-server: FastMCP -> SecureMCP port
+==========================================
+
+WHAT WE DID
+-----------
+
+src/k8s_mcp_server/server.py -- edited (422 -> 493 lines, +71 for
+preserved-as-comment originals + PORT NOTE blocks):
+
+  1. Import swap (line 12):
+       from mcp.server.fastmcp import Context, FastMCP
+       from mcp.types import Icon, ToolAnnotations
+     ->
+       from macaw_adapters.mcp import SecureMCP, Context
+     (Icon and ToolAnnotations imports both commented; neither
+      remains in active use after the changes below.)
+
+  2. Constructor swap (line 74):
+       mcp = FastMCP(name="K8s MCP Server", instructions=INSTRUCTIONS)
+     ->
+       mcp = SecureMCP(name="K8s MCP Server")
+     `instructions=` is not accepted by SecureMCP (skill Step 1b);
+     dropped. The INSTRUCTIONS string is referenced nowhere else,
+     so no behavioural impact.
+
+  3. Removed `mcp._mcp_server.version = __version__` (line 78).
+     This was the FastMCP protocol-layer mechanism for advertising
+     the server version in the MCP `serverInfo` response. Under
+     SecureMCP / MACAW the protocol layer is the mesh, not MCP-
+     stdio, and `_mcp_server` doesn't exist (skill Hard Rule #3).
+     The package-level __version__ remains importable for any
+     consumer that wants it; the protocol-level surface that
+     consumed this is gone with the protocol layer itself.
+
+  4. Removed _ICONS dict (lines 35-40). Originally consumed by
+     `icons=_ICONS["..."]` on every @mcp.tool decorator. SecureMCP
+     @mcp.tool() does not accept icons= (verified at mcp.py:497-
+     517). See BROKEN ON PURPOSE: tool advertisement icons.
+
+  5. ctx.<log> async -> sync (11 instances). All `await ctx.info`,
+     `await ctx.warning`, `await ctx.error` calls had the `await`
+     stripped. Verified at SecureMCP mcp.py:319, 338, 342, 346,
+     350: these methods are `def`, not `async def`. Skill Step 5.
+
+  6. Field-default parameter rewrite (12 instances). Patterns:
+       command: str = Field(description="...")
+         -> command: str
+       command: str | None = Field(description="...", default=None)
+         -> command: str | None = None
+       timeout: int | None = Field(description="...", default=None)
+         -> timeout: int | None = None
+     Why required: SecureMCP's tool decorator does not wrap the
+     handler with Pydantic's validate_call (verified at mcp.py:497-
+     517). Under FastMCP the wrap silently substitutes the actual
+     default for the FieldInfo object; under SecureMCP the raw
+     function is called, so a parameter declared
+     `timeout: int | None = Field(default=None)` would receive the
+     FieldInfo object as its actual value when the caller omits
+     the argument -- a runtime bug, not a stylistic issue.
+
+     The descriptions inside Field(description=...) are NOT lost:
+     each tool's docstring already has an `Args:` block with the
+     same per-parameter info, and SecureMCP auto-uses the docstring
+     as the tool description (verified at mcp.py:499:
+       `tool_desc = description or func.__doc__ or ""`).
+
+  7. Decorator kwarg strip (8 instances). Each
+       @mcp.tool(annotations=ToolAnnotations(...), icons=_ICONS["..."])
+     became
+       @mcp.tool()
+     Some `execute_*` decorators kept `description="..."` (we only
+     stripped annotations= and icons=). Skill Step 1c. Originals
+     preserved as comments inline.
+
+  Notes that did NOT change:
+    - asyncio.run(check_cli_installed(cli_tool)) at line 55: kept.
+      One-shot bool check, no persistent loop binding (skill Step 4
+      explicitly allows this).
+    - register_prompts(mcp): unchanged. Uses @mcp.prompt() which
+      SecureMCP supports (verified at mcp.py:548+).
+    - All tool function bodies, _execute_tool_command(),
+      _describe_tool_command(): unchanged.
+
+src/k8s_mcp_server/__main__.py -- edited (66 -> 84 lines):
+
+  1. Commented out the transport-validation block (MCP_TRANSPORT,
+     VALID_TRANSPORTS, SSE deprecation warning). Transport
+     selection is inert under SecureMCP -- mcp.run() ignores the
+     `transport=` kwarg and creates its own asyncio.run()
+     internally (mcp.py:628-635). The mesh carries traffic.
+
+  2. Commented out the `mcp.settings.host = host` block. SecureMCP
+     has no `settings` attribute. HTTP transport doesn't apply.
+
+  3. mcp.run(transport=transport) -> mcp.run(). Skill Step 1d.
+
+  4. Signal handlers (handle_interrupt) and the import-time logging
+     setup are kept untouched -- both are framework-independent.
+
+NEW FILES
+---------
+
+client-test-macaw.py:
+  Standard mesh smoke test (3 tests). Lists tools, calls
+  describe_kubectl with `command="version"` (read-only help
+  retrieval), and execute_kubectl with `command="version --client"`
+  (cluster-free). Treats real-output-or-structured-error as PASS
+  for handler reachability. Pattern: snowflake-mcp /
+  memory-mcp / spotify-mcp / telegram-mcp lineage.
+
+WHY (one line per change)
+-------------------------
+
+1. SecureMCP is the MACAW-instrumented MCP server class. The
+   import is the only thing that connects this server to MACAW.
+2. Same reason -- constructor must reference the new class.
+3. mcp._mcp_server is the FastMCP-private surface for the MCP
+   protocol layer that MACAW replaces. Touching it is forbidden
+   by skill Hard Rule #3 and pointless under MACAW.
+4. _ICONS / icons= are MCP-protocol UI metadata SecureMCP does
+   not carry. Encoding does not help -- there is no destination.
+   See BROKEN ON PURPOSE (b).
+5. SecureMCP's logging methods are sync; awaiting a non-coroutine
+   would raise TypeError at runtime.
+6. Field as a parameter default needs FastMCP's validate_call
+   wrap to be substituted with the real default. Without it, the
+   handler receives FieldInfo objects at call time -- broken.
+   Plain Python defaults are correct under SecureMCP.
+7. SecureMCP's tool decorator accepts only name=, description=,
+   prompts=. Stripping the unsupported kwargs is mechanical.
+
+BROKEN ON PURPOSE -- features intentionally lost
+------------------------------------------------
+
+(a) Tool advertisement annotations.
+
+    Original: each @mcp.tool carried
+    annotations=ToolAnnotations(title="...", readOnlyHint=...,
+    openWorldHint=..., destructiveHint=...). MCP-protocol clients
+    used these for UX (display titles, warn before destructive
+    calls).
+
+    Port: SecureMCP @mcp.tool() does not accept annotations=.
+    Stripped mechanically. Tool descriptions and docstrings remain
+    -- mesh consumers can read those.
+
+    Restoring this would require SDK changes (out of scope).
+
+(b) Tool advertisement icons.
+
+    Original: each @mcp.tool carried icons=_ICONS["..."], pointing
+    to CNCF-hosted SVG logos. Shown next to tool names in MCP-
+    protocol-aware UI clients.
+
+    Port: SecureMCP @mcp.tool() does not accept icons=. The
+    _ICONS dict is dead; preserved as a comment for documentation.
+
+    Note: this CANNOT be migrated by base64-encoding the SVG bytes
+    or by any other re-encoding scheme -- there is simply no slot
+    on the SecureMCP / MACAW side that consumes icons. The
+    information has no destination, encoded or not. See the
+    in-code PORT NOTE at the _ICONS comment for the four-point
+    explanation.
+
+(c) `mcp._mcp_server.version` advertisement.
+
+    Original: the package's __version__ was attached to the
+    private FastMCP _mcp_server.version, advertised in the MCP
+    `serverInfo` response.
+
+    Port: dropped. MCP `serverInfo` is a protocol-layer concept
+    that does not apply under MACAW (the mesh has its own
+    identity surfaces -- agent_id, app_name). __version__ remains
+    importable from k8s_mcp_server for any code that wants it.
+
+(d) Per-parameter JSON-schema descriptions.
+
+    Original: pydantic.Field(description=...) on each tool
+    parameter produced per-property descriptions in the
+    inputSchema that MCP clients displayed.
+
+    Port: SecureMCP's _extract_parameters does not read Field
+    metadata (mcp.py:827-859: 6-entry type-map only). The
+    descriptions live in each tool's docstring `Args:` section,
+    which SecureMCP auto-uses as the tool description. LLM
+    clients still see the info, just in prose form rather than
+    structured per-property JSON.
+
+(e) `instructions=` constructor kwarg.
+
+    Original: `FastMCP(instructions=INSTRUCTIONS)` set a top-
+    level "instructions" string surfaced in the MCP server-info
+    response.
+
+    Port: SecureMCP doesn't accept instructions= and has no
+    equivalent slot. INSTRUCTIONS is not referenced anywhere
+    else in the codebase, so dropping has no behavioural impact
+    beyond the lost server-info field.
+
+(f) Tool result envelope shape (only if a tool returns non-dict).
+
+    Original: tools return CommandResult / CommandHelpResult
+    (Pydantic models) -- FastMCP serialises them to MCP
+    TextContent / structuredContent.
+
+    Port: SecureMCP wraps non-dict returns as {"result": <obj>}
+    (mcp.py:815-817). Mesh consumers see the same Pydantic-
+    serialised content inside a `result` key. Documented for
+    callers that parse the response.
+
+VERIFICATION
+------------
+
+Boot:
+  python -c "from k8s_mcp_server.server import mcp; print(len(mcp._tools), 'tools')"
+  Expected: 8 tools (4 describe_* + 4 execute_*).
+  Note: requires kubectl, helm, istioctl, argocd to be checkable
+  on PATH at startup -- run_startup_checks() exits if kubectl is
+  missing. Set up the CLIs first, or comment-out the sys.exit(1)
+  in run_startup_checks() temporarily for boot-only verification.
+
+Mesh smoke:
+  python3 client-test-macaw.py "k8s" k8s-test-client
+  Expected:
+    TEST 1 PASS -- all 8 expected tools advertised.
+    TEST 2 PASS -- describe_kubectl returns help text or
+                   structured error.
+    TEST 3 PASS -- execute_kubectl version returns version
+                   info or structured error.
+
+End-to-end runtime verification (real `kubectl get pods`,
+`helm install`, etc.) requires a configured kubeconfig and a
+real cluster -- out of scope for this smoke test.
+

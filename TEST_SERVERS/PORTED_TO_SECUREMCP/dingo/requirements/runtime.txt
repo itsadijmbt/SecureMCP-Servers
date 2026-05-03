@@ -1,0 +1,35 @@
+# ===== Core dependencies =====
+chardet
+hanziconv
+httpx
+jieba
+jsonlines
+numpy>=1.26.4
+openai>=1.56.2
+packaging>=24.1
+pandas
+Pillow>=9.4.0
+prettytable
+pyahocorasick
+pydantic
+requests
+toml
+zhon
+nltk
+
+# ===== Datasource =====
+boto3>=1.28.43,<2.0.0
+botocore>=1.31.43,<2.0.0
+datasets
+huggingface_hub
+openpyxl
+pyarrow
+sqlalchemy
+xlrd
+
+# ===== Misc =====
+diff_match_patch
+wordninja==2.0.0
+
+# ===== MCP server =====
+fastmcp>=2.0.0

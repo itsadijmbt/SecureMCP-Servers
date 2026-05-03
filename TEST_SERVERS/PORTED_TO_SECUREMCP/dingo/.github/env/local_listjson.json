@@ -1,0 +1,15 @@
+{
+    "input_path": "test/data/test_local_listjson.json",
+    "dataset": {
+        "source": "local",
+        "format": "listjson"
+    },
+    "evaluator": [
+        {
+            "fields": {"content": "output"},
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}

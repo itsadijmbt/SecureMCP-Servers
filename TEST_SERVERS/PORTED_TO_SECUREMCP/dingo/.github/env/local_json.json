@@ -1,0 +1,15 @@
+{
+    "input_path": "test/data/test_local_json.json",
+    "dataset": {
+        "source": "local",
+        "format": "json"
+    },
+    "evaluator": [
+        {
+            "fields": {"content": "prediction"},
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}

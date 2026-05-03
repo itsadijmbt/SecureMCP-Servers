@@ -1,0 +1,15 @@
+{
+    "input_path": "test/data/test_local_jsonl.jsonl",
+    "dataset": {
+        "source": "local",
+        "format": "jsonl"
+    },
+    "evaluator": [
+        {
+            "fields": {"content": "content"},
+            "evals": [
+                {"name": "RuleColonEnd"}
+            ]
+        }
+    ]
+}
