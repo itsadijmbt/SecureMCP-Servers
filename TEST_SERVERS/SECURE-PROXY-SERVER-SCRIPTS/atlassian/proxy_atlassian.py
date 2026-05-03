@@ -1,16 +1,24 @@
 """
-Stripe MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
+Atlassian Rovo MCP -> SecureMCPProxy with bind_to_user (via mcp-remote).
 
 Two tests, one file. Calls go: client identity -> server identity -> upstream,
 so MACAW renders a two-node graph (client ──> server) for both tests.
 
-  Test 1 (active by default):  one bound.call_tool("list_customers") then exit.
+  Test 1 (active by default):  one bound.call_tool("getAccessibleAtlassianResources") then exit.
   Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
 
+Atlassian Rovo MCP is OAuth 2.1 with proper DCR. mcp-remote handles the
+OAuth dance and exposes the remote server over stdio; SecureMCPProxy
+wraps that. No manual app registration, no API token needed.
+
+First run opens a browser for Atlassian login. Token cached in
+~/.mcp-auth/. If `getAccessibleAtlassianResources` isn't in the tool list
+that prints, swap it for one of the names you see (e.g. `getCurrentUser`)
+in line 50.
+
 Run:
-    export STRIPE_SECRET_KEY="rk_test_..."   # use a Restricted API Key
     /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/stripe/proxy_stripe.py
+        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/atlassian/proxy_atlassian.py
 """
 
 import os
@@ -21,40 +29,35 @@ from macaw_adapters.mcp import SecureMCPProxy, Client
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-api_key = os.environ.get("STRIPE_SECRET_KEY")
-if not api_key:
-    raise ValueError("STRIPE_SECRET_KEY is not set (use a Restricted API Key: rk_test_... or rk_live_...)")
+ATLASSIAN_MCP_URL = "https://mcp.atlassian.com/v1/mcp/authv2"
 
-# Stripe MCP takes the key as a CLI flag, not an env var. This means the key
-# is visible to anyone with `ps` on this box — use a Restricted API Key with
-# minimal scopes, never your full sk_*.
 proxy = SecureMCPProxy(
-    app_name="stripe-proxy",
-    command=["npx", "-y", "@stripe/mcp", f"--api-key={api_key}"],
-    env={
-        "PATH": os.environ["PATH"],
-        "HOME": os.environ["HOME"],
-    },
+    app_name="atlassian-proxy",
+    command=["npx", "-y", "mcp-remote", ATLASSIAN_MCP_URL],
+    env={"PATH": os.environ["PATH"], "HOME": os.environ["HOME"]},
 )
 
-# Client identity: registers as securemcp-client-stripe-macaw-gateway.
-client = Client("stripe-macaw-gateway")
+# Client identity: registers as securemcp-client-atlassian-macaw-gateway.
+client = Client("atlassian-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
 # ============================================================================
 # Test 1 — smoke check (default).
-# list_customers with limit=1 is read-only and proves auth + dispatch.
+# getAccessibleAtlassianResources lists the Cloud sites the user can see.
+# No args, no rate-limit cost beyond the per-call quota.
 # ============================================================================
 tools = proxy.list_tools()
 print(f"tools: {len(tools)}", file=sys.stderr)
 for t in tools:
     print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
 
-result = bound.call_tool("list_customers", {"limit": 1})
-print(f"\nlist_customers -> {str(result)[:300]}", file=sys.stderr)
+result = bound.call_tool("getAccessibleAtlassianResources", {})
+print(f"\ngetAccessibleAtlassianResources -> {str(result)[:300]}", file=sys.stderr)
 
 # ============================================================================
 # Test 2 — stdio MCP gateway (uncomment block below to enable).
+# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
+# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
 # ============================================================================
 import asyncio
 import json
@@ -62,7 +65,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 import mcp.types as types
 
-srv = Server("stripe-macaw-proxy")
+srv = Server("atlassian-macaw-proxy")
 tool_objs = [
     types.Tool(
         name=t["name"],

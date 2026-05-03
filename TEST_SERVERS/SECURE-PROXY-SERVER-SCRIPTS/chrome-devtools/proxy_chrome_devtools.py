@@ -1,16 +1,26 @@
 """
-Stripe MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
+Chrome DevTools MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
 
 Two tests, one file. Calls go: client identity -> server identity -> upstream,
 so MACAW renders a two-node graph (client ──> server) for both tests.
 
-  Test 1 (active by default):  one bound.call_tool("list_customers") then exit.
+  Test 1 (active by default):  one bound.call_tool("list_pages") then exit.
   Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
 
+Chrome DevTools MCP (chrome-devtools-mcp) drives a real Chrome instance
+via the Chrome DevTools Protocol. No API key, no token — auth is "you
+own the browser process". Same wrap shape as airtable / notion / postman:
+npx stdio with PATH + HOME forwarded.
+
+Defaults baked into the spawn:
+  --headless   no GUI window (safe when spawned by Gemini in a non-desktop
+               context; flip off if you want a visible browser).
+  --isolated   ephemeral Chrome profile per session, auto-cleaned. Keeps
+               smoke tests deterministic and free of cookie pollution.
+
 Run:
-    export STRIPE_SECRET_KEY="rk_test_..."   # use a Restricted API Key
     /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/stripe/proxy_stripe.py
+        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/chrome-devtools/proxy_chrome_devtools.py
 """
 
 import os
@@ -21,40 +31,42 @@ from macaw_adapters.mcp import SecureMCPProxy, Client
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-api_key = os.environ.get("STRIPE_SECRET_KEY")
-if not api_key:
-    raise ValueError("STRIPE_SECRET_KEY is not set (use a Restricted API Key: rk_test_... or rk_live_...)")
-
-# Stripe MCP takes the key as a CLI flag, not an env var. This means the key
-# is visible to anyone with `ps` on this box — use a Restricted API Key with
-# minimal scopes, never your full sk_*.
 proxy = SecureMCPProxy(
-    app_name="stripe-proxy",
-    command=["npx", "-y", "@stripe/mcp", f"--api-key={api_key}"],
+    app_name="chrome-devtools-proxy",
+    command=[
+        "npx", "-y", "chrome-devtools-mcp@latest",
+        "--headless",
+        "--isolated",
+    ],
     env={
         "PATH": os.environ["PATH"],
-        "HOME": os.environ["HOME"],
+        "HOME": os.environ["HOME"],   # for ~/.cache/chrome-devtools-mcp
     },
 )
 
-# Client identity: registers as securemcp-client-stripe-macaw-gateway.
-client = Client("stripe-macaw-gateway")
+# Client identity: registers as securemcp-client-chrome-devtools-macaw-gateway.
+client = Client("chrome-devtools-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
 # ============================================================================
 # Test 1 — smoke check (default).
-# list_customers with limit=1 is read-only and proves auth + dispatch.
+# list_pages: zero args, returns currently open tabs. Will be ~empty on a
+# fresh isolated headless profile, but a 200-shape response proves the
+# whole chain works: MACAW -> chrome-devtools-mcp -> Chrome DevTools
+# Protocol -> back.
 # ============================================================================
 tools = proxy.list_tools()
 print(f"tools: {len(tools)}", file=sys.stderr)
 for t in tools:
     print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
 
-result = bound.call_tool("list_customers", {"limit": 1})
-print(f"\nlist_customers -> {str(result)[:300]}", file=sys.stderr)
+result = bound.call_tool("list_pages", {})
+print(f"\nlist_pages -> {str(result)[:300]}", file=sys.stderr)
 
 # ============================================================================
 # Test 2 — stdio MCP gateway (uncomment block below to enable).
+# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
+# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
 # ============================================================================
 import asyncio
 import json
@@ -62,7 +74,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 import mcp.types as types
 
-srv = Server("stripe-macaw-proxy")
+srv = Server("chrome-devtools-macaw-proxy")
 tool_objs = [
     types.Tool(
         name=t["name"],

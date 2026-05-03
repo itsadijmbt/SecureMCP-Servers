@@ -1,16 +1,16 @@
 """
-Stripe MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
+Brave Search MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
 
 Two tests, one file. Calls go: client identity -> server identity -> upstream,
 so MACAW renders a two-node graph (client ──> server) for both tests.
 
-  Test 1 (active by default):  one bound.call_tool("list_customers") then exit.
+  Test 1 (active by default):  one bound.call_tool("brave_web_search") then exit.
   Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
 
 Run:
-    export STRIPE_SECRET_KEY="rk_test_..."   # use a Restricted API Key
+    export BRAVE_API_KEY="BSA..."
     /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/stripe/proxy_stripe.py
+        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/brave-search/proxy_brave_search.py
 """
 
 import os
@@ -21,40 +21,45 @@ from macaw_adapters.mcp import SecureMCPProxy, Client
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-api_key = os.environ.get("STRIPE_SECRET_KEY")
+api_key = os.environ.get("BRAVE_API_KEY")
 if not api_key:
-    raise ValueError("STRIPE_SECRET_KEY is not set (use a Restricted API Key: rk_test_... or rk_live_...)")
+    raise ValueError(
+        "BRAVE_API_KEY is not set. "
+        "Get a key at https://api-dashboard.search.brave.com/app/keys"
+    )
 
-# Stripe MCP takes the key as a CLI flag, not an env var. This means the key
-# is visible to anyone with `ps` on this box — use a Restricted API Key with
-# minimal scopes, never your full sk_*.
 proxy = SecureMCPProxy(
-    app_name="stripe-proxy",
-    command=["npx", "-y", "@stripe/mcp", f"--api-key={api_key}"],
+    app_name="brave-search-proxy",
+    command=["npx", "-y", "@brave/brave-search-mcp-server", "--transport", "stdio"],
     env={
         "PATH": os.environ["PATH"],
         "HOME": os.environ["HOME"],
+        "BRAVE_API_KEY": api_key,
     },
 )
 
-# Client identity: registers as securemcp-client-stripe-macaw-gateway.
-client = Client("stripe-macaw-gateway")
+# Client identity: registers as securemcp-client-brave-search-macaw-gateway.
+client = Client("brave-search-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
 # ============================================================================
 # Test 1 — smoke check (default).
-# list_customers with limit=1 is read-only and proves auth + dispatch.
+# brave_web_search with a small on-topic query proves the chain end-to-end:
+# MACAW -> @brave/brave-search-mcp-server -> Brave Search API -> back.
+# Costs 1 search request against your free-tier quota (typically 2k/month).
 # ============================================================================
 tools = proxy.list_tools()
 print(f"tools: {len(tools)}", file=sys.stderr)
 for t in tools:
     print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
 
-result = bound.call_tool("list_customers", {"limit": 1})
-print(f"\nlist_customers -> {str(result)[:300]}", file=sys.stderr)
+result = bound.call_tool("brave_web_search", {"query": "model context protocol"})
+print(f"\nbrave_web_search -> {str(result)[:300]}", file=sys.stderr)
 
 # ============================================================================
 # Test 2 — stdio MCP gateway (uncomment block below to enable).
+# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
+# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
 # ============================================================================
 import asyncio
 import json
@@ -62,7 +67,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 import mcp.types as types
 
-srv = Server("stripe-macaw-proxy")
+srv = Server("brave-search-macaw-proxy")
 tool_objs = [
     types.Tool(
         name=t["name"],

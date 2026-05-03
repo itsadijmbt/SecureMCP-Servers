@@ -1,28 +1,31 @@
 """
-dbt MCP -> SecureMCPProxy with bind_to_user (uvx stdio upstream).
-
-Wraps the official `dbt-mcp` Python package (run via uvx) with MACAW. The
-upstream exposes ~50 tools across SQL, Semantic Layer, Discovery, dbt CLI,
-Admin API, Codegen, LSP, Product Docs, and Server Metadata categories.
-Tool groups that lack their required env config are auto-disabled by the
-upstream — Server Metadata + Product Docs work with no config.
+Azure MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
 
 Two tests, one file. Calls go: client identity -> server identity -> upstream,
 so MACAW renders a two-node graph (client ──> server) for both tests.
 
-  Test 1 (active by default):  one bound.call_tool("search_product_docs") then exit.
+  Test 1 (active by default):  one bound.call_tool("subscription_list") then exit.
   Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
 
+Auth: Azure MCP uses the official Azure Identity SDK. Two paths:
+
+  A. Azure CLI session — run `az login` once, then this script picks up
+     the cached creds from ~/.azure/. Default for human dev boxes.
+
+  B. Service principal — set AZURE_TENANT_ID + AZURE_CLIENT_ID +
+     AZURE_CLIENT_SECRET in env. Default for CI / headless agents.
+
+The script forwards both: HOME so az-login creds work, and the SP env
+vars when present. Whichever the SDK finds first wins.
+
+If `subscription_list` isn't in the tool list that prints, swap the
+smoke target on line 50 for one of the names you see (Azure MCP tool
+names sometimes carry an `azmcp_` prefix depending on version).
+
 Run:
-    # Optional — only set what you actually have, leave the rest unset:
-    # export DBT_HOST="cloud.getdbt.com"
-    # export DBT_TOKEN="dbtu_..."
-    # export DBT_PROD_ENV_ID="123456"
-    # export DBT_DEV_ENV_ID="123457"
-    # export DBT_USER_ID="..."
-    # export DBT_PROJECT_DIR="/path/to/your/dbt/project"
+    az login                                           # one-time
     /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/dbt/proxy_dbt.py
+        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/azure/proxy_azure.py
 """
 
 import os
@@ -33,49 +36,38 @@ from macaw_adapters.mcp import SecureMCPProxy, Client
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-# Forward whichever dbt configs the user has set; the upstream disables any
-# tool group whose config is absent. Smoke target works without any of these.
 upstream_env = {
     "PATH": os.environ["PATH"],
-    "HOME": os.environ["HOME"],
+    "HOME": os.environ["HOME"],   # for az-login creds at ~/.azure/
 }
-for k in (
-    "DBT_HOST",
-    "DBT_TOKEN",
-    "DBT_PROD_ENV_ID",
-    "DBT_DEV_ENV_ID",
-    "DBT_USER_ID",
-    "DBT_ACCOUNT_ID",
-    "DBT_PROJECT_DIR",
-    "DBT_PATH",
-    "MULTICELL_ACCOUNT_PREFIX",
-):
+for k in ("AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET",
+          "AZURE_SUBSCRIPTION_ID"):
     if os.environ.get(k):
         upstream_env[k] = os.environ[k]
 
 proxy = SecureMCPProxy(
-    app_name="dbt-proxy",
-    command=["uvx", "dbt-mcp"],
+    app_name="azure-proxy",
+    command=["npx", "-y", "@azure/mcp@latest", "server", "start"],
     env=upstream_env,
 )
 
-# Client identity: registers as securemcp-client-dbt-macaw-gateway.
-client = Client("dbt-macaw-gateway")
+# Client identity: registers as securemcp-client-azure-macaw-gateway.
+client = Client("azure-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
 # ============================================================================
 # Test 1 — smoke check (default).
-# search_product_docs is in the Product Docs category, the ONLY tool group
-# enabled with zero env config. Proves wrap, dispatch, and MACAW gating
-# without depending on dbt Cloud, a local project, or any opt-in tool flag.
+# subscription_list / azmcp_subscription_list returns the user's accessible
+# Azure subscriptions. No args, read-only. Swap the name if it's not in the
+# printed tools list — Azure MCP changes tool names between versions.
 # ============================================================================
 tools = proxy.list_tools()
 print(f"tools: {len(tools)}", file=sys.stderr)
 for t in tools:
     print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
 
-result = bound.call_tool("search_product_docs", {"query": "model context protocol"})
-print(f"\nsearch_product_docs -> {str(result)[:300]}", file=sys.stderr)
+result = bound.call_tool("subscription_list", {})
+print(f"\nsubscription_list -> {str(result)[:300]}", file=sys.stderr)
 
 # ============================================================================
 # Test 2 — stdio MCP gateway (uncomment block below to enable).
@@ -88,7 +80,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 import mcp.types as types
 
-srv = Server("dbt-macaw-proxy")
+srv = Server("azure-macaw-proxy")
 tool_objs = [
     types.Tool(
         name=t["name"],

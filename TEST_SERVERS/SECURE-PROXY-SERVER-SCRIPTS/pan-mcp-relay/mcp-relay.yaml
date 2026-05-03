@@ -1,0 +1,13 @@
+# Prisma AIRS MCP Security Relay configuration.
+#
+# Auth comes from environment variables (PRISMA_AIRS_API_KEY,
+# PRISMA_AIRS_AI_PROFILE). Only the mcpServers section is set here.
+#
+# `fetch` is a minimal no-credential downstream — exposes one tool
+# (fetch URL) so the relay has something to register and scan.
+
+mcpServers:
+  fetch:
+    command: uvx
+    args:
+      - mcp-server-fetch
