@@ -1,0 +1,243 @@
+mcp-azure-devops: FastMCP -> SecureMCP port
+============================================
+
+This is the cleanest port shape we've seen so far. Two files
+edited, four lines changed total. No tool function bodies
+touched. No behaviour changes. No protocol-layer artifacts to
+drop because the original didn't use any of them in the first
+place (no annotations=, no icons=, no Field() defaults, no
+ctx.<log> awaits, no _mcp_server access, no instructions=, no
+Image returns, no lifespan).
+
+WHAT WE DID
+-----------
+
+src/mcp_azure_devops/server.py -- 2 lines edited:
+
+  1. Import swap (line 8):
+       from mcp.server.fastmcp import FastMCP
+     ->
+       from macaw_adapters.mcp import SecureMCP
+     Original kept as comment.
+
+  2. Constructor swap (line 14):
+       mcp = FastMCP("Azure DevOps")
+     ->
+       mcp = SecureMCP("Azure DevOps")
+     Original kept as comment immediately above.
+
+src/mcp_azure_devops/utils/conventions_promp.py -- 2 lines edited:
+
+  3. Import swap (line 1):
+       from mcp.server.fastmcp import FastMCP
+     ->
+       from macaw_adapters.mcp import SecureMCP
+     Original kept as comment.
+
+  4. Type-hint swap (line 4):
+       def register_prompt(mcp: FastMCP) -> None:
+     ->
+       def register_prompt(mcp: SecureMCP) -> None:
+     The hint must reference the imported name; otherwise
+     NameError at function-decoration evaluation time.
+
+NEW FILES
+---------
+
+client-test-macaw.py:
+  Standard mesh smoke test. Two tests: tool-list sample
+  (5 of 21 tools across distinct register paths) and
+  get_projects (read-only Azure DevOps call; gracefully
+  errors as a string when AZURE_DEVOPS_PAT is missing).
+  Treats real-output-or-error-string as PASS for handler
+  reachability.
+
+WHY (one line each)
+-------------------
+
+1, 3. SecureMCP is the MACAW-instrumented MCP server class.
+      Both modules need to import it so their references
+      (constructor in server.py, type hint in
+      conventions_promp.py) resolve at import time.
+2. Constructor must reference the new class.
+4. Python evaluates function annotations at definition time
+   when from __future__ import annotations is not present.
+   Leaving `mcp: FastMCP` after dropping the FastMCP import
+   would raise NameError at module load.
+
+NOT TOUCHED (per skill rule "least modification")
+-------------------------------------------------
+
+- All 21 tool function bodies across:
+    features/projects/tools.py
+    features/teams/tools.py
+    features/work_items/tools/{__init__,comments,create,
+                               process,query,read,
+                               templates,types}.py
+- All register_*() helpers and the central register_all().
+- All conventions/prompt content.
+- src/mcp_azure_devops/__main__.py (just imports `main` from
+  server.py and runs it; main() calls mcp.run() plain
+  -- no transport= kwarg, no settings access, nothing to
+  change).
+- ~15 docstring lines that say "mcp: The FastMCP server
+  instance" across helper functions. These are documentation
+  strings, not active code; under SecureMCP they are slightly
+  out-of-date but functionally correct (SecureMCP is duck-
+  type-compatible with where they're used). Updating ~15
+  docstrings would be over-engineering and is a separate
+  cleanup PR if anyone cares.
+- pyproject.toml, start_server.sh, tests/.
+
+BROKEN ON PURPOSE -- features intentionally lost
+------------------------------------------------
+
+None.
+
+This port has no BROKEN ON PURPOSE entries because the
+original mcp-azure-devops server did not use any of the
+FastMCP-specific surfaces that SecureMCP doesn't carry:
+  - No annotations= on any decorator -> nothing to drop.
+  - No icons= on any decorator -> nothing to drop.
+  - No instructions= constructor kwarg -> nothing to drop.
+  - No mcp._mcp_server.* access -> Hard Rule #3 not triggered.
+  - No Field(...) parameter defaults -> Step 2 not needed.
+  - No await ctx.<log>() calls -> Step 5 not needed.
+  - No FastMCP Image returns -> Step 2b not needed.
+  - No @mcp.custom_route -> Step 6 not needed.
+  - No lifespan -> Step 4 not needed.
+
+The only thing the original used that does not survive
+verbatim is the FastMCP class name itself, and that is what
+the import swap addresses.
+
+POSSIBLE ENVELOPE OBSERVATION (not a loss; just describing)
+-----------------------------------------------------------
+
+Most tools return strings (formatted Azure DevOps data or
+"Error: ..." messages). SecureMCP wraps non-dict returns as
+{"result": <str>} per mcp.py:815-817. Mesh consumers see the
+same data inside a `result` key. Identical pattern documented
+in spotify-mcp / telegram-mcp / k8s-mcp-server MIGRATION.txt
+files; nothing new here.
+
+VERIFICATION
+------------
+
+Boot:
+  PYTHONPATH=src python -c "from mcp_azure_devops.server import mcp; print(len(mcp._tools), 'tools')"
+  Expected: 21 tools.
+  Note: requires AZURE_DEVOPS_PAT and
+  AZURE_DEVOPS_ORGANIZATION_URL only if tools are CALLED.
+  Import-time decoration does not need them.
+
+Mesh smoke:
+  python3 client-test-macaw.py "Azure DevOps" devops-test-client
+  Expected:
+    TEST 1 PASS -- 5 sampled tools present (out of ~21).
+    TEST 2 PASS -- get_projects returns project list or
+                   structured 'Error: ...' string.
+
+End-to-end runtime verification (real project / work item
+creation / team management) requires a valid PAT and an
+Azure DevOps organisation -- out of scope for this smoke test.
+
+VERIFICATION OBSERVED (2026-05-02 smoke run, no Azure DevOps creds)
+-------------------------------------------------------------------
+
+Setup: AZURE_DEVOPS_PAT and AZURE_DEVOPS_ORGANIZATION_URL not
+set on the server side. The original code's try/except inside
+get_projects catches the missing-creds AzureDevOpsClientError
+and returns it as a formatted string -- exactly the failure
+mode this smoke test was designed to verify against.
+
+Mesh side: client `securemcp-client-devops-test-client:904e4`
+registered; server `securemcp-Azure DevOps:52030` registered;
+default server set on the client.
+
+Results:
+
+  TEST 1  PASS -- 21 tools advertised on the mesh; all 6
+                  sampled names present (get_projects,
+                  get_all_teams, get_team_members,
+                  get_work_item, create_work_item,
+                  query_work_items).
+                  Confirms: import swap held in both server.py
+                  and conventions_promp.py; register_all() and
+                  register_all_prompts() executed; every
+                  @mcp.tool decorator across the 8 feature
+                  modules ran without raising at module import.
+
+  TEST 2  PASS (gold-standard) -- get_projects returned:
+                  {"result": "Error: Azure DevOps PAT or
+                   organization URL not found in environment
+                   variables."}
+                  in 16 seconds. The MACAW dashboard logged
+                  this as an ALLOWED invocation (solid green
+                  line on the activity graph; not attestor-
+                  only, not denied). Event log shows the full
+                  happy path:
+                    resolve: tool:get_projects
+                    fetch: caller / service / creator / tool /
+                           intent (all resolved)
+                    resolved: intent
+                    policy: allowed 904e415c
+                    tool: tool.get_projects ✓
+                    tool: 52030b8f ✓
+                    tool.invoke_remote.execute.success
+
+                  This single test confirms FOUR things at
+                  once:
+                    1. Mesh routing -> SecureMCP handler ->
+                       azure_client wrapping path is intact.
+                    2. MAPL policy gate evaluated and approved
+                       the invocation (green line, not
+                       attestor-only).
+                    3. The original try/except
+                       AzureDevOpsClientError handler ran
+                       byte-for-byte as it did under FastMCP
+                       and produced the expected error string.
+                    4. Result envelope matches the prediction
+                       in this file's "POSSIBLE ENVELOPE
+                       OBSERVATION" section: non-dict (string)
+                       return wrapped as {"result": <str>} per
+                       mcp.py:815-817.
+
+VERDICT: PORT SUCCESSFUL.
+
+  - Boot path verified (21 tools registered, no decorator-time
+    errors, both agents on the mesh).
+  - Handler reachability verified (TEST 2 round-trip).
+  - MAPL policy path verified (allowed event in the dashboard).
+  - Wire envelope verified (matches MIGRATION.txt prediction).
+
+  This was the smallest port in the series (4 line edits, 2
+  files) and produced the cleanest verification. The minimal
+  diff was earned by the original code happening to use only
+  the FastMCP surfaces SecureMCP supports verbatim.
+
+  Remaining work outside the port:
+    - Real Azure DevOps verification (with valid PAT + org URL)
+      will produce a real project list rather than the
+      missing-creds error string. That validates Azure DevOps
+      access, not the port.
+
+KNOWN GAPS
+----------
+
+- This port has not been runtime-tested against a real
+  Azure DevOps organisation. Boot path is structurally
+  correct; mesh-layer verification needs a PAT + org URL.
+
+- Docstrings still reference "FastMCP server instance" on
+  ~15 helper-function param descriptions. Cosmetic only.
+
+LINES CHANGED
+-------------
+
+src/mcp_azure_devops/server.py:                2 line edits (1 import, 1 constructor)
+src/mcp_azure_devops/utils/conventions_promp.py: 2 line edits (1 import, 1 type hint)
+client-test-macaw.py:                          new, ~140 lines
+MIGRATION.txt:                                 this file
+
+NOT TOUCHED (full list above).

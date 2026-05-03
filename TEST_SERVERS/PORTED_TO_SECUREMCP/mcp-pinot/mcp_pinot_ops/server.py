@@ -1,38 +1,52 @@
-# --------------------------
-# File: mcp_pinot_ops/server.py
-# --------------------------
-
 """
- │                         Block                          │  Lines  │   Size   │                                           Fate under a port                                            │
-  ├────────────────────────────────────────────────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┤    
-  │ Imports of low-level Server, types, stdio              │ 9–12    │ 4 lines  │ Delete; replace with SecureMCP imports                                                                 │
-  ├────────────────────────────────────────────────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-  │ server = Server(...) construction                      │ 26      │ 1 line   │ Delete; replace with mcp = SecureMCP(...)                                                              │    
-  ├────────────────────────────────────────────────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┤    
-  │ @server.list_prompts + @server.get_prompt              │ 28–58   │ 31 lines │ Delete both; reimplement as one @mcp.prompt(name="pinot-query") function                               │    
-  ├────────────────────────────────────────────────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┤    
-  │ @server.list_tools — 21 hand-built Tool(...) objects   │ 60–574  │ 515      │ Delete entirely; schemas get auto-generated from function signatures                                   │
-  │                                                        │         │ lines    │                                                                                                        │    
-  ├────────────────────────────────────────────────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-  │ @server.call_tool — if/elif dispatcher with 21         │ 576–783 │ 208      │ Delete entirely; each branch becomes a standalone @mcp.tool(...) function body                         │    
-  │ branches                                               │         │ lines    │                                                                                                        │
-  ├────────────────────────────────────────────────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┤    
-  │ Manual stdio_server() + server.run(...) block          │ 785–806 │ 22 lines │ Delete; replace with mcp.run() one-liner                                                               │
-  ├────────────────────────────────────────────────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┤    
-  │ if __name__ == "__main__" block                        │ 810–813 │ 4 lines  │ Can stay, but asyncio.run(main()) may not be needed since SecureMCP.run() is synchronous per  
+mcp_pinot_ops server (SecureMCP port).
 
+WHAT THIS FILE USED TO DO
+=========================
+The original mcp_pinot_ops server used the low-level MCP Server pattern:
 
+  - One @server.list_prompts / @server.get_prompt pair that
+    advertised a single "pinot-query" prompt.
+  - One @server.list_tools that returned 21 hand-built Tool() objects
+    with literal inputSchema dicts.
+  - One @server.call_tool with a 21-branch if/elif dispatcher that
+    forwarded to pinot_instance methods.
+  - An async main() that wired stdio_server() + server.run() with
+    explicit InitializationOptions and capabilities.
+
+WHAT THIS FILE DOES NOW
+=======================
+Same 21 tools, plus the prompt, but each is a normal SecureMCP
+decorator at module level. Each wrapper:
+
+  - has typed Python kwargs matching the original inputSchema
+  - calls the same pinot_instance.<method>(...) the dispatcher used
+  - returns str(result) to match the original handler's
+    `text=str(results)` shape
+
+The original tool NAMES are preserved verbatim via @app.tool(name=...)
+because they use hyphens (e.g., "list-tables") which can't appear in
+Python function names. Function names use underscores; the public
+mesh-advertised name is the original.
+
+The transport machinery (stdio_server + InitializationOptions +
+capabilities) is dropped -- SecureMCP's app.run() carries traffic via
+the MACAW mesh.
+
+The original code is preserved as comment blocks below for review.
+See MIGRATION.txt for the full port plan.
 """
 
-import asyncio
 import logging
-import sys
-from typing import Any
+from typing import Any, List, Optional
 
-from mcp.server import NotificationOptions, Server
-from mcp.server.models import InitializationOptions
-import mcp.server.stdio
-import mcp.types as types
+# import asyncio                                          # PORT: not needed; SecureMCP owns asyncio.run()
+# import sys                                              # PORT: only used by the dropped error-printing in original main()
+# from mcp.server import NotificationOptions, Server      # PORT
+# from mcp.server.models import InitializationOptions     # PORT
+# import mcp.server.stdio                                 # PORT
+# import mcp.types as types                               # PORT
+from macaw_adapters.mcp import SecureMCP
 
 from mcp_pinot_ops.prompts import PROMPT_TEMPLATE
 from mcp_pinot_ops.utils.pinot_client import Pinot
@@ -41,796 +55,721 @@ logger = logging.getLogger("pinot_mcp_table_ops_claude")
 logger.setLevel(logging.INFO)
 
 # Use the imported Pinot class and connection values
+# (Module-level singleton: same semantic as the original.)
 pinot_instance = Pinot()
 
+# PORT: was `server = Server(...)` inside async main(). Move it to module
+# level so @app.tool decorators fire at import time -- the standard
+# SecureMCP pattern.
+app = SecureMCP("pinot_mcp_table_ops_claude")
 
-async def main():
-    logger.info("Starting Pinot MCP Table Ops Server")
-    server = Server("pinot_mcp_table_ops_claude")
 
-    @server.list_prompts()
-    async def handle_list_prompts() -> list[types.Prompt]:
-        logger.debug("Handling list_prompts request")
-        return [
-            types.Prompt(
-                name="pinot-query",
-                description=(
-                    "A prompt to query the Pinot database with a Pinot MCP "
-                    "Server + Claude"
-                ),
-                arguments=[],
-            )
-        ]
+# ======================================================================
+# PORT NOTE -- Prompt
+# ----------------------------------------------------------------------
+# Original had @server.list_prompts (returning one Prompt named
+# "pinot-query") AND @server.get_prompt (returning the PROMPT_TEMPLATE
+# wrapped in a GetPromptResult). Under SecureMCP, @app.prompt() is the
+# single decorator -- it registers the prompt and provides the content.
+# Tool name is preserved.
+# ======================================================================
+# @server.list_prompts()
+# async def handle_list_prompts() -> list[types.Prompt]:
+#     return [
+#         types.Prompt(
+#             name="pinot-query",
+#             description="A prompt to query the Pinot database with a Pinot MCP Server + Claude",
+#             arguments=[],
+#         )
+#     ]
+#
+# @server.get_prompt()
+# async def handle_get_prompt(name, arguments):
+#     if name != "pinot-query":
+#         raise ValueError(f"Unknown prompt: {name}")
+#     return types.GetPromptResult(
+#         description="Pinot query assistance template",
+#         messages=[
+#             types.PromptMessage(
+#                 role="user",
+#                 content=types.TextContent(type="text", text=PROMPT_TEMPLATE.strip()),
+#             )
+#         ],
+#     )
 
-    @server.get_prompt()
-    async def handle_get_prompt(
-        name: str, arguments: dict[str, str] | None
-    ) -> types.GetPromptResult:
-        if name != "pinot-query":
-            raise ValueError(f"Unknown prompt: {name}")
-        return types.GetPromptResult(
-            description="Pinot query assistance template",
-            messages=[
-                types.PromptMessage(
-                    role="user",
-                    content=types.TextContent(
-                        type="text", text=PROMPT_TEMPLATE.strip()
-                    ),
-                )
-            ],
-        )
 
-    @server.list_tools()
-    async def handle_list_tools() -> list[types.Tool]:
-        return [
-            types.Tool(
-                name="list-tables",
-                description="List all tables in Pinot",
-                inputSchema={"type": "object", "properties": {}},
-            ),
-            types.Tool(
-                name="table-details",
-                description="Get table size details",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {"type": "string", "description": "Table name"},
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="segment-list",
-                description="List segments for a table",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {"type": "string", "description": "Table name"},
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="index-column-details",
-                description="Get index/column details for a segment",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {"type": "string"},
-                        "segmentName": {"type": "string"},
-                    },
-                    "required": ["tableName", "segmentName"],
-                },
-            ),
-            types.Tool(
-                name="segment-metadata-details",
-                description="Get metadata for segments of a table",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {"type": "string"},
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="tableconfig-schema-details",
-                description="Get table config and schema",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {"type": "string"},
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="pause_consumption",
-                description="Pause consumption of a realtime table",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table",
-                        },
-                        "comment": {
-                            "type": "string",
-                            "description": "Optional comment",
-                        },
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="resume_consumption",
-                description="Resume consumption of a realtime table",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table",
-                        },
-                        "comment": {
-                            "type": "string",
-                            "description": "Optional comment",
-                        },
-                        "consumeFrom": {
-                            "type": "string",
-                            "description": "lastConsumed | smallest | largest",
-                            "enum": ["lastConsumed", "smallest", "largest"],
-                        },
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="force_commit",
-                description="Force commit the current consuming segments",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table",
-                        },
-                        "partitions": {
-                            "type": "string",
-                            "description": (
-                                "Comma separated list of partition group IDs"
-                            ),
-                        },
-                        "segments": {
-                            "type": "string",
-                            "description": (
-                                "Comma separated list of consuming segments"
-                            ),
-                        },
-                        "batchSize": {
-                            "type": "integer",
-                            "description": "Max segments to commit at once",
-                        },
-                        "batchStatusCheckIntervalSec": {
-                            "type": "integer",
-                            "description": "Interval to check batch status",
-                        },
-                        "batchStatusCheckTimeoutSec": {
-                            "type": "integer",
-                            "description": "Timeout for batch status check",
-                        },
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="get_pause_status",
-                description="Return pause status of a realtime table",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table",
-                        },
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="get_consuming_segments_info",
-                description=(
-                    "Gets the status of consumers from all servers for a realtime table"
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Realtime table name with or without type",
-                        },
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="reload-table-segments",
-                description=(
-                    "Reload all segments for a table (applies config changes, can "
-                    "force download)"
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table",
-                        },
-                        "type": {
-                            "type": "string",
-                            "description": "OFFLINE or REALTIME",
-                            "enum": ["OFFLINE", "REALTIME"],
-                        },
-                        "forceDownload": {
-                            "type": "boolean",
-                            "description": (
-                                "Whether to force servers to re-download segments"
-                            ),
-                            "default": False,
-                        },
-                    },
-                    "required": ["tableName"],
-                },
-            ),
-            types.Tool(
-                name="rebalance-table",
-                description="Rebalances a table (reassign instances and segments)",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table to rebalance",
-                        },
-                        "type": {
-                            "type": "string",
-                            "description": "OFFLINE or REALTIME",
-                            "enum": ["OFFLINE", "REALTIME"],
-                        },
-                        "dryRun": {
-                            "type": "boolean",
-                            "description": "Dry run mode",
-                            "default": False,
-                        },
-                        "reassignInstances": {
-                            "type": "boolean",
-                            "description": "Reassign instances before segments",
-                            "default": True,
-                        },
-                        "includeConsuming": {
-                            "type": "boolean",
-                            "description": (
-                                "Reassign CONSUMING segments (REALTIME only)"
-                            ),
-                            "default": True,
-                        },
-                        "bootstrap": {
-                            "type": "boolean",
-                            "description": (
-                                "Bootstrap mode (ignore minimal data movement)"
-                            ),
-                            "default": False,
-                        },
-                        "downtime": {
-                            "type": "boolean",
-                            "description": "Allow downtime",
-                            "default": False,
-                        },
-                        "minAvailableReplicas": {
-                            "type": "integer",
-                            "description": "Min replicas during no-downtime rebalance",
-                            "default": -1,
-                        },
-                        # Add other rebalance parameters as needed
-                    },
-                    "required": ["tableName", "type"],
-                },
-            ),
-            types.Tool(
-                name="reset-table-segments",
-                description=(
-                    "Resets segments for a table (disable->wait->enable). Use "
-                    "tableNameWithType (e.g., myTable_REALTIME)"
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableNameWithType": {
-                            "type": "string",
-                            "description": (
-                                "Table name with type suffix (e.g., myTable_REALTIME)"
-                            ),
-                        },
-                        "errorSegmentsOnly": {
-                            "type": "boolean",
-                            "description": "Reset only segments in ERROR state",
-                            "default": False,
-                        },
-                    },
-                    "required": ["tableNameWithType"],
-                },
-            ),
-            types.Tool(
-                name="list-supported-indices",
-                description="List the types of indices supported by Pinot",
-                inputSchema={"type": "object", "properties": {}},
-            ),
-            types.Tool(
-                name="create-schema",
-                description="Adds a new schema to Pinot",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "schemaJson": {
-                            "type": "string",
-                            "description": "The schema definition in JSON format",
-                        },
-                        "override": {
-                            "type": "boolean",
-                            "description": "Override if schema exists",
-                            "default": True,
-                        },
-                        "force": {
-                            "type": "boolean",
-                            "description": "Force override even if incompatible",
-                            "default": False,
-                        },
-                    },
-                    "required": ["schemaJson"],
-                },
-            ),
-            types.Tool(
-                name="update-schema",
-                description="Updates an existing schema in Pinot",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "schemaName": {
-                            "type": "string",
-                            "description": "Name of the schema to update",
-                        },
-                        "schemaJson": {
-                            "type": "string",
-                            "description": (
-                                "The updated schema definition in JSON format"
-                            ),
-                        },
-                        "reload": {
-                            "type": "boolean",
-                            "description": "Reload table after update",
-                            "default": False,
-                        },
-                        "force": {
-                            "type": "boolean",
-                            "description": "Force update even if incompatible",
-                            "default": False,
-                        },
-                    },
-                    "required": ["schemaName", "schemaJson"],
-                },
-            ),
-            types.Tool(
-                name="create-table-config",
-                description="Adds a new table configuration to Pinot",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableConfigJson": {
-                            "type": "string",
-                            "description": ("The table configuration in JSON format"),
-                        },
-                        "validationTypesToSkip": {
-                            "type": "string",
-                            "description": (
-                                "Comma-separated validation types to skip "
-                                "(ALL|TASK|UPSERT)"
-                            ),
-                        },
-                    },
-                    "required": ["tableConfigJson"],
-                },
-            ),
-            types.Tool(
-                name="update-table-config",
-                description=(
-                    "Updates an existing table configuration in Pinot (can be used "
-                    "to add/modify indices)"
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table to update",
-                        },
-                        "tableConfigJson": {
-                            "type": "string",
-                            "description": (
-                                "The updated table configuration in JSON format"
-                            ),
-                        },
-                        "validationTypesToSkip": {
-                            "type": "string",
-                            "description": (
-                                "Comma-separated validation types to skip "
-                                "(ALL|TASK|UPSERT)"
-                            ),
-                        },
-                    },
-                    "required": ["tableName", "tableConfigJson"],
-                },
-            ),
-            types.Tool(
-                name="add-index",
-                description=(
-                    "Adds a specified index type to one or more columns in a table "
-                    "config and optionally reloads"
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table (without type suffix)",
-                        },
-                        "tableType": {
-                            "type": "string",
-                            "description": (
-                                "OFFLINE or REALTIME (required if table has both types)"
-                            ),
-                            "enum": ["OFFLINE", "REALTIME"],
-                        },
-                        "indexType": {
-                            "type": "string",
-                            "description": "Type of index to add",
-                            "enum": [
-                                "inverted",
-                                "range",
-                                "text",
-                                "json",
-                                "bloom",
-                                "fst",
-                                "sorted",
-                            ],
-                        },
-                        "columns": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": ("List of column names to add the index to"),
-                        },
-                        "triggerReload": {
-                            "type": "boolean",
-                            "description": (
-                                "Reload the table segments after updating config"
-                            ),
-                            "default": True,
-                        },
-                        # Specific index configs (e.g., for JSON, FST) could be added
-                        # here if needed
-                    },
-                    "required": ["tableName", "indexType", "columns"],
-                },
-            ),
-            types.Tool(
-                name="add-startree-index",
-                description=(
-                    "Adds a Star-Tree index configuration to a table config and "
-                    "optionally reloads."
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "tableName": {
-                            "type": "string",
-                            "description": "Name of the table (without type suffix)",
-                        },
-                        "tableType": {
-                            "type": "string",
-                            "description": (
-                                "OFFLINE or REALTIME (required if table has both types)"
-                            ),
-                            "enum": ["OFFLINE", "REALTIME"],
-                        },
-                        "dimensionsSplitOrder": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": (
-                                "List of dimension columns defining the tree structure"
-                            ),
-                        },
-                        "functionColumnPairs": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": (
-                                'Optional. Aggregations like ["SUM__colA", '
-                                '"COUNT__*"]. Use this OR aggregationConfigsJson.'
-                            ),
-                            "default": [],
-                        },
-                        "aggregationConfigsJson": {
-                            "type": "string",
-                            "description": (
-                                "Optional. JSON string for the "
-                                "'aggregationConfigs' array (alternative to "
-                                "functionColumnPairs)."
-                            ),
-                        },
-                        "skipStarNodeCreationForDimensions": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": (
-                                "Optional. Dimensions for which to skip the "
-                                "Star-node creation."
-                            ),
-                            "default": [],
-                        },
-                        "maxLeafRecords": {
-                            "type": "integer",
-                            "description": (
-                                "Optional. Threshold T to determine whether to split "
-                                "nodes further."
-                            ),
-                            "default": 10000,
-                        },
-                        "triggerReload": {
-                            "type": "boolean",
-                            "description": (
-                                "Reload the table segments after updating config "
-                                "(Note: Star-Tree often needs segment regeneration)"
-                            ),
-                            "default": True,
-                        },
-                    },
-                    "required": ["tableName", "dimensionsSplitOrder"],
-                },
-            ),
-        ]
+@app.prompt(
+    name="pinot-query",
+    description="A prompt to query the Pinot database with a Pinot MCP Server + Claude",
+)
+def pinot_query_prompt() -> str:
+    """Return the Pinot query assistance template."""
+    return PROMPT_TEMPLATE.strip()
 
-    @server.call_tool()
-    async def handle_call_tool(
-        name: str, arguments: dict[str, Any] | None
-    ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-        """Handle tool execution requests"""
-        try:
-            if name == "table-details":
-                results = pinot_instance._get_table_detail(
-                    tableName=arguments["tableName"]
-                )
-                return [types.TextContent(type="text", text=str(results))]
 
-            elif name == "segment-list":
-                results = pinot_instance._get_segments(tableName=arguments["tableName"])
-                return [types.TextContent(type="text", text=str(results))]
+# ======================================================================
+# PORT NOTE -- 21 tools
+# ----------------------------------------------------------------------
+# The original had @server.list_tools (returning 21 Tool objects with
+# literal inputSchema dicts) and @server.call_tool (a 21-branch if/elif
+# dispatcher). Under SecureMCP, each tool becomes one @app.tool function
+# whose typed kwargs ARE the schema. The function bodies are the
+# original dispatcher branches inlined, so pinot_instance is called
+# with the same kwargs the original arguments dict supplied.
+#
+# Public tool names (advertised on the mesh) preserved verbatim via
+# @app.tool(name=...). Function names use underscores because Python
+# identifiers can't include hyphens.
+#
+# Errors: original wrapped the WHOLE dispatcher in try/except and
+# returned `text=f"Error: {str(e)}"`. Each wrapper here mirrors that
+# behaviour individually, returning the error as a plain string so
+# mesh callers see a consistent surface.
+#
+# Original @server.list_tools and @server.call_tool blocks are
+# preserved as a single comment block at the bottom of this file.
+# ======================================================================
 
-            elif name == "index-column-details":
-                results = pinot_instance._get_index_column_detail(
-                    tableName=arguments["tableName"],
-                    segmentName=arguments["segmentName"],
-                )
-                return [types.TextContent(type="text", text=str(results))]
 
-            elif name == "segment-metadata-details":
-                results = pinot_instance._get_segment_metadata_detail(
-                    tableName=arguments["tableName"]
-                )
-                return [types.TextContent(type="text", text=str(results))]
+def _err(e: Exception) -> str:
+    """Format an exception the same way the original dispatcher did."""
+    return f"Error: {str(e)}"
 
-            elif name == "tableconfig-schema-details":
-                results = pinot_instance._get_tableconfig_schema_detail(
-                    tableName=arguments["tableName"]
-                )
-                return [types.TextContent(type="text", text=str(results))]
 
-            elif name == "list-tables":
-                results = pinot_instance._get_tables()
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "pause_consumption":
-                results = pinot_instance._pause_consumption(
-                    tableName=arguments["tableName"], comment=arguments.get("comment")
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "resume_consumption":
-                results = pinot_instance._resume_consumption(
-                    tableName=arguments["tableName"],
-                    comment=arguments.get("comment"),
-                    consumeFrom=arguments.get("consumeFrom"),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "force_commit":
-                results = pinot_instance._force_commit(
-                    tableName=arguments["tableName"],
-                    partitions=arguments.get("partitions"),
-                    segments=arguments.get("segments"),
-                    batchSize=arguments.get("batchSize"),
-                    batchStatusCheckIntervalSec=arguments.get(
-                        "batchStatusCheckIntervalSec"
-                    ),
-                    batchStatusCheckTimeoutSec=arguments.get(
-                        "batchStatusCheckTimeoutSec"
-                    ),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "get_pause_status":
-                results = pinot_instance._get_pause_status(
-                    tableName=arguments["tableName"]
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "get_consuming_segments_info":
-                results = pinot_instance._get_consuming_segments_info(
-                    tableName=arguments["tableName"]
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "reload-table-segments":
-                results = pinot_instance._reload_table_segments(
-                    tableName=arguments["tableName"],
-                    tableType=arguments.get("type"),  # API uses 'type' query param
-                    forceDownload=arguments.get("forceDownload", False),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "rebalance-table":
-                results = pinot_instance._rebalance_table(
-                    tableName=arguments["tableName"],
-                    tableType=arguments["type"],
-                    dryRun=arguments.get("dryRun", False),
-                    reassignInstances=arguments.get("reassignInstances", True),
-                    includeConsuming=arguments.get("includeConsuming", True),
-                    bootstrap=arguments.get("bootstrap", False),
-                    downtime=arguments.get("downtime", False),
-                    minAvailableReplicas=arguments.get("minAvailableReplicas", -1),
-                    # Pass other params as needed
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "reset-table-segments":
-                results = pinot_instance._reset_table_segments(
-                    tableNameWithType=arguments["tableNameWithType"],
-                    errorSegmentsOnly=arguments.get("errorSegmentsOnly", False),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "list-supported-indices":
-                # Based on web search and swagger definitions
-                supported_indices = [
-                    (
-                        "Forward Index (Dictionary-encoded, Sorted, Raw Value) - "
-                        "Default, based on encoding/sorting"
-                    ),
-                    "Inverted Index (Bitmap, Sorted) - For exact match filtering",
-                    "Range Index - For range filtering (<, >, <=, >=)",
-                    "Text Index (Native/Lucene) - For text search queries",
-                    "JSON Index - For filtering fields within JSON blobs",
-                    (
-                        "Geospatial Index (H3) - For geospatial "
-                        "distance/containment queries"
-                    ),
-                    "Timestamp Index - Optimized time filtering",
-                    "Vector Index - For vector similarity search",
-                    "Bloom Filter - Probabilistic filter to skip segments",
-                    "Star-Tree Index - Pre-aggregation cube.",
-                    (
-                        "FST Index - For prefix/regex matching on "
-                        "dictionary-encoded columns"
-                    ),
-                ]
-                return [
-                    types.TextContent(type="text", text="\n".join(supported_indices))
-                ]
-
-            elif name == "create-schema":
-                results = pinot_instance._create_schema(
-                    schemaJson=arguments["schemaJson"],
-                    override=arguments.get("override", True),
-                    force=arguments.get("force", False),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "update-schema":
-                results = pinot_instance._update_schema(
-                    schemaName=arguments["schemaName"],
-                    schemaJson=arguments["schemaJson"],
-                    reload=arguments.get("reload", False),
-                    force=arguments.get("force", False),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "create-table-config":
-                results = pinot_instance._create_table_config(
-                    tableConfigJson=arguments["tableConfigJson"],
-                    validationTypesToSkip=arguments.get("validationTypesToSkip"),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "update-table-config":
-                results = pinot_instance._update_table_config(
-                    tableName=arguments["tableName"],
-                    tableConfigJson=arguments["tableConfigJson"],
-                    validationTypesToSkip=arguments.get("validationTypesToSkip"),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "add-index":
-                results = pinot_instance._add_index(
-                    tableName=arguments["tableName"],
-                    tableType=arguments.get("tableType"),
-                    indexType=arguments["indexType"],
-                    columns=arguments["columns"],
-                    triggerReload=arguments.get("triggerReload", True),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            elif name == "add-startree-index":
-                # Ensure only one of functionColumnPairs/aggregationConfigsJson is set
-                if arguments.get("functionColumnPairs") and arguments.get(
-                    "aggregationConfigsJson"
-                ):
-                    raise ValueError(
-                        "Provide either 'functionColumnPairs' or "
-                        "'aggregationConfigsJson', not both."
-                    )
-
-                results = pinot_instance._add_star_tree_index(
-                    tableName=arguments["tableName"],
-                    tableType=arguments.get("tableType"),
-                    dimensionsSplitOrder=arguments["dimensionsSplitOrder"],
-                    functionColumnPairs=arguments.get("functionColumnPairs", []),
-                    aggregationConfigsJson=arguments.get("aggregationConfigsJson"),
-                    skipStarNodeCreationForDimensions=arguments.get(
-                        "skipStarNodeCreationForDimensions", []
-                    ),
-                    maxLeafRecords=arguments.get("maxLeafRecords", 10000),
-                    triggerReload=arguments.get("triggerReload", True),
-                )
-                return [types.TextContent(type="text", text=str(results))]
-
-            else:
-                raise ValueError(f"Unknown tool: {name}")
-
-        except Exception as e:
-            return [types.TextContent(type="text", text=f"Error: {str(e)}")]
-
+# Tool 1: list-tables
+@app.tool(name="list-tables", description="List all tables in Pinot")
+def list_tables() -> str:
+    """List all tables in Pinot."""
     try:
-        async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
-            logger.info("Server running with stdio transport")
-            await server.run(
-                read_stream,
-                write_stream,
-                InitializationOptions(
-                    server_name="pinot_mcp_table_ops_claude",
-                    server_version="0.1.0",
-                    capabilities=server.get_capabilities(
-                        notification_options=NotificationOptions(),
-                        experimental_capabilities={},
-                    ),
-                ),
-            )
+        return str(pinot_instance._get_tables())
     except Exception as e:
-        import traceback
+        return _err(e)
 
-        logger.error(f"Error running MCP server: {e}")
-        logger.error(traceback.format_exc())
-        print(f"Error running MCP server: {e}", file=sys.stderr)
-        print(traceback.format_exc(), file=sys.stderr)
-        raise
+
+# Tool 2: table-details
+@app.tool(name="table-details", description="Get table size details")
+def table_details(tableName: str) -> str:
+    """Get table size details.
+
+    Args:
+        tableName: Table name.
+    """
+    try:
+        return str(pinot_instance._get_table_detail(tableName=tableName))
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 3: segment-list
+@app.tool(name="segment-list", description="List segments for a table")
+def segment_list(tableName: str) -> str:
+    """List segments for a table.
+
+    Args:
+        tableName: Table name.
+    """
+    try:
+        return str(pinot_instance._get_segments(tableName=tableName))
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 4: index-column-details
+@app.tool(
+    name="index-column-details",
+    description="Get index/column details for a segment",
+)
+def index_column_details(tableName: str, segmentName: str) -> str:
+    """Get index/column details for a segment.
+
+    Args:
+        tableName: Table name.
+        segmentName: Segment name.
+    """
+    try:
+        return str(
+            pinot_instance._get_index_column_detail(
+                tableName=tableName, segmentName=segmentName
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 5: segment-metadata-details
+@app.tool(
+    name="segment-metadata-details",
+    description="Get metadata for segments of a table",
+)
+def segment_metadata_details(tableName: str) -> str:
+    """Get metadata for segments of a table.
+
+    Args:
+        tableName: Table name.
+    """
+    try:
+        return str(pinot_instance._get_segment_metadata_detail(tableName=tableName))
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 6: tableconfig-schema-details
+@app.tool(
+    name="tableconfig-schema-details",
+    description="Get table config and schema",
+)
+def tableconfig_schema_details(tableName: str) -> str:
+    """Get table config and schema.
+
+    Args:
+        tableName: Table name.
+    """
+    try:
+        return str(pinot_instance._get_tableconfig_schema_detail(tableName=tableName))
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 7: pause_consumption
+@app.tool(
+    name="pause_consumption",
+    description="Pause consumption of a realtime table",
+)
+def pause_consumption(tableName: str, comment: Optional[str] = None) -> str:
+    """Pause consumption of a realtime table.
+
+    Args:
+        tableName: Name of the table.
+        comment: Optional comment.
+    """
+    try:
+        return str(
+            pinot_instance._pause_consumption(tableName=tableName, comment=comment)
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 8: resume_consumption
+@app.tool(
+    name="resume_consumption",
+    description="Resume consumption of a realtime table",
+)
+def resume_consumption(
+    tableName: str,
+    comment: Optional[str] = None,
+    consumeFrom: Optional[str] = None,
+) -> str:
+    """Resume consumption of a realtime table.
+
+    Args:
+        tableName: Name of the table.
+        comment: Optional comment.
+        consumeFrom: One of "lastConsumed", "smallest", or "largest".
+    """
+    try:
+        return str(
+            pinot_instance._resume_consumption(
+                tableName=tableName, comment=comment, consumeFrom=consumeFrom
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 9: force_commit
+@app.tool(
+    name="force_commit",
+    description="Force commit the current consuming segments",
+)
+def force_commit(
+    tableName: str,
+    partitions: Optional[str] = None,
+    segments: Optional[str] = None,
+    batchSize: Optional[int] = None,
+    batchStatusCheckIntervalSec: Optional[int] = None,
+    batchStatusCheckTimeoutSec: Optional[int] = None,
+) -> str:
+    """Force commit the current consuming segments.
+
+    Args:
+        tableName: Name of the table.
+        partitions: Comma-separated partition group IDs.
+        segments: Comma-separated consuming segments.
+        batchSize: Max segments to commit at once.
+        batchStatusCheckIntervalSec: Interval to check batch status.
+        batchStatusCheckTimeoutSec: Timeout for batch status check.
+    """
+    try:
+        return str(
+            pinot_instance._force_commit(
+                tableName=tableName,
+                partitions=partitions,
+                segments=segments,
+                batchSize=batchSize,
+                batchStatusCheckIntervalSec=batchStatusCheckIntervalSec,
+                batchStatusCheckTimeoutSec=batchStatusCheckTimeoutSec,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 10: get_pause_status
+@app.tool(
+    name="get_pause_status",
+    description="Return pause status of a realtime table",
+)
+def get_pause_status(tableName: str) -> str:
+    """Return pause status of a realtime table.
+
+    Args:
+        tableName: Name of the table.
+    """
+    try:
+        return str(pinot_instance._get_pause_status(tableName=tableName))
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 11: get_consuming_segments_info
+@app.tool(
+    name="get_consuming_segments_info",
+    description=(
+        "Gets the status of consumers from all servers for a realtime table"
+    ),
+)
+def get_consuming_segments_info(tableName: str) -> str:
+    """Get the status of consumers from all servers for a realtime table.
+
+    Args:
+        tableName: Realtime table name with or without type.
+    """
+    try:
+        return str(pinot_instance._get_consuming_segments_info(tableName=tableName))
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 12: reload-table-segments
+# Note: original kwarg is named `type` -- we keep it that way to preserve
+# the public schema name (clients pass {"type": "REALTIME"}). It shadows
+# the Python built-in inside the function but that's harmless.
+@app.tool(
+    name="reload-table-segments",
+    description=(
+        "Reload all segments for a table (applies config changes, can "
+        "force download)"
+    ),
+)
+def reload_table_segments(
+    tableName: str,
+    type: Optional[str] = None,
+    forceDownload: bool = False,
+) -> str:
+    """Reload all segments for a table.
+
+    Args:
+        tableName: Name of the table.
+        type: "OFFLINE" or "REALTIME".
+        forceDownload: Whether to force servers to re-download segments.
+    """
+    try:
+        return str(
+            pinot_instance._reload_table_segments(
+                tableName=tableName,
+                tableType=type,  # API uses 'type' query param
+                forceDownload=forceDownload,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 13: rebalance-table
+# Same `type` kwarg note as above -- required here.
+@app.tool(
+    name="rebalance-table",
+    description="Rebalances a table (reassign instances and segments)",
+)
+def rebalance_table(
+    tableName: str,
+    type: str,
+    dryRun: bool = False,
+    reassignInstances: bool = True,
+    includeConsuming: bool = True,
+    bootstrap: bool = False,
+    downtime: bool = False,
+    minAvailableReplicas: int = -1,
+) -> str:
+    """Rebalance a table.
+
+    Args:
+        tableName: Name of the table to rebalance.
+        type: "OFFLINE" or "REALTIME".
+        dryRun: Dry run mode.
+        reassignInstances: Reassign instances before segments.
+        includeConsuming: Reassign CONSUMING segments (REALTIME only).
+        bootstrap: Bootstrap mode (ignore minimal data movement).
+        downtime: Allow downtime.
+        minAvailableReplicas: Min replicas during no-downtime rebalance.
+    """
+    try:
+        return str(
+            pinot_instance._rebalance_table(
+                tableName=tableName,
+                tableType=type,
+                dryRun=dryRun,
+                reassignInstances=reassignInstances,
+                includeConsuming=includeConsuming,
+                bootstrap=bootstrap,
+                downtime=downtime,
+                minAvailableReplicas=minAvailableReplicas,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 14: reset-table-segments
+@app.tool(
+    name="reset-table-segments",
+    description=(
+        "Resets segments for a table (disable->wait->enable). Use "
+        "tableNameWithType (e.g., myTable_REALTIME)"
+    ),
+)
+def reset_table_segments(
+    tableNameWithType: str,
+    errorSegmentsOnly: bool = False,
+) -> str:
+    """Reset segments for a table.
+
+    Args:
+        tableNameWithType: Table name with type suffix (e.g., myTable_REALTIME).
+        errorSegmentsOnly: Reset only segments in ERROR state.
+    """
+    try:
+        return str(
+            pinot_instance._reset_table_segments(
+                tableNameWithType=tableNameWithType,
+                errorSegmentsOnly=errorSegmentsOnly,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 15: list-supported-indices
+@app.tool(
+    name="list-supported-indices",
+    description="List the types of indices supported by Pinot",
+)
+def list_supported_indices() -> str:
+    """List the types of indices supported by Pinot.
+
+    Returns a static newline-separated list -- no Pinot call.
+    """
+    supported_indices = [
+        (
+            "Forward Index (Dictionary-encoded, Sorted, Raw Value) - "
+            "Default, based on encoding/sorting"
+        ),
+        "Inverted Index (Bitmap, Sorted) - For exact match filtering",
+        "Range Index - For range filtering (<, >, <=, >=)",
+        "Text Index (Native/Lucene) - For text search queries",
+        "JSON Index - For filtering fields within JSON blobs",
+        (
+            "Geospatial Index (H3) - For geospatial "
+            "distance/containment queries"
+        ),
+        "Timestamp Index - Optimized time filtering",
+        "Vector Index - For vector similarity search",
+        "Bloom Filter - Probabilistic filter to skip segments",
+        "Star-Tree Index - Pre-aggregation cube.",
+        (
+            "FST Index - For prefix/regex matching on "
+            "dictionary-encoded columns"
+        ),
+    ]
+    return "\n".join(supported_indices)
+
+
+# Tool 16: create-schema
+@app.tool(name="create-schema", description="Adds a new schema to Pinot")
+def create_schema(
+    schemaJson: str,
+    override: bool = True,
+    force: bool = False,
+) -> str:
+    """Add a new schema to Pinot.
+
+    Args:
+        schemaJson: The schema definition in JSON format.
+        override: Override if schema exists.
+        force: Force override even if incompatible.
+    """
+    try:
+        return str(
+            pinot_instance._create_schema(
+                schemaJson=schemaJson, override=override, force=force
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 17: update-schema
+@app.tool(name="update-schema", description="Updates an existing schema in Pinot")
+def update_schema(
+    schemaName: str,
+    schemaJson: str,
+    reload: bool = False,
+    force: bool = False,
+) -> str:
+    """Update an existing schema in Pinot.
+
+    Args:
+        schemaName: Name of the schema to update.
+        schemaJson: The updated schema definition in JSON format.
+        reload: Reload table after update.
+        force: Force update even if incompatible.
+    """
+    try:
+        return str(
+            pinot_instance._update_schema(
+                schemaName=schemaName,
+                schemaJson=schemaJson,
+                reload=reload,
+                force=force,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 18: create-table-config
+@app.tool(
+    name="create-table-config",
+    description="Adds a new table configuration to Pinot",
+)
+def create_table_config(
+    tableConfigJson: str,
+    validationTypesToSkip: Optional[str] = None,
+) -> str:
+    """Add a new table configuration to Pinot.
+
+    Args:
+        tableConfigJson: The table configuration in JSON format.
+        validationTypesToSkip: Comma-separated validation types to skip
+                               (ALL|TASK|UPSERT).
+    """
+    try:
+        return str(
+            pinot_instance._create_table_config(
+                tableConfigJson=tableConfigJson,
+                validationTypesToSkip=validationTypesToSkip,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 19: update-table-config
+@app.tool(
+    name="update-table-config",
+    description=(
+        "Updates an existing table configuration in Pinot (can be used "
+        "to add/modify indices)"
+    ),
+)
+def update_table_config(
+    tableName: str,
+    tableConfigJson: str,
+    validationTypesToSkip: Optional[str] = None,
+) -> str:
+    """Update an existing table configuration in Pinot.
+
+    Args:
+        tableName: Name of the table to update.
+        tableConfigJson: The updated table configuration in JSON format.
+        validationTypesToSkip: Comma-separated validation types to skip
+                               (ALL|TASK|UPSERT).
+    """
+    try:
+        return str(
+            pinot_instance._update_table_config(
+                tableName=tableName,
+                tableConfigJson=tableConfigJson,
+                validationTypesToSkip=validationTypesToSkip,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 20: add-index
+@app.tool(
+    name="add-index",
+    description=(
+        "Adds a specified index type to one or more columns in a table "
+        "config and optionally reloads"
+    ),
+)
+def add_index(
+    tableName: str,
+    indexType: str,
+    columns: List[str],
+    tableType: Optional[str] = None,
+    triggerReload: bool = True,
+) -> str:
+    """Add a specified index type to one or more columns.
+
+    Args:
+        tableName: Name of the table (without type suffix).
+        indexType: Type of index ("inverted", "range", "text", "json",
+                   "bloom", "fst", "sorted").
+        columns: List of column names to add the index to.
+        tableType: "OFFLINE" or "REALTIME" (required if table has both
+                   types).
+        triggerReload: Reload the table segments after updating config.
+    """
+    try:
+        return str(
+            pinot_instance._add_index(
+                tableName=tableName,
+                tableType=tableType,
+                indexType=indexType,
+                columns=columns,
+                triggerReload=triggerReload,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# Tool 21: add-startree-index
+@app.tool(
+    name="add-startree-index",
+    description=(
+        "Adds a Star-Tree index configuration to a table config and "
+        "optionally reloads."
+    ),
+)
+def add_startree_index(
+    tableName: str,
+    dimensionsSplitOrder: List[str],
+    tableType: Optional[str] = None,
+    functionColumnPairs: Optional[List[str]] = None,
+    aggregationConfigsJson: Optional[str] = None,
+    skipStarNodeCreationForDimensions: Optional[List[str]] = None,
+    maxLeafRecords: int = 10000,
+    triggerReload: bool = True,
+) -> str:
+    """Add a Star-Tree index configuration to a table config.
+
+    Args:
+        tableName: Name of the table (without type suffix).
+        dimensionsSplitOrder: List of dimension columns defining the
+                              tree structure.
+        tableType: "OFFLINE" or "REALTIME" (required if table has both
+                   types).
+        functionColumnPairs: Optional. Aggregations like
+                             ["SUM__colA", "COUNT__*"]. Use this OR
+                             aggregationConfigsJson.
+        aggregationConfigsJson: Optional. JSON string for the
+                                'aggregationConfigs' array (alternative
+                                to functionColumnPairs).
+        skipStarNodeCreationForDimensions: Optional. Dimensions to skip
+                                           Star-node creation for.
+        maxLeafRecords: Threshold T for splitting nodes (default 10000).
+        triggerReload: Reload the table segments after updating config.
+    """
+    try:
+        # Preserve the original validation: only one of
+        # functionColumnPairs / aggregationConfigsJson may be set.
+        if functionColumnPairs and aggregationConfigsJson:
+            raise ValueError(
+                "Provide either 'functionColumnPairs' or "
+                "'aggregationConfigsJson', not both."
+            )
+
+        return str(
+            pinot_instance._add_star_tree_index(
+                tableName=tableName,
+                tableType=tableType,
+                dimensionsSplitOrder=dimensionsSplitOrder,
+                functionColumnPairs=functionColumnPairs or [],
+                aggregationConfigsJson=aggregationConfigsJson,
+                skipStarNodeCreationForDimensions=(
+                    skipStarNodeCreationForDimensions or []
+                ),
+                maxLeafRecords=maxLeafRecords,
+                triggerReload=triggerReload,
+            )
+        )
+    except Exception as e:
+        return _err(e)
+
+
+# ======================================================================
+# PORT NOTE -- entry point
+# ----------------------------------------------------------------------
+# Original async main() did:
+#   - server = Server("pinot_mcp_table_ops_claude")
+#   - registered the prompt + tool decorators inline
+#   - async with stdio_server() as (read, write):
+#       await server.run(read, write, InitializationOptions(...))
+#   - try/except around the whole thing for traceback printing
+#
+# Under SecureMCP `app.run()` is sync, creates its own asyncio.run()
+# internally (mcp.py:628-635), and registers the server as a mesh
+# agent. No stdio plumbing, no InitializationOptions, no capabilities
+# negotiation -- those are MCP-protocol-layer concerns the mesh
+# replaces.
+#
+# Original code preserved as a comment block below.
+# ======================================================================
+# async def main():
+#     logger.info("Starting Pinot MCP Table Ops Server")
+#     server = Server("pinot_mcp_table_ops_claude")
+#     # ... 31 lines of @server.list_prompts / @server.get_prompt
+#     # ... 515 lines of @server.list_tools returning 21 Tool() objects
+#     # ... 208 lines of @server.call_tool with a 21-branch if/elif
+#     try:
+#         async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
+#             logger.info("Server running with stdio transport")
+#             await server.run(
+#                 read_stream,
+#                 write_stream,
+#                 InitializationOptions(
+#                     server_name="pinot_mcp_table_ops_claude",
+#                     server_version="0.1.0",
+#                     capabilities=server.get_capabilities(
+#                         notification_options=NotificationOptions(),
+#                         experimental_capabilities={},
+#                     ),
+#                 ),
+#             )
+#     except Exception as e:
+#         import traceback
+#         logger.error(f"Error running MCP server: {e}")
+#         logger.error(traceback.format_exc())
+#         print(f"Error running MCP server: {e}", file=sys.stderr)
+#         print(traceback.format_exc(), file=sys.stderr)
+#         raise
+#
+#
+# if __name__ == "__main__":
+#     import asyncio
+#     asyncio.run(main())
+
+
+def main():
+    """Run the SecureMCP server (sync; SecureMCP owns its asyncio.run())."""
+    logger.info("Starting Pinot MCP Table Ops Server on the MACAW mesh")
+    app.run()
 
 
 if __name__ == "__main__":
-    import asyncio
-
-    asyncio.run(main())
+    main()

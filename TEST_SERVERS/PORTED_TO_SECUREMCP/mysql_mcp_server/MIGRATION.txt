@@ -1,0 +1,248 @@
+mysql_mcp_server: low-level Server -> SecureMCP port
+======================================================
+
+WHAT WE DID (in plain English first)
+------------------------------------
+
+The original mysql server exposed three things to MCP clients:
+
+  1. A list of tables, advertised as "resources" with URIs like
+     `mysql://users/data`, `mysql://orders/data`, etc. (one per
+     table at request time -- dynamic).
+  2. A "read" handler that took one of those URIs and returned the
+     first 100 rows of that table as CSV.
+  3. One tool, `execute_sql`, that ran any query the caller gave it.
+
+Under SecureMCP we kept (3) almost as-is -- only the decorator
+changed (`@app.call_tool` -> `@app.tool`). The handler body is
+byte-for-byte the same.
+
+We could NOT keep (1) and (2) on the same surface, because
+SecureMCP's `@app.resource()` decorator stores a STATIC URI string
+(verified at mcp.py:519-546) -- it has no template extraction or
+"list resources at request time" hook. The original mysql code
+enumerates N tables dynamically; SecureMCP can only hold a fixed
+set of resource URIs. Path A (use @app.resource with a template)
+DOES NOT WORK because the templating doesn't exist; path C (drop
+the resource path entirely) loses the convenience of "show me the
+tables / show me this table" without writing SQL.
+
+So we picked PATH B (see ROOT DECISION below): convert the two
+resource handlers into ordinary tools with the same data + the same
+queries. Three tools total: `list_tables`, `read_table`, `execute_sql`.
+
+WHAT CHANGED, FILE BY FILE
+--------------------------
+
+src/mysql_mcp_server/server.py -- rewritten:
+
+  1. Import swap (lines 6-8):
+       from mcp.server import Server
+       from mcp.types import Resource, Tool, TextContent
+     ->
+       from macaw_adapters.mcp import SecureMCP
+       (Resource / Tool / TextContent dropped -- no longer needed,
+        SecureMCP returns plain dicts/strings; AnyUrl kept because
+        it appears in the commented-original read_resource signature)
+
+  2. Constructor swap (line 46):
+       app = Server("mysql_mcp_server")
+     ->
+       app = SecureMCP("mysql_mcp_server")
+     We kept the variable name `app` (instead of renaming to `mcp`)
+     so every existing decorator below stays `@app.tool()` -- least-
+     modification rule.
+
+  3. @app.list_resources() -> @app.tool() list_tables()
+     The same SHOW TABLES query and the same string format
+     (header line + table-per-line) are now returned by a tool
+     instead of a list of Resource objects.
+
+  4. @app.read_resource(uri) -> @app.tool() read_table(table)
+     The URI parser is gone; the tool takes the table name as an
+     ordinary parameter. The SQL body
+     (`SELECT * FROM <table> LIMIT 100`) and CSV-format return are
+     unchanged. Errors are now returned as a string (matching the
+     existing execute_sql error path) instead of being raised --
+     mesh consumers see one consistent error surface across all
+     three tools.
+
+  5. @app.list_tools() / @app.call_tool(execute_sql) -> @app.tool() execute_sql(query)
+     Replaced the manual list_tools/call_tool pair with one
+     decorator-driven function. The `if name != "execute_sql": raise`
+     check is gone (no longer needed -- SecureMCP routes by name).
+     The body of the SQL execution branch is byte-for-byte the same.
+     Returns a string instead of a list of TextContent (SecureMCP
+     wraps non-dict returns as {"result": <str>}).
+
+  6. async main() with stdio_server -> sync main() with app.run()
+     Same pattern as every other port in this series. SecureMCP.run()
+     is sync (mcp.py:628-635) and creates its own asyncio.run()
+     internally. The original async main + stdio_server block is
+     preserved as a comment for review.
+
+src/mysql_mcp_server/__init__.py -- 1 edit:
+
+  7. asyncio.run(server.main()) -> server.main()
+     server.main() is now sync; wrapping a sync return-None call in
+     asyncio.run() raises TypeError. Both the import and the wrapped
+     call are preserved as comments.
+
+
+ROOT DECISION -- why we chose Path B (resource handlers -> tools)
+------------------------------------------------------------------
+
+Three options were considered:
+
+  PATH A (rejected) -- @app.resource(uri_pattern):
+    Initially proposed. Doesn't work because SecureMCP's resource
+    decorator (mcp.py:519-546) stores the URI pattern as a literal
+    string -- there is no template-parameter extraction or glob
+    matching. mysql's table list is dynamic (N tables, discovered
+    at request time via SHOW TABLES); SecureMCP's resource registry
+    holds a fixed list of literal URIs at startup. The two shapes
+    don't fit. Honest correction: this option does not exist as
+    described.
+
+  PATH B (CHOSEN, active in this port) -- replace with @app.tool:
+    Two new tools (list_tables, read_table) that run the same
+    queries the resource handlers ran, return the same data in the
+    same shapes, and integrate cleanly with SecureMCP's tool path.
+    Same security posture (the SQL is built the same way -- we did
+    NOT introduce new injection surfaces), same data, just under
+    different access names.
+
+
+BROKEN ON PURPOSE -- the resource-to-tool conversion
+----------------------------------------------------
+
+(a) MCP `resources/list` is no longer answered by this server.
+
+    Original: MCP-protocol clients calling `resources/list` got a
+    list of `Resource(uri="mysql://<table>/data", ...)` objects --
+    one per MySQL table, advertised at request time via SHOW TABLES.
+
+    Port: `resources/list` returns nothing (SecureMCP doesn't speak
+    that protocol method anyway). Callers should call the new
+    `list_tables()` tool instead. The output is a plain string with
+    the header row + table names, one per line.
+
+    Restoring this would require either (i) modifying SecureMCP to
+    add a list_resources hook (forbidden), (ii) writing a separate
+    MCP-protocol shim in front of SecureMCP (out of scope for a
+    port). The functionality is preserved as a tool; only the
+    protocol method differs.
+
+(b) MCP `resources/read mysql://<table>/data` is no longer answered.
+
+    Original: a client could do `resources/read` with one of those
+    URIs and get back the table CSV.
+
+    Port: callers should call `read_table(table="<name>")` instead.
+    Same SELECT * LIMIT 100 query, same CSV string back.
+
+    Restoring this would require the same SDK changes as (a). The
+    functionality is preserved as a tool; only the access method
+    differs.
+
+(c) Tool result envelope shape.
+
+    Original: handlers returned `list[TextContent]` -- the FastMCP /
+    low-level-Server result envelope.
+
+    Port: tools return plain Python strings. SecureMCP wraps non-
+    dict returns as `{"result": <str>}` (mcp.py:815-817). Mesh
+    consumers see the same data inside a `result` key.
+
+    The same envelope change is documented in spotify-mcp /
+    telegram-mcp / k8s-mcp-server / mcp-azure-devops MIGRATION.txt
+    files; nothing new here.
+
+(d) Errors no longer raise; they return error strings.
+
+    Original read_resource raised RuntimeError on database errors;
+    the framework wrapped that as an MCP error response.
+
+    Port read_table catches the same error and returns the message
+    as a string. This matches the existing execute_sql error
+    surface, so the new tools and the existing one all return one
+    consistent shape (string with prefix "Error..."). Slight
+    behavioural change; documented for callers that previously
+    detected errors via exception type.
+
+VERIFICATION
+------------
+
+Boot:
+  Requires `mysql-connector-python` installed in the environment
+  (the original code has the same requirement).
+
+  PYTHONPATH=src python -c "from mysql_mcp_server.server import app; print(list(app._tools.keys()))"
+  Expected: ['list_tables', 'read_table', 'execute_sql']
+  Note: also requires MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE
+  env vars to be set (or the import-time get_db_config() check
+  raises). Set placeholder values for boot-only verification:
+    MYSQL_USER=fake MYSQL_PASSWORD=fake MYSQL_DATABASE=fake
+
+Mesh smoke:
+  python3 client-test-macaw.py "mysql" mysql-test-client
+  Expected:
+    TEST 1 PASS -- all 3 tools advertised.
+    TEST 2 PASS -- list_tables returns table list or
+                   "Error listing tables: ...".
+    TEST 3 PASS -- read_table(table='dummy') returns CSV or
+                   "Database error reading table dummy: ...".
+    TEST 4 PASS -- execute_sql('SELECT 1 + 1 AS answer') returns
+                   the result or "Error executing query: ...".
+
+End-to-end runtime verification (real CRUD on real tables) needs
+real MySQL credentials and a running database -- out of scope for
+this smoke test.
+
+KNOWN GAPS
+----------
+
+- This port has not been runtime-tested against a real MySQL
+  instance. Boot path is structurally correct; mesh-layer
+  verification needs MYSQL_USER + MYSQL_PASSWORD + MYSQL_DATABASE
+  + a reachable MySQL server.
+
+- MCP-protocol resources/* path is gone. Callers must use the new
+  list_tables / read_table tools. See BROKEN ON PURPOSE (a)/(b).
+
+- Result envelope is now {"result": <str>} for non-dict returns.
+  See BROKEN ON PURPOSE (c).
+
+- Errors are returned as strings, not raised. See BROKEN ON
+  PURPOSE (d).
+
+LINES CHANGED
+-------------
+
+src/mysql_mcp_server/server.py:
+  Before: 202 lines, low-level Server with 3 decorator paths
+          (list_resources, read_resource, list_tools+call_tool).
+  After:  ~330 lines including all preserved-as-comment originals
+          and PORT NOTE blocks. Net new code: ~80 lines (3 small
+          @app.tool functions + 1 sync main).
+
+src/mysql_mcp_server/__init__.py:
+  Before: 9 lines.
+  After: ~12 lines (1 line edited, 1 import commented, 1 explanatory
+         note). Trivial.
+
+client-test-macaw.py: new, ~180 lines.
+MIGRATION.txt:        this file.
+
+NOT TOUCHED
+-----------
+
+  - get_db_config() function: exact copy of the original. No
+    behavioural change to how MySQL credentials are read or
+    validated.
+  - All SQL queries: byte-for-byte identical to the original code
+    paths (`SHOW TABLES`, `SELECT * FROM <table> LIMIT 100`, plus
+    whatever the caller passes to execute_sql).
+  - pyproject.toml, README, tests/. The original pins `mcp` as a
+    dep; macaw_adapters is expected to be installable alongside it.
+    No dep adjustments as part of this port.

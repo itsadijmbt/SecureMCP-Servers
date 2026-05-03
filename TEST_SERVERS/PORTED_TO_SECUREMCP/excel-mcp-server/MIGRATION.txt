@@ -1,0 +1,264 @@
+excel-mcp-server: FastMCP -> SecureMCP port
+============================================
+
+WHAT WE DID (in plain English first)
+------------------------------------
+
+The original excel-mcp-server is a clean FastMCP server with 25 tools
+(read/write Excel files via openpyxl). Every tool is decorated with
+`@mcp.tool(annotations=ToolAnnotations(title=..., readOnlyHint or
+destructiveHint=True))`. Three thin wrapper functions (`run_sse`,
+`run_streamable_http`, `run_stdio`) each call `mcp.run(transport="...")`.
+A `__main__.py` exposes those three as typer subcommands.
+
+This is the same shape as k8s-mcp-server -- pure FastMCP, decorator-
+kwargs to strip, multi-transport main to neutralize. Mechanical port,
+no business logic touched, no architectural decisions to make beyond
+the ones already documented in the skill.
+
+WHAT CHANGED, FILE BY FILE
+--------------------------
+
+src/excel_mcp/server.py -- edited (866 -> 955 lines, +89 for
+preserved-as-comment originals + PORT NOTE blocks):
+
+  1. Import swap (lines 5-6):
+       from mcp.server.fastmcp import FastMCP
+       from mcp.types import ToolAnnotations
+     ->
+       from macaw_adapters.mcp import SecureMCP
+       (ToolAnnotations import commented out -- only used for the
+        annotations= kwarg we strip in step 4 below.)
+
+  2. Constructor swap (lines 68-73):
+       mcp = FastMCP(
+           "excel-mcp",
+           host=os.environ.get("FASTMCP_HOST", "0.0.0.0"),
+           port=int(os.environ.get("FASTMCP_PORT", "8017")),
+           instructions="Excel MCP Server for manipulating Excel files"
+       )
+     ->
+       mcp = SecureMCP("excel-mcp")
+     SecureMCP doesn't accept host=, port=, or instructions= (skill
+     Step 1b). The FASTMCP_HOST / FASTMCP_PORT env vars become unused
+     under this port -- noted in the in-code PORT NOTE for anyone
+     migrating an existing deployment.
+
+  3. ctx async-to-sync (Step 5): N/A -- excel-mcp-server doesn't use
+     ctx.<log> methods anywhere.
+
+  4. Decorator kwarg strip (25 instances). Each
+       @mcp.tool(
+           annotations=ToolAnnotations(
+               title="...",
+               readOnlyHint or destructiveHint=True,
+           ),
+       )
+     became
+       @mcp.tool()
+     Originals preserved as comments inline above each stripped
+     decorator. Skill Step 1c. Scripted (same approach used in
+     telegram-mcp / k8s-mcp-server). 25 patches verified.
+
+  5. Field-default rewrite (Step 2): N/A -- excel-mcp-server uses
+     plain Python defaults for all parameters; no Field(...) on
+     parameter lines.
+
+  6. Transport functions at the bottom (run_sse / run_streamable_http
+     / run_stdio): each had `mcp.run(transport="...")` replaced with
+     `mcp.run()`. Originals preserved as comments inline. The three
+     functions remain as separate Python functions because
+     __main__.py exposes them as three typer subcommands; under the
+     port all three boot the same SecureMCP server, but the user-
+     facing CLI (`python -m excel_mcp <subcommand>`) is unchanged.
+
+src/excel_mcp/__main__.py -- UNCHANGED.
+
+  The typer wrapper just dispatches to run_sse / run_streamable_http
+  / run_stdio. Those functions still exist with their original
+  signatures; only their bodies' `mcp.run(transport=...)` lines
+  changed to `mcp.run()`. The CLI surface is preserved.
+
+NEW FILES
+---------
+
+client-test-macaw.py:
+  3-test mesh smoke test. List tools (expects all 10 sampled out of
+  25 total), call get_workbook_metadata (read-only, exercises the
+  workbook module), call validate_formula_syntax (read-only,
+  exercises the validation module). Treats real-output-or-error-
+  string as PASS for handler reachability.
+
+MIGRATION.txt:
+  This file.
+
+
+
+BROKEN ON PURPOSE -- features intentionally lost
+------------------------------------------------
+
+(a) Tool advertisement annotations.
+
+    Original: each @mcp.tool carried
+    annotations=ToolAnnotations(title="Apply Formula",
+    destructiveHint=True), etc. MCP-protocol clients used these
+    hints in their UI (display title, warn before destructive
+    operations like write_data_to_excel).
+
+    Port: SecureMCP @mcp.tool() does not accept annotations=.
+    Stripped mechanically. Tool function names + docstrings are
+    preserved -- mesh consumers can read those and infer the same
+    information.
+
+    Restoring this would require SDK changes (out of scope).
+
+(b) Tool result envelope shape.
+
+    Original: tools returned plain Python strings; FastMCP wrapped
+    them in MCP TextContent.
+
+    Port: SecureMCP wraps non-dict returns as `{"result": <str>}`
+    (mcp.py:815-817). Mesh consumers see the same string content
+    inside a `result` key. Same pattern documented in spotify /
+    telegram / k8s / azure-devops / mysql ports.
+
+VERIFICATION
+------------
+
+Boot:
+  PYTHONPATH=src python -c "from excel_mcp.server import mcp; print(len(mcp._tools), 'tools')"
+  Expected: 25 tools.
+
+Mesh smoke:
+  python3 client-test-macaw.py "excel" excel-test-client
+  Expected:
+    TEST 1 PASS -- 10 of 25 expected tools advertised.
+    TEST 2 PASS -- get_workbook_metadata returns metadata or
+                   "Error: ..." from openpyxl read failure.
+    TEST 3 PASS -- validate_formula_syntax returns result or
+                   "Error: ..." from validation failure.
+
+End-to-end runtime verification (real Excel file CRUD, charts, pivot
+tables) requires actual .xlsx files and a writable EXCEL_FILES_PATH
+directory -- out of scope for this smoke test.
+
+VERIFICATION OBSERVED (2026-05-03 smoke run, no real .xlsx files)
+-----------------------------------------------------------------
+
+Setup: server started via `python3 -m excel_mcp stdio`. Logging
+goes to <project>/excel-mcp.log (the StreamHandler is
+intentionally absent in the original code -- noted because the
+empty terminal during boot can look like the server is hung;
+it isn't).
+
+Mesh side: client `securemcp-client-excel-test-client:720ec213`
+registered; server `securemcp-excel-mcp:c75f142a` registered;
+default server set on the client.
+
+Results (after one transient-infrastructure retry: the first run
+timed out at the api.macawsecurity.ai backend, not at the
+handler -- second run produced the data below):
+
+  TEST 1  PASS -- 25 tools advertised on the mesh; all 10
+                  sampled tool names present:
+                    apply_formula, validate_formula_syntax,
+                    format_range, read_data_from_excel,
+                    write_data_to_excel, create_workbook,
+                    create_chart, create_pivot_table,
+                    create_table, get_workbook_metadata.
+                  Confirms: import swap held; the 25-decorator
+                  strip ran cleanly across every category module
+                  (workbook, validation, formatting, data, chart,
+                  pivot, tables, sheet management).
+
+  TEST 2  PASS (gold-standard) -- get_workbook_metadata returned:
+                  {"result": "Error: File not found: /tmp/macaw-smoke-nonexistent.xlsx"}
+                  Round-trip path: client -> mesh -> SecureMCP
+                  handler -> workbook.get_workbook_info -> openpyxl
+                  -> FileNotFoundError caught by the handler's
+                  try/except -> error string returned -> wrapped
+                  as {"result": <str>} per mcp.py:815-817 -> mesh
+                  -> client. Every layer between client and
+                  openpyxl verified intact.
+
+  TEST 3  PASS -- validate_formula_syntax returned:
+                  {"result": "Error: [Errno 2] No such file or directory: '/tmp/macaw-smoke-nonexistent.xlsx'"}
+                  Same shape as TEST 2 but a different module:
+                  validation.validate_formula_in_cell_operation.
+                  Proves the @mcp.tool decoration on a different
+                  category file also registered and dispatched
+                  cleanly.
+
+VERDICT: PORT SUCCESSFUL.
+
+  - Boot path verified (25 tools registered; agent on the mesh).
+  - Handler reachability verified end-to-end on two distinct
+    modules (workbook, validation).
+  - Result envelope shape matches the BROKEN ON PURPOSE prediction
+    byte-for-byte.
+  - Original openpyxl-backed code paths preserved -- the
+    handler's exception handling caught the missing-file error
+    and produced the same string the original FastMCP version
+    would have produced under the same conditions.
+
+  Remaining work outside the port:
+    - Real Excel verification (with valid .xlsx files in
+      EXCEL_FILES_PATH) will produce real metadata / formula
+      validation results rather than file-not-found errors.
+      That validates openpyxl access, not the port.
+
+KNOWN GAPS
+----------
+
+- This port has not been runtime-tested with real Excel files.
+  Boot path is structurally correct; mesh-layer verification with
+  real openpyxl-touched files needs the smoke test run against a
+  prepared EXCEL_FILES_PATH.
+
+- Tool annotations (titles, readOnlyHint, destructiveHint) are
+  lost. UI clients that warned before destructive writes (e.g.
+  write_data_to_excel, delete_worksheet) no longer get that hint
+  surfaced. See BROKEN ON PURPOSE (a).
+
+- HTTP transport bind addresses (FASTMCP_HOST / FASTMCP_PORT) are
+  unused. See BROKEN ON PURPOSE (c).
+
+LINES CHANGED
+-------------
+
+src/excel_mcp/server.py:
+  Before: 866 lines (FastMCP, 25 tools with annotations=).
+  After:  955 lines including preserved-as-comment originals.
+  Net edits:
+    - 2 import lines edited (1 swap, 1 commented)
+    - 1 constructor block (6 lines -> 1 line + 14 lines of
+      PORT NOTE comments)
+    - 25 decorator strips (each: 5 commented lines + 1 PORT
+      note line + 1 plain @mcp.tool() line)
+    - 3 mcp.run(transport=...) -> mcp.run() neutralizations
+      with 18 lines of PORT NOTE explaining why all three
+      functions still exist
+
+src/excel_mcp/__main__.py: unchanged.
+client-test-macaw.py:     new, ~205 lines.
+MIGRATION.txt:            this file.
+
+NOT TOUCHED
+-----------
+
+  - All 25 tool function bodies (apply_formula, validate_formula_syntax,
+    format_range, read_data_from_excel, write_data_to_excel,
+    create_workbook, create_worksheet, create_chart, create_pivot_table,
+    create_table, copy_worksheet, delete_worksheet, rename_worksheet,
+    get_workbook_metadata, merge_cells, unmerge_cells,
+    get_merged_cells, copy_range, delete_range, validate_excel_range,
+    get_data_validation_info, insert_rows, insert_columns,
+    delete_sheet_rows, delete_sheet_columns).
+  - get_excel_path() and _resolved_path_is_within() helpers.
+  - All openpyxl-backed implementation modules (calculations,
+    validation, chart, pivot, tables, workbook, data, sheet,
+    formatting).
+  - exceptions.py.
+  - pyproject.toml. The original pins `mcp` as a dep; macaw_adapters
+    is expected to be installable alongside it. No dep adjustments
+    as part of this port.

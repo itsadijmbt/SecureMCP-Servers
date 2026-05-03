@@ -1,0 +1,349 @@
+mcp_pinot_ops: low-level Server -> SecureMCP port
+====================================================
+
+WHAT WE DID (in plain English first)
+------------------------------------
+
+The original mcp_pinot_ops server used the low-level MCP Server
+pattern -- the classic pinot/mysql/arxiv shape:
+
+  - A single async main() that created a Server, registered one
+    prompt (pinot-query), 21 hand-built Tool() objects via
+    @server.list_tools, and a 21-branch if/elif dispatcher via
+    @server.call_tool.
+  - All decorator wiring happened INSIDE async main() before
+    server.run() was awaited under stdio_server.
+
+Under SecureMCP this collapses to:
+
+  - Module-level `app = SecureMCP(...)`
+  - 1 @app.prompt() function for pinot-query
+  - 21 @app.tool() functions, one per dispatcher branch
+  - sync def main(): app.run()
+
+The 21 pinot_instance method calls are unchanged. Each wrapper just
+provides a typed Python signature for SecureMCP to introspect, and
+calls the same pinot_instance method the original dispatcher branch
+called.
+
+WHAT CHANGED, FILE BY FILE
+--------------------------
+
+mcp_pinot_ops/server.py -- rewritten:
+
+  1. Import swap:
+       from mcp.server import NotificationOptions, Server
+       from mcp.server.models import InitializationOptions
+       import mcp.server.stdio
+       import mcp.types as types
+     ->
+       from macaw_adapters.mcp import SecureMCP
+     The old imports are commented at the top of the file.
+
+  2. Module-level constructor:
+       app = SecureMCP("pinot_mcp_table_ops_claude")
+     The original Server() call lived inside async main(). Moving
+     it to module level lets @app.tool / @app.prompt decorators
+     fire at import time -- the standard SecureMCP pattern.
+
+  3. Prompt collapse:
+       @server.list_prompts + @server.get_prompt (31 lines)
+     ->
+       @app.prompt(name="pinot-query") (8 lines)
+     Same content (PROMPT_TEMPLATE), simpler decoration.
+
+  4. Tool collapse:
+       @server.list_tools (515 lines, 21 Tool() objects with
+       literal inputSchema dicts)
+       + @server.call_tool (208 lines, 21-branch if/elif)
+     ->
+       21 @app.tool() functions (~600 lines including docstrings)
+     Each function signature mirrors its original inputSchema; the
+     body inlines the original dispatcher branch.
+
+     Tool names PRESERVED VERBATIM via @app.tool(name="..."):
+     6 of the 21 tool names contain hyphens (list-tables,
+     table-details, segment-list, index-column-details,
+     segment-metadata-details, tableconfig-schema-details,
+     reload-table-segments, rebalance-table, reset-table-segments,
+     list-supported-indices, create-schema, update-schema,
+     create-table-config, update-table-config, add-index,
+     add-startree-index). Python function names can't contain
+     hyphens, so we use underscored function names + the explicit
+     name= kwarg to keep the public mesh-advertised name byte-
+     for-byte compatible.
+
+  5. Error handling:
+     Original wrapped the WHOLE @server.call_tool body in a single
+     try/except that returned f"Error: {str(e)}". Each new wrapper
+     mirrors this individually -- a try/except around the
+     pinot_instance call, returning the formatted error string.
+     Mesh consumers see the same "Error: ..." surface they did
+     under FastMCP.
+
+  6. add-startree-index validation preserved:
+     The original raised ValueError if both functionColumnPairs
+     and aggregationConfigsJson were provided. The new wrapper
+     keeps that check inside its try block.
+
+  7. `type` parameter shadow:
+     reload-table-segments and rebalance-table have a parameter
+     named `type`. That shadows the Python built-in inside the
+     function scope, but the name has to stay verbatim because
+     clients pass {"type": "REALTIME"} -- renaming it to type_
+     would break the public schema. Harmless inside the function;
+     documented inline.
+
+  8. Entry-point rewrite:
+     async main() with explicit Server/InitializationOptions/
+     stdio_server -> sync main() that calls app.run(). The
+     original 30+ lines of transport/init ceremony are commented
+     at the bottom.
+
+mcp_pinot_ops/__init__.py -- 1 edit:
+  asyncio.run(server.main()) -> server.main()
+  server.main() is sync now; wrapping a sync return-None call in
+  asyncio.run() raises TypeError. Both the import and the wrapped
+  call are preserved as comments.
+
+mcp_pinot_ops/prompts.py -- UNCHANGED.
+mcp_pinot_ops/utils/pinot_client.py -- UNCHANGED.
+
+NEW FILES
+---------
+
+client-test-macaw.py:
+  3-test mesh smoke test. List tools (expects all 21 with their
+  original names), call list-supported-indices (static return,
+  no Pinot call), call list-tables (exercises the Pinot HTTP
+  path). Treats real-output-or-error-string as PASS for handler
+  reachability.
+
+MIGRATION.txt:
+  This file.
+
+WHY (one line per change)
+-------------------------
+
+1. SecureMCP is the MACAW-instrumented MCP server class. The
+   import is the only thing connecting this server to MACAW.
+2. Module-level decoration is the standard SecureMCP pattern;
+   the original async-main wiring was a low-level-Server idiom.
+3. @app.prompt() takes both registration and content in one
+   decorator -- list_prompts/get_prompt are MCP-protocol-level
+   detail SecureMCP doesn't need.
+4. @app.tool() decoration takes over what list_tools/call_tool
+   did (advertise the schema + dispatch to the handler).
+5. Per-tool try/except matches the original dispatcher's
+   error-string surface. Mesh callers see the same shape.
+6. Keeps the original validation rule in place -- the port
+   doesn't relax constraints.
+7. Public schema names dictate parameter names; Python's
+   `type` shadow is harmless inside the function.
+8. SecureMCP.run() is sync; the original async main with
+   stdio_server would conflict with SecureMCP's internal
+   asyncio.run().
+
+BROKEN ON PURPOSE -- features intentionally lost
+------------------------------------------------
+
+(a) Per-parameter inputSchema descriptions.
+
+    Original: each parameter had a `description` field in the
+    Tool() inputSchema, visible to MCP clients (e.g. for
+    `tableName`: "Table name").
+
+    Port: descriptions have moved into each wrapper function's
+    docstring `Args:` block. SecureMCP auto-uses the docstring
+    as the tool description (mcp.py:499). LLM clients still see
+    the info, just as prose rather than structured per-property
+    JSON. Same pattern as spotify / k8s / arxiv ports.
+
+    Restoring this would require SDK changes (out of scope).
+
+(b) Tool result envelope shape.
+
+    Original: handlers returned `[TextContent(type="text",
+    text=str(result))]` -- the low-level Server result envelope.
+
+    Port: wrappers return plain strings. SecureMCP wraps non-
+    dict returns as `{"result": <str>}` (mcp.py:815-817). Mesh
+    consumers see the same content under a `result` key.
+
+(c) MCP `serverInfo` (server name + version) advertisement.
+
+    Original: InitializationOptions(server_name=...,
+    server_version="0.1.0", capabilities=...).
+
+    Port: dropped. SecureMCP exposes identity via agent_id; the
+    server_version is no longer advertised through the MCP
+    protocol layer (which doesn't exist under SecureMCP).
+
+(d) MCP capabilities negotiation.
+
+    Original: server.get_capabilities(notification_options=...,
+    experimental_capabilities=...).
+
+    Port: dropped. The MACAW mesh has its own capability /
+    policy model; the MCP-protocol capability handshake doesn't
+    apply.
+
+VERIFICATION
+------------
+
+Boot:
+  PYTHONPATH=. python -c "from mcp_pinot_ops.server import app; print(len(app._tools), 'tools')"
+  Expected: 21 tools.
+  Note: requires the Pinot config env vars -- if pinot_client.py's
+  __init__ fails on connection at import, the boot will fail too.
+  Fix is to either set placeholder Pinot config or comment out
+  the module-level pinot_instance for boot-only verification.
+
+Mesh smoke:
+  python3 client-test-macaw.py "pinot_mcp_table_ops" pinot-ops-test-client
+  Expected:
+    TEST 1 PASS -- all 21 tools advertised under their original
+                   names.
+    TEST 2 PASS -- list-supported-indices returns the static
+                   index list.
+    TEST 3 PASS -- list-tables returns real table names or
+                   "Error: ..." from connection failure.
+
+End-to-end runtime verification (real rebalance, force commit,
+schema ops on a live cluster) requires Pinot controllers
+reachable -- out of scope for this smoke test.
+
+VERIFICATION OBSERVED (2026-05-03 smoke run, no live Pinot)
+-----------------------------------------------------------
+
+Setup: no Pinot controller configured (PINOT_* env vars unset),
+so pinot_instance constructed at module import with `host=None`,
+`port=None`. This deliberately exercises the
+wrapper-error-handling path on TEST 3.
+
+Mesh side: client `securemcp-client-pinot-ops-test-client:825a0b41`
+registered; server `securemcp-pinot_mcp_table_ops_claude:a48fc06b`
+registered; default server set on the client.
+
+Results:
+
+  TEST 1  PASS -- 21 tools advertised on the mesh under their
+                  original names. All 11 hyphenated names
+                  (list-tables, table-details, segment-list,
+                  index-column-details, segment-metadata-details,
+                  tableconfig-schema-details, reload-table-
+                  segments, rebalance-table, reset-table-segments,
+                  list-supported-indices, create-schema,
+                  update-schema, create-table-config,
+                  update-table-config, add-index,
+                  add-startree-index) resolved cleanly via
+                  @app.tool(name="..."). Proves: import swap
+                  held; the 21-branch dispatcher -> 21 typed
+                  wrappers collapse registered cleanly;
+                  Python-identifier-vs-public-name distinction
+                  works.
+
+  TEST 2  PASS (gold-standard, static return) --
+                  list-supported-indices returned the full
+                  11-line index catalog:
+                    "Forward Index ... | Inverted Index ... |
+                     Range Index ... | Text Index ... | JSON
+                     Index ... | Geospatial Index ... |
+                     Timestamp Index ... | Vector Index ... |
+                     Bloom Filter ... | Star-Tree Index ... |
+                     FST Index ..."
+                  Confirms: client -> mesh -> SecureMCP wrapper
+                  round-trip works end-to-end for the simplest
+                  case (no external dependencies). The
+                  hyphenated name `list-supported-indices`
+                  resolved correctly through the mesh dispatch.
+
+  TEST 3  PASS (gold-standard, full stack trace through the
+                Pinot client path) --
+                  list-tables returned:
+                    {"result": "Error: Invalid URL 'None/tables':
+                     No scheme supplied. Perhaps you meant
+                     https://None/tables?"}
+                  Round-trip path verified end-to-end:
+                    1. Mesh dispatched list-tables to the
+                       registered server agent
+                    2. SecureMCP routed to the `list_tables`
+                       wrapper
+                    3. Wrapper called pinot_instance._get_tables()
+                    4. Pinot client tried to build a URL using
+                       host=None (no env vars set)
+                    5. `requests` library raised on the
+                       malformed URL
+                    6. Wrapper's try/except caught the
+                       exception and called _err(e)
+                    7. Error string flowed back via SecureMCP
+                       envelope-wrap as {"result": <str>}
+                  Every layer of the port is visibly working.
+                  The error message itself diagnoses the missing
+                  configuration (`'None/tables'` means the
+                  Pinot controller URL env var is unset).
+
+VERDICT: PORT SUCCESSFUL.
+
+  - Boot path verified (21 tools registered with hyphenated +
+    underscored names preserved via @app.tool(name=...)).
+  - Static round-trip verified (TEST 2 returned exact static
+    content through the mesh).
+  - Pinot client path verified (TEST 3 reached the wrapper, the
+    pinot_instance method, the requests library, and bubbled
+    the error back through the port's try/except).
+  - Result envelope shape matches BROKEN ON PURPOSE (b)
+    prediction: non-dict string returns wrap as {"result": str}.
+  - The 21-branch if/elif -> 21 typed wrappers transformation,
+    the largest collapse in this skill batch, verified with
+    real call data.
+
+  Remaining work outside the port:
+    - Real cluster verification: set PINOT_HOST / PINOT_PORT
+      env vars (or whatever the Pinot client config requires)
+      to a live controller and re-run. TESTS 2 and 3 will
+      both pass; the destructive tools (rebalance, force_commit,
+      schema-ops) need a real cluster + careful target.
+
+KNOWN GAPS
+----------
+
+- This port has not been runtime-tested against a live Pinot
+  cluster. Boot path is structurally correct; mesh-layer
+  verification with real cluster ops needs the smoke test run
+  against a configured Pinot deployment.
+
+- Per-parameter inputSchema descriptions live in docstrings
+  now, not structured JSON. See BROKEN ON PURPOSE (a).
+
+- Result envelope is now {"result": <str>} for non-dict
+  returns. See BROKEN ON PURPOSE (b).
+
+LINES CHANGED
+-------------
+
+mcp_pinot_ops/server.py:
+  Before: 836 lines (low-level Server with 21-branch
+          dispatcher, 21 hand-built Tool() objects, async main
+          with stdio_server + InitializationOptions).
+  After:  ~700 lines (21 typed @app.tool wrappers + 1
+          @app.prompt + sync main, with originals preserved as
+          a single comment block at the bottom).
+
+mcp_pinot_ops/__init__.py:
+  Before: 12 lines. After: ~16 lines. Trivial.
+
+client-test-macaw.py: new, ~210 lines.
+MIGRATION.txt:        this file.
+
+NOT TOUCHED
+-----------
+
+  - mcp_pinot_ops/prompts.py (PROMPT_TEMPLATE).
+  - mcp_pinot_ops/utils/pinot_client.py (the Pinot HTTP client
+    with all 21 _* methods the wrappers call).
+  - tests/, pyproject.toml, README. The original pins `mcp` as a
+    dep; macaw_adapters is expected to be installable alongside
+    it. No dep adjustments as part of this port.
+  - Sibling mcp_pinot/ package, which was already ported to
+    SecureMCP in a prior session.

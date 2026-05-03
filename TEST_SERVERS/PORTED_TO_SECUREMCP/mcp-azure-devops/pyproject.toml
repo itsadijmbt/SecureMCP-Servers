@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-azure-devops"
+description = "A Model Context Protocol (MCP) server for Azure DevOps"
+version = "0.6.0"
+authors = [
+    {name = "Atle H. Havsø", email = "atle@havso.net"},
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {file = "LICENSE"}
+dependencies = [
+    "azure-devops>=7.1.0b4",
+    "mcp>=1.9.1",
+]
+
+[project.scripts]
+mcp-azure-devops = "mcp_azure_devops.server:main"
+
+[project.urls]
+"Homepage" = "https://github.com/Vortiago/mcp-azure-devops"
+"Bug Tracker" = "https://github.com/Vortiago/mcp-azure-devops/issues"
+
+[project.optional-dependencies]
+dev = [
+    "mcp[cli]>=1.9.1",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.0.267",
+    "anyio>=3.6.2",
+    "pyright>=1.1.401",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+
+[tool.ruff]
+line-length = 79
+target-version = "py310"
+extend-exclude = ["docs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.pyright]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "docs/",
+    "pyproject.toml"
+]
+
