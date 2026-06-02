@@ -111,17 +111,17 @@ async def main():
     )
     print("list result:", r4)
 
-    # ============================================================
-    # TEST 5: chroma_delete_collection — cleanup
-    # ============================================================
-    print("\n" + "=" * 60)
-    print("TEST 5: chroma_delete_collection")
-    print("=" * 60)
-    r5 = await client.call_tool(
-        "chroma_delete_collection",
-        {"collection_name": "physics_notes"},
-    )
-    print("delete result:", r5)
+    # # ============================================================
+    # # TEST 5: chroma_delete_collection — cleanup
+    # # ============================================================
+    # print("\n" + "=" * 60)
+    # print("TEST 5: chroma_delete_collection")
+    # print("=" * 60)
+    # r5 = await client.call_tool(
+    #     "chroma_delete_collection",
+    #     {"collection_name": "physics_notes"},
+    # )
+    # print("delete result:", r5)
 
 
 if __name__ == "__main__":

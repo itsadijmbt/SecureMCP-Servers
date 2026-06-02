@@ -1,0 +1,126 @@
+chroma-mcp (SecureMCP port) -- setup and run
+============================================
+
+Prerequisites (one-time)
+------------------------
+
+From the workspace root, install macaw_client + secureAI per the
+workspace README:
+
+    cd ~/MACAW-MCP-STORE
+    export MACAW_HOME=macaw-client-0.9.4-Linux-x86_64-py3.11
+    pip install ./macaw_client-0.9.4-cp311-cp311-manylinux_2_17_x86_64.whl
+    pip install "./secureAI[all]"
+
+The MACAW Local Agent must be reachable (default api.macawsecurity.ai
++ Console credentials configured).
+
+
+Install this port (one-time)
+----------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/chroma-mcp
+    pip install -e .
+
+This installs chromadb + dependencies and exposes the console script
+`chroma-mcp` (declared in pyproject.toml: chroma-mcp = "chroma_mcp:main").
+
+
+Run the server (Terminal 1)
+---------------------------
+
+Pick one backend:
+
+    # ephemeral (in-memory, data lost on exit) -- default
+    chroma-mcp --client-type ephemeral
+
+    # persistent (data survives restarts)
+    chroma-mcp --client-type persistent --data-dir /tmp/chroma_test
+
+    # http (talks to a remote Chroma server)
+    chroma-mcp --client-type http --host <host> --port <port>
+
+    # cloud (Chroma Cloud)
+    chroma-mcp --client-type cloud --tenant <t> --database <db> --api-key <k>
+
+Expected boot log:
+
+    Successfully initialized Chroma client
+    Starting MCP server
+    SecureMCP server 'chroma-mcp' started
+    Registered as agent: local:<user>/app:securemcp-chroma-mcp:<hash>
+
+
+Run the test client (Terminal 2)
+--------------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/chroma-mcp
+    python client-test-macaw.py chroma-mcp alice
+
+5-test suite:
+    TEST 1  chroma_create_collection  (physics_notes)
+    TEST 2  chroma_add_documents      (2 docs with metadata)
+    TEST 3  chroma_query_documents    (asserts Rayleigh hit  -- load-bearing)
+    TEST 4  chroma_list_collections
+    TEST 5  chroma_delete_collection  (cleanup)
+
+TEST 3 is the round-trip proof. If it prints "PASS: semantic
+roundtrip works", the port is functionally correct end-to-end:
+client -> MACAW mesh -> handler -> chromadb backend -> embedding
+lookup -> return.
+
+
+Persistence regression check (recommended)
+------------------------------------------
+
+This is the test that would have caught the earlier dangling-indent
+bug. Run twice with the same --data-dir, expect TEST 1 to FAIL on
+the second run with "collection already exists" -- that failure
+proves the persistent backend actually persisted.
+
+Run 1:
+    Terminal 1: chroma-mcp --client-type persistent --data-dir /tmp/chroma_test
+    Terminal 2: python client-test-macaw.py chroma-mcp alice
+    Ctrl-C Terminal 1 after Terminal 2 finishes.
+
+Run 2 (same --data-dir):
+    Terminal 1: chroma-mcp --client-type persistent --data-dir /tmp/chroma_test
+    Terminal 2: python client-test-macaw.py chroma-mcp alice
+    Expect TEST 1 to fail with "collection already exists"  -- pass.
+
+Cleanup:
+    rm -rf /tmp/chroma_test
+
+
+Run without installing (alternative)
+------------------------------------
+
+If you don't want to `pip install -e .`:
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/chroma-mcp
+    PYTHONPATH=src python src/chroma_mcp/server.py --client-type ephemeral
+
+Same args as the installed console script.
+
+
+Common issues
+-------------
+
+  "No module named chroma_mcp"
+      You skipped `pip install -e .` AND aren't using PYTHONPATH=src.
+      Pick one path from above.
+
+  "Failed to register with MACAW Local Agent"
+      The local agent is not reachable. Verify macaw_client install
+      and Console credentials. Test with any other secureAI example.
+
+  "Host must be provided ..." / "Tenant must be provided ..."
+      You picked --client-type http or cloud without the matching
+      required args. Use --client-type ephemeral or persistent for
+      smoke testing.
+
+  TEST 3 ASSERTION FAILED ("stored entry not retrievable")
+      Embedding round-trip broken. Check that chromadb installed
+      with its default embedding deps (sentence-transformers /
+      onnxruntime). Try `pip install -e .[all]` if a [all] extra
+      exists in pyproject.toml.
