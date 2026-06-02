@@ -8,7 +8,9 @@ license = "Apache-2.0"
 license-file="LICENSE"
 requires-python = ">=3.11"
 dependencies = [
-    "fastmcp>=2.8.1",
+    # was: "fastmcp>=2.8.1" -- dropped during the SecureMCP port.
+    # macaw_adapters is installed from the workspace's secureAI/ via
+    # `pip install "./secureAI[all]"` per the workspace README.
     "apache-iotdb>=2.0.4",
     "openpyxl>=3.1.5"
 ]

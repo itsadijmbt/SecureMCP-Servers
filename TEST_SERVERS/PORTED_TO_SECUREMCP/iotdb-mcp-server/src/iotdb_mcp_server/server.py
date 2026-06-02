@@ -34,13 +34,17 @@ from iotdb.SessionPool import SessionPool, PoolConfig
 from iotdb.utils.SessionDataSet import SessionDataSet
 from iotdb.table_session import TableSession
 from iotdb.table_session_pool import TableSessionPool, TableSessionPoolConfig
+# was: from mcp.server import Server
+# was: import mcp.server.stdio
+# was: from mcp.types import TextContent, Tool
+# Under SecureMCP we return plain Python values (str / list / dict);
+# the handler at mcp.py:811-812 wraps non-dict returns as
+# {"result": <value>}. TextContent/Tool are not needed.
 from macaw_adapters.mcp import SecureMCP
-# from mcp.types import TextContent
-#  That's it  a typed wrapper around a string saying "this is a chunk of text content for an MCP response."
-#  securemcp does not need
 from iotdb_mcp_server.config import Config
 
-# Initialize SecureMCP server
+# Initialize SecureMCP server.
+# was: server = Server("iotdb_mcp_server")
 mcp = SecureMCP("iotdb_mcp_server")
 
 # Configure logging
@@ -349,14 +353,14 @@ if config.sql_dialect == "tree":
                 for i in range(preview_rows):
                     preview_data.append(",".join(map(str, df.iloc[i])))
 
-                # Return information
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"Query results exported to {filepath}\n\nPreview (first {preview_rows} rows):\n"
-                        + "\n".join(preview_data),
-                    )
-                ]
+                # Return information.
+                # was: return [TextContent(type="text", text=...)]
+                # SecureMCP wraps non-dict returns; return a plain string.
+                return (
+                    f"Query results exported to {filepath}\n\n"
+                    f"Preview (first {preview_rows} rows):\n"
+                    + "\n".join(preview_data)
+                )
             else:
                 raise ValueError("Only SELECT or SHOW queries are allowed for export")
         except Exception as e:
@@ -379,12 +383,9 @@ if config.sql_dialect == "tree":
                 row = record.get_fields()
                 result.append(",".join(map(str, row)))
         _session.close()
-        return [
-            TextContent(
-                type="text",
-                text="\n".join([",".join(columns)] + result),
-            )
-        ]
+        # was: return [TextContent(type="text", text=...)]
+        # SecureMCP wraps non-dict returns; return a plain string.
+        return "\n".join([",".join(columns)] + result)
 
 elif config.sql_dialect == "table":
     session_pool_config = TableSessionPoolConfig(
@@ -437,7 +438,8 @@ elif config.sql_dialect == "table":
             while res.has_next():
                 result.append(str(res.next().get_fields()[0]))
             table_session.close()
-            return [TextContent(type="text", text="\n".join(result))]
+            # was: return [TextContent(type="text", text="\n".join(result))]
+            return "\n".join(result)
         except Exception as e:
             if table_session:
                 table_session.close()
@@ -536,14 +538,14 @@ elif config.sql_dialect == "table":
                 for i in range(preview_rows):
                     preview_data.append(",".join(map(str, df.iloc[i])))
 
-                # Return information
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"Query results exported to {filepath}\n\nPreview (first {preview_rows} rows):\n"
-                        + "\n".join(preview_data),
-                    )
-                ]
+                # Return information.
+                # was: return [TextContent(type="text", text=...)]
+                # SecureMCP wraps non-dict returns; return a plain string.
+                return (
+                    f"Query results exported to {filepath}\n\n"
+                    f"Preview (first {preview_rows} rows):\n"
+                    + "\n".join(preview_data)
+                )
             else:
                 raise ValueError(
                     "Only SELECT, SHOW or DESCRIBE queries are allowed for export"
