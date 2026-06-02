@@ -44,3 +44,106 @@
    The (...)(fn) form is the canonical translation -- same
    behavior, half the API surface.
 
+
+BROKEN ON PURPOSE
+=================
+
+Lifespan handling: shutdown half is intentionally orphaned.
+-----------------------------------------------------------
+
+Under FastMCP, an `@asynccontextmanager` `lifespan=` had two halves:
+the body before `yield` ran at server start, and the body after
+`yield` ran at server shutdown. The YDB original used the shutdown
+half to call `aclose()` -- stop the QuerySessionPool and the
+ydb.aio.Driver cleanly, releasing connections.
+
+SecureMCP exposes NO lifespan primitive. `SecureMCP.run` at
+mcp.py:596-626 wraps the dispatch loop in `try/except KeyboardInterrupt
+... finally: self._client.unregister()`. The `finally` block ONLY
+unregisters the MACAW agent. It does NOT call back into user code.
+There is no hook to plug `aclose()` into.
+
+What the port does instead:
+
+  * Startup half: handled via the lazy-async pattern (skills file
+    Step 4, "Lazy async setup -> PORT"). `_ensure_connected()` at
+    server.py:138-161 lazily builds the driver + pool on the first
+    tool call using double-checked locking. The async resource
+    binds to SecureMCP's event loop because the first `await`
+    happens inside a tool handler -- correct shape, no loop-binding
+    trap.
+
+  * Shutdown half: `aclose()` at server.py:266-274 is defined and
+    correct, but is NEVER CALLED on shutdown. On Ctrl-C / SIGTERM:
+        1. SecureMCP._run_async hits the `except KeyboardInterrupt`
+        2. unregister() runs on the MACAWClient
+        3. asyncio.run() tears down the event loop
+        4. Process exits -- OS reaps the YDB sockets/file descriptors
+
+What this costs:
+
+  * On a stdio server (this port's only supported transport), nothing
+    practical. OS-level FD reaping handles cleanup. You may see noisy
+    "session not closed" warnings from the YDB driver in stderr on
+    the way down; they are harmless.
+  * On long-running supervisor restarts (process killed and respawned
+    repeatedly without process-level cleanup), TCP sockets may sit
+    in TIME_WAIT briefly and YDB server-side session quotas may take
+    a moment to release. Not observed in practice for the test
+    workload.
+
+Why we are not adding a fix:
+
+  * Option B (try/finally around self.mcp.run()) requires calling
+    asyncio.run(self.aclose()) AFTER the SecureMCP event loop has
+    exited. That works in principle (the original loop is dead by
+    the time `finally` runs, so a fresh `asyncio.run` is safe) but
+    adds five lines and a dependency on the YDB SDK's loop-portability
+    that we have not validated.
+  * Option C (atexit.register) has the same asyncio.run-after-loop
+    caveat plus picks up uncaught-exception exits, which we do not
+    need for this stdio workload.
+
+If a future deployment moves this server to long-running HTTP or to
+a supervised restart loop, revisit and adopt Option B. For now the
+stdio + OS-reaping path is the lowest-risk choice.
+
+How to restore lifespan-style cleanup later (Option B sketch):
+
+    def run(self, transport: str = "stdio") -> None:
+        try:
+            self.mcp.run()
+        finally:
+            # mcp.run()'s event loop has exited by the time `finally`
+            # runs, so a fresh asyncio.run is safe.
+            if self._driver is not None or self._pool is not None:
+                asyncio.run(self.aclose())
+
+That hook would make the shutdown half symmetric with the lazy
+startup half. Until needed, `aclose()` remains a public method
+external callers can invoke manually.
+
+
+KNOWN GAPS
+==========
+
+1. `**kwargs: Any` on YDBMCPServer.__init__ is retained but no
+   longer forwarded (Change 4 above). A caller passing FastMCP-style
+   kwargs (`lifespan=`, `stateless_http=`, `host=`, `port=`, etc.)
+   gets no error and no behaviour. Same accepted-but-silently-ignored
+   shape as the lifespan shutdown gap. If a future contributor wants
+   stricter feedback, drop the `**kwargs` slot or add a one-shot
+   `warnings.warn(...)` when `kwargs` is non-empty.
+
+2. `run(self, transport: str = "stdio")` at server.py:280 accepts a
+   `transport` arg that is not forwarded (`self.mcp.run()` at :284
+   uses SecureMCP's default). Same anti-pattern as #1 above; same fix
+   options. Low stakes because SecureMCP only supports stdio anyway.
+
+3. `pyproject.toml` declares `requires-python = ">=3.10"`, but the
+   workspace's macaw_client wheel is cp311-only. A user on Python
+   3.10 will see the port install via `pip install -e .` but the
+   workspace `pip install ./macaw_client-*.whl` step will fail with
+   "no matching distribution". Bump to `>=3.11` to match other ports
+   in the workspace.
+
