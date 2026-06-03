@@ -1,0 +1,100 @@
+excalidraw-architect-mcp (SecureMCP port) -- setup and run
+==========================================================
+
+Prerequisites (one-time, workspace level)
+-----------------------------------------
+
+From the workspace root, install macaw_client + secureAI:
+
+    cd ~/MACAW-MCP-STORE
+    export MACAW_HOME=macaw-client-0.9.4-Linux-x86_64-py3.11
+    pip install ./macaw_client-0.9.4-cp311-cp311-manylinux_2_17_x86_64.whl
+    pip install "./secureAI[all]"
+
+The MACAW Local Agent must be reachable.
+
+
+Install this port (one-time)
+----------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/excalidraw-architect-mcp
+    pip install -e .
+
+This installs pydantic and grandalf (the layout engine). `fastmcp` is
+still listed in pyproject.toml because the upstream dependency block
+is preserved, but it is not imported by the ported server.
+
+
+No external services / credentials required
+-------------------------------------------
+
+excalidraw-architect-mcp is fully local. It reads/writes .excalidraw
+files on the filesystem; no API keys, no network calls.
+
+
+Run the server (Terminal 1)
+---------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/excalidraw-architect-mcp
+    python -m excalidraw_mcp
+
+Expected boot log:
+
+    SecureMCP server 'excalidraw-architect' started
+    Tools: ['create_diagram', 'mermaid_to_excalidraw',
+            'modify_diagram', 'get_diagram_info']
+    Registered as agent: local:<user>/app:securemcp-excalidraw-architect:<hash>
+
+
+Run the test client (Terminal 2)
+--------------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/excalidraw-architect-mcp
+    python client-test-macaw.py "excalidraw-architect" <client_name>
+
+3-test suite:
+
+    TEST 1  list_tools             - Mesh advertises 4 tools.
+    TEST 2  mermaid_to_excalidraw  - Writes /tmp/excal_port_smoke.excalidraw.
+                                      PASS = file exists and is non-empty.
+    TEST 3  get_diagram_info       - Reads back the file from TEST 2.
+                                      PASS = summary mentions the nodes
+                                      we wrote ("A", "B", "C").
+
+
+Common issues
+-------------
+
+  "ModuleNotFoundError: No module named 'macaw_adapters'"
+      Workspace install was skipped. Run
+      `pip install "./secureAI[all]"` from ~/MACAW-MCP-STORE.
+
+  "ModuleNotFoundError: No module named 'grandalf'" / "pydantic"
+      Port deps not installed. Re-run `pip install -e .` from
+      this directory.
+
+  "Failed to register with MACAW Local Agent"
+      Local agent unreachable. Verify the macaw_client install +
+      Console credentials. Test against any other secureAI example
+      first.
+
+  No tools advertised in TEST 1
+      Mesh did not see the SecureMCP registration. Check Terminal 1
+      log for the "SecureMCP server 'Excalidraw Architect' started"
+      line.
+
+  /tmp file not created after TEST 2
+      Tool likely raised inside the layout / renderer. Re-run with
+      Terminal 1 log open -- the exception will print there.
+
+
+What this port DOES NOT change
+------------------------------
+
+  - The 4 tool function bodies (byte-identical to upstream).
+  - The layout engine (grandalf-based) in excalidraw_mcp/engine/.
+  - The mermaid parser in excalidraw_mcp/parsers/.
+  - The component-detection / theme tables in excalidraw_mcp/core/.
+  - File I/O paths (still writes wherever the caller asks).
+
+The framework boundary (FastMCP -> SecureMCP) is the only edit.
