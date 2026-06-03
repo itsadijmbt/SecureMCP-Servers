@@ -1,0 +1,76 @@
+2026-06-03 19:54:53,996 - __main__ - INFO - 🚀 Starting Splunk MCP server on the MACAW mesh
+2026-06-03 19:54:54,016 - macaw_client.macaw.protocol - WARNING - Tenant-aware context classes not available
+2026-06-03 19:55:10,973 - macaw_adapters.mcp.mcp - INFO - Registered as agent: local:itsadijmbt/app:securemcp-splunk:0f38d8cf
+2026-06-03 19:55:10,974 - macaw_adapters.mcp.mcp - INFO - SecureMCP server 'splunk' started
+2026-06-03 19:55:10,974 - macaw_adapters.mcp.mcp - INFO -   Agent ID: local:itsadijmbt/app:securemcp-splunk:0f38d8cf
+2026-06-03 19:55:10,974 - macaw_adapters.mcp.mcp - INFO -   Tools: ['search_splunk', 'list_indexes', 'get_index_info', 'list_saved_searches', 'current_user', 'list_users', 'list_kvstore_collections', 'health_check', 'get_indexes_and_sourcetypes', 'health', 'ping']
+2026-06-03 19:55:10,974 - macaw_adapters.mcp.mcp - INFO -   Resources: []
+2026-06-03 19:55:10,974 - macaw_adapters.mcp.mcp - INFO -   Prompts: []
+2026-06-03 19:59:04,514 - macaw_client.macaw_agent.client - WARNING - No handler for tool 'falcon_check_connectivity' in MACAW invocation
+2026-06-03 19:59:12,857 - macaw_client.macaw_agent.client - WARNING - No handler for tool 'falcon_list_enabled_modules' in MACAW invocation
+2026-06-03 19:59:21,079 - macaw_client.macaw_agent.client - WARNING - No handler for tool 'falcon_list_modules' in MACAW invocation
+2026-06-03 19:59:29,378 - macaw_client.macaw_agent.client - WARNING - No handler for tool 'resource:falcon://hosts/search/fql-guide' in MACAW invocation
+2026-06-03 19:59:37,741 - macaw_client.macaw_agent.client - WARNING - No handler for tool 'falcon_search_hosts' in MACAW invocation
+2026-06-03 19:59:45,936 - macaw_client.macaw_agent.client - WARNING - No handler for tool 'falcon_search_hosts' in MACAW invocation
+2026-06-03 20:00:59,810 - __main__ - ERROR - ❌ Failed to connect to Splunk: [Errno 111] Connection refused
+2026-06-03 20:00:59,810 - __main__ - ERROR - ❌ Health check failed: [Errno 111] Connection refused
+2026-06-03 20:00:59,810 - macaw_adapters.mcp.mcp - ERROR - Handler error for health_check: [Errno 111] Connection refused
+2026-06-03 20:00:59,810 - macaw_client.macaw_agent.client - ERROR - SimpleToolClient execution failed for health_check: [Errno 111] Connection refused
+2026-06-03 20:00:59,810 - macaw_client.macaw.security.pep.tool_agent - ERROR - Tool execution failed: [Errno 111] Connection refused
+2026-06-03 20:00:59,812 - macaw_client.macaw.security.pep.tool_agent - ERROR - Traceback: Traceback (most recent call last):
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/macaw_client/macaw/security/pep/tool_agent.py", line 495, in verify_and_execute
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/macaw_client/macaw/security/pep/tool_agent.py", line 1070, in _execute_tool
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/macaw_client/macaw_agent/client.py", line 147, in execute
+  File "/home/itsadijmbt/MACAW-MCP-STORE/secureAI/macaw_adapters/mcp/mcp.py", line 808, in handler
+    result = asyncio.run(result)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/splunk-mcp/splunk_mcp.py", line 711, in health_check
+    service = get_splunk_connection()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/splunk-mcp/splunk_mcp.py", line 358, in get_splunk_connection
+    service = splunklib.client.connect(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/splunklib/client.py", line 357, in connect
+    s.login()
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/splunklib/binding.py", line 995, in login
+    response = self.http.post(
+               ^^^^^^^^^^^^^^^
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/splunklib/binding.py", line 1382, in post
+    return self.request(url, message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/splunklib/binding.py", line 1401, in request
+    response = self.handler(url, message, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/itsadijmbt/MACAW-MCP-STORE/venv/lib/python3.11/site-packages/splunklib/binding.py", line 1558, in request
+    connection.request(method, path, body, head)
+  File "/usr/lib/python3.11/http/client.py", line 1323, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/usr/lib/python3.11/http/client.py", line 1369, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.11/http/client.py", line 1318, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.11/http/client.py", line 1078, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.11/http/client.py", line 1016, in send
+    self.connect()
+  File "/usr/lib/python3.11/http/client.py", line 1488, in connect
+    super().connect()
+  File "/usr/lib/python3.11/http/client.py", line 982, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/socket.py", line 863, in create_connection
+    raise exceptions[0]
+  File "/usr/lib/python3.11/socket.py", line 848, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+2026-06-03 20:01:00,913 - macaw_client.macaw_agent.client - WARNING - AUDIT: Service tool execution DENIED | Invoker: local:itsadijmbt/app:securemcp-client-test-client:d0fdc10d | Service: local:itsadijmbt | Tool: health_check | Request ID: 3f0ea4f0-da28-4d45-9917-2391925be808 | Policy: False | Reason: [Errno 111] Connection refused

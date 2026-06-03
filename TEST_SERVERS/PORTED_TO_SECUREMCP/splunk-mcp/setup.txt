@@ -1,0 +1,124 @@
+splunk-mcp (SecureMCP port) -- setup and run
+============================================
+
+Prerequisites (one-time, workspace level)
+-----------------------------------------
+
+From the workspace root, install macaw_client + secureAI per the
+workspace README:
+
+    cd ~/MACAW-MCP-STORE
+    export MACAW_HOME=macaw-client-0.9.4-Linux-x86_64-py3.11
+    pip install ./macaw_client-0.9.4-cp311-cp311-manylinux_2_17_x86_64.whl
+    pip install "./secureAI[all]"
+
+The MACAW Local Agent must be reachable.
+
+
+Install this port (one-time)
+----------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/splunk-mcp
+    pip install -e .
+
+This installs splunk-sdk-python (`splunklib`), python-decouple, and
+the other Splunk-side dependencies declared in pyproject.toml.
+(fastapi / uvicorn / starlette are no longer required at runtime
+under SecureMCP. They are still listed in pyproject.toml because the
+upstream pyproject is preserved -- removing them is out of port
+scope.)
+
+
+Credentials (env vars)
+----------------------
+
+The server reads Splunk auth from env vars. Pick ONE of:
+
+    # Username + password
+    export SPLUNK_HOST="<your-splunk-host>"
+    export SPLUNK_PORT="8089"
+    export SPLUNK_SCHEME="https"
+    export SPLUNK_USERNAME="<user>"
+    export SPLUNK_PASSWORD="<password>"
+    export VERIFY_SSL="true"
+
+    # OR token-based (SPLUNK_TOKEN takes precedence)
+    export SPLUNK_HOST="<your-splunk-host>"
+    export SPLUNK_TOKEN="<bearer-token>"
+    export VERIFY_SSL="true"
+
+
+Run the server (Terminal 1)
+---------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/splunk-mcp
+    python splunk_mcp.py
+
+Expected boot log:
+
+    Starting Splunk MCP server on the MACAW mesh
+    SecureMCP server 'splunk' started
+    Registered as agent: local:<user>/app:securemcp-splunk:<hash>
+
+(There is no `mode=stdio` / `mode=sse` selector under SecureMCP.
+The argv-based selector from the original is dead code, preserved as
+a comment for reference.)
+
+
+Run the test client (Terminal 2)
+--------------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/splunk-mcp
+    python client-test-macaw.py splunk <client_name>
+
+3-test suite:
+
+    TEST 1  list_tools         - Mesh advertises 11 tools.
+                                  Replaces the old /openapi.json export.
+    TEST 2  ping               - Reaches the handler without touching Splunk.
+                                  Proves: client -> mesh -> handler works.
+    TEST 3  health_check       - Lazy Splunk connect.
+                                  PASS on success branch (real creds).
+                                  PASS on no-creds branch (handler reached,
+                                  Splunk returned auth error -- that is
+                                  expected and out of port scope).
+
+
+Common issues
+-------------
+
+  "ModuleNotFoundError: No module named 'macaw_adapters'"
+      Workspace install was skipped. Run
+      `pip install "./secureAI[all]"` from ~/MACAW-MCP-STORE.
+
+  "ModuleNotFoundError: No module named 'splunklib'"
+      The port's deps did not install. Re-run `pip install -e .`
+      from this directory.
+
+  "Failed to register with MACAW Local Agent"
+      Local agent unreachable. Verify macaw_client install +
+      Console credentials. Test against any other secureAI example
+      first.
+
+  "InvalidAuthenticationCredentials" / Splunk 401
+      Wrong Splunk creds. Check SPLUNK_USERNAME / SPLUNK_PASSWORD /
+      SPLUNK_TOKEN. Boot path is verified independent of Splunk-side
+      auth.
+
+  No tools advertised in TEST 1
+      Mesh did not see the SecureMCP registration. Check Terminal 1
+      log for the "SecureMCP server 'splunk' started" line.
+
+
+What this port DOES NOT provide (originals dropped)
+----------------------------------------------------
+
+  GET /sse           - SSE transport       (replaced by MACAW mesh)
+  POST /messages     - SSE message posting (replaced by MACAW mesh)
+  GET /docs          - Swagger UI          (replaced by MACAW Console)
+  GET /redoc         - ReDoc UI            (replaced by MACAW Console)
+  GET /openapi.json  - OpenAPI 3.0 export  (replaced by mesh list_tools)
+
+If a non-MACAW HTTP consumer still exists, see MIGRATION.txt
+KNOWN GAPS for the trade-off; the original splunk-mcp can still be
+run separately for that consumer.
