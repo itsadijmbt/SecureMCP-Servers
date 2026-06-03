@@ -187,32 +187,54 @@ async def main():
                   "was reached; upstream Data Cloud / SQL surface is "
                   "where the failure came from.")
 
+    # ==================================================================
+    # RED-TEAM POLICY TESTS (server_policy_v0.1.json)
+    # These are DETERMINISTIC denials evaluated on the mesh BEFORE the
+    # tool body -> they work even WITHOUT valid Salesforce creds.
+    # "No result received" on the client = the policy-deny timeout;
+    # the real reason is in the server-side [TOOL-AGENT] audit log.
+    # There are NO denied_parameters (inert in 0.9.4) -- these use the
+    # enforced layers: allowed_values, pattern, max_length, attestation.
+    # ==================================================================
+
+    async def run(label, tool, args):
+        print(f"\n[{label}] {tool} {args if tool != 'query' or len(str(args)) < 120 else '<long sql>'}")
+        try:
+            result = await client.call_tool(tool, args)
+            print(f"  Result: {str(result)[:200]}")
+        except Exception as e:
+            print(f"  Failed: {str(e)[:200]}")
+
+    # D1 -- cross-dataspace access blocked (allowed_values: ['default'])
+    await run("D1 query dataspace='prod_secret' (expect DENY: dataspace not in allowed_values)",
+              "query", {"sql": "SELECT 1", "dataspace": "prod_secret"})
+
+    # D4 -- malformed table identifier blocked (pattern ^[A-Za-z_][A-Za-z0-9_]*$)
+    await run("D4 describe_table table='bad-name!' (expect DENY: table fails pattern)",
+              "describe_table", {"table": "bad-name!"})
+
+    # D5 -- oversized SQL blocked (sql max_length: 5000)
+    await run("D5 query with >5000-char sql (expect DENY: sql exceeds maximum length 5000)",
+              "query", {"sql": "SELECT '" + ("A" * 5200) + "' AS x"})
+
+    # A1 -- destructive SQL trips allow_destroy attestation (blocks for role:manager;
+    #       no approver here -> waits to timeout. 'DROP' is in a string literal so the
+    #       query itself is a harmless SELECT. Run last.)
+    await run("A1 query w/ 'DROP' literal (expect BLOCK -> allow_destroy/role:manager)",
+              "query", {"sql": "SELECT 'pretend DROP' AS note", "dataspace": "default"})
+
+    # DP1 -- CONTROL TEST for denied_parameters 
+    #   Policy has denied_parameters tool:query/sql blocking '*SECRET*'.
+    #   The query contains SECRET in a string literal (harmless SELECT).
+    #   EXPECTED: NOT a policy deny -> the call reaches the tool body
+    #   (returns data or an auth/upstream error)
+    await run("DP1 query w/ 'SECRET' (denied_parameters CONTROL -- expect NOT denied i.e. inert)",
+              "query", {"sql": "SELECT 'SECRET' AS x", "dataspace": "default"})
+
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  All 3 tools advertised on the mesh.
-            Proves: import swap and SecureMCP boot succeeded.
-
-  TEST 2 ✓  list_tables returned without a FieldInfo error.
-            Proves: dataspace='default' is a real string at handler
-            time, not a pydantic FieldInfo object.
-
-  TEST 3 ✓  describe_table accepted 'table' as a required arg.
-            Proves: stripping Field on a required-only param did
-            not change required-ness of the arg in the schema.
-
-  TEST 4 ✓  query accepted 'sql' and defaulted the rest correctly.
-            Proves: mixed required + plain-default signature works
-            end-to-end.
-
-If all four pass, the FastMCP -> SecureMCP port + Field strip is
-verified. Validating actual Data Cloud SQL behavior (table contents,
-SQL dialect) is the responsibility of the upstream Salesforce
-documentation; this smoke test proves the port itself.
-""")
+   
 
 
 if __name__ == "__main__":

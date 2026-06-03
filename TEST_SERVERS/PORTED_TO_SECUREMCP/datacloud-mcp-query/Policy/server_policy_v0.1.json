@@ -1,0 +1,43 @@
+{
+    "policy_id": "app:securemcp-Demo",
+    "version": "0.1.1",
+    "description": "Salesforce Data 360 / Data Cloud query MCP (datacloud-mcp-query) -- red-team posture. WARNING: server registers as SecureMCP('Demo') -> app_name 'securemcp-Demo' -> policy_id app:securemcp-Demo. That name is generic and collision-prone; confirm against the startup 'Registered as agent' log and consider renaming the SecureMCP arg to 'datacloud-mcp' (then update this policy_id). 'query' runs ARBITRARY Data 360 SQL (PostgreSQL-flavored); its param is 'sql' (unique, flat) so destructive SQL is attestation-gated (postgres model). HONEST LIMITS: (1) the main threat is bulk PII exfil via SELECT of unified-profile objects -- the destructive-verb gate does NOT catch reads, and there is NO limit/row-cap param on 'query' (limit lives inside the free-form SQL), so MAPL cannot cap RESULT size here; result-size/PII gating needs a custom verifier (paper 4.2) or an allow_sensitive attestation conditioned on the org's REAL Data Cloud object names (not fabricated here). (2) query_settings is nested -> not MAPL-constrainable. (3) denied_parameters is included ONLY as an inert CONTROL TEST (tool:query/sql blocking *SECRET* / *secret*) -- expected to FAIL to deny on macaw_client 0.9.4 (proven inert elsewhere); it is NOT a real control. Do NOT rely on it. (4) attestation approval authorization is NOT enforced in 0.9.4 -> allow_destroy is a logged checkpoint, not separation-of-duties. MATCHES glob is case-sensitive (both cases listed) and leaky on SQL string literals.",
+
+    "resources": [
+        "tool:query",
+        "tool:list_tables",
+        "tool:describe_table"
+    ],
+
+    "attestations": [
+        "allow_destroy::{ params.sql MATCHES '*DROP*' OR params.sql MATCHES '*drop*' OR params.sql MATCHES '*DELETE*' OR params.sql MATCHES '*delete*' OR params.sql MATCHES '*TRUNCATE*' OR params.sql MATCHES '*truncate*' OR params.sql MATCHES '*UPDATE*' OR params.sql MATCHES '*update*' OR params.sql MATCHES '*INSERT*' OR params.sql MATCHES '*insert*' OR params.sql MATCHES '*ALTER*' OR params.sql MATCHES '*alter*' OR params.sql MATCHES '*GRANT*' OR params.sql MATCHES '*grant*' OR params.sql MATCHES '*REVOKE*' OR params.sql MATCHES '*revoke*' }"
+    ],
+
+    "constraints": {
+        "parameters": {
+            "tool:query": {
+                "sql":       { "type": "string", "min_length": 1, "max_length": 5000 },
+                "dataspace": { "type": "string", "allowed_values": ["default"] }
+            },
+            "tool:list_tables": {
+                "dataspace": { "type": "string", "allowed_values": ["default"] }
+            },
+            "tool:describe_table": {
+                "table":     { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "max_length": 128 },
+                "dataspace": { "type": "string", "allowed_values": ["default"] }
+            }
+        },
+        "denied_parameters": {
+            "tool:query": {
+                "sql": ["*SECRET*", "*secret*"]
+            }
+        },
+        "attestations": {
+            "allow_destroy": {
+                "approval_criteria": "role:manager",
+                "timeout": 300,
+                "one_time": true
+            }
+        }
+    }
+}
