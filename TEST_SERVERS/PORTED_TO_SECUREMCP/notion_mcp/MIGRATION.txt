@@ -1,0 +1,145 @@
+notion_mcp: low-level mcp.server.Server -> SecureMCP
+====================================================
+
+Only src/notion_mcp/server.py was edited.
+
+
+CHANGES
+-------
+
+1. Import.
+     was:  from mcp.server import Server
+     new:  from macaw_adapters.mcp import SecureMCP
+   Original used the official MCP SDK's low-level Server. The
+   `from mcp.server.stdio import stdio_server` (inside the dropped
+   stdio main) is gone with the rest of that function. All other
+   imports (mcp.types Tool/TextContent/etc., pydantic, dotenv,
+   httpx) are unchanged -- some are now unused by live code but
+   left alone (no-hygiene rule).
+
+2. Constructor.
+     was:  server = Server("notion-todo")
+     new:  mcp     = SecureMCP("notion-todo")
+   Name already kebab-case (matches the SecureMCP routing-key rule
+   verified on the excalidraw port: spaces in the name silently
+   hang call_tool RPC).
+
+3. Dispatcher collapse (the substantive port transformation).
+   The original had:
+     - one `@server.list_tools()` returning 4 hand-written Tool(...)
+       JSON-schema entries.
+     - one `@server.call_tool()` async dispatcher with if/elif on the
+       incoming `name`.
+   Per skills file Step 0 ("Low-level Server BUT it's the old format
+   -- one Python function per tool with hand-written schemas matching
+   the function bodies -- PORT, collapse into modern @mcp.tool()
+   decorators"), each elif branch was lifted into its own decorated
+   function. 1:1 mapping:
+       add_todo          @mcp.tool(description="Add a new todo item")
+       show_all_todos    @mcp.tool(description="Show all todo items from Notion")
+       show_today_todos  @mcp.tool(description="Show today's todo items from Notion")
+       complete_todo     @mcp.tool(name="complete_todo", ...) on a
+                         function called complete_todo_tool (collision
+                         fix, see Change 4)
+
+   Parameter types/required-ness derive from the original JSON schema:
+       add_todo: task (str, required), when (str, required)
+       show_all_todos: (no args)
+       show_today_todos: (no args)
+       complete_todo: task_id (str, required)
+
+   Schema fidelity gap: the original `when` parameter had
+   `enum: ["today","later"]`. SecureMCP's _extract_parameters
+   (mcp.py:822, type_map at 837-845) does not preserve enums --
+   only the base scalar type is advertised. The runtime check
+   (`if when not in ["today","later"]: raise ValueError`) is
+   preserved at the top of add_todo, so the behavioural contract
+   is identical -- only the advertised mesh schema is degraded.
+
+4. Helper rename to resolve module-level collision.
+   The original module had:
+       async def complete_todo(page_id: str) -> dict:   # helper
+   AND a tool also named `complete_todo`. The original got away with
+   it because the tool name was a string in @server.list_tools()'s
+   data structure; after collapse the tool becomes a Python function
+   at module scope and would shadow the helper.
+   Resolution: helper renamed to mark_todo_complete_in_notion.
+   Tool function renamed to complete_todo_tool BUT decorated with
+   `@mcp.tool(name="complete_todo", ...)` so the public tool name
+   advertised on the mesh is byte-identical to the original.
+
+5. Return type swap.
+     was (each branch):  return [TextContent(type="text", text=<msg>)]
+     new (each function): return <msg>      # plain str
+   SecureMCP wraps non-dict returns as `{"result": <msg>}` at
+   mcp.py:811-812. The string content (every <msg> in every branch)
+   is byte-identical to the original `TextContent.text` value.
+   The only caller-visible delta: instead of receiving
+       [{"type":"text","text":"Added todo: ..."}]
+   they receive
+       {"result": "Added todo: ..."}
+   This is the documented SecureMCP envelope, consistent with every
+   other port in this workspace.
+
+6. Entry point.
+     was:  async def main(): async with stdio_server() as ...:
+               await server.run(read_stream, write_stream, ...)
+           if __name__ == "__main__": asyncio.run(main())
+     new:  def main(): mcp.run()
+           if __name__ == "__main__": main()
+   stdio transport is replaced by the MACAW mesh. The env-var
+   guard (`if not NOTION_API_KEY or not DATABASE_ID: raise`) is
+   preserved.
+
+
+WHAT WAS NOT CHANGED (Hard Rule 9)
+----------------------------------
+
+The 3 Notion API helpers are byte-identical to upstream:
+  - fetch_todos()                    (server.py:51-67)
+  - create_todo(task, when)           (server.py:69-94)
+  - mark_todo_complete_in_notion(id)  was complete_todo(page_id):96-112
+    -- function rename only, body identical
+
+The 4 tool function BODIES are byte-equivalent to their original
+elif branches, modulo the return-type swap (TextContent[] -> str)
+which is purely a transport-envelope change.
+
+The .env-required-at-import pattern, the Notion API headers, the
+NOTION_VERSION constant, the database query body, the create_todo
+properties body, and the complete patch body are all untouched.
+
+
+VERIFICATION
+------------
+
+Boot:
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/notion_mcp
+    pip install -e .
+    # .env at the package root must contain:
+    #   NOTION_API_KEY=<integration-secret>
+    #   NOTION_DATABASE_ID=<database-id>
+    python -m notion_mcp
+
+Expected log:
+    SecureMCP server 'notion-todo' started
+    Tools: ['add_todo', 'show_all_todos', 'show_today_todos', 'complete_todo']
+    Registered as agent: local:<user>/app:securemcp-notion-todo:<hash>
+
+Smoke test:
+    python client-test-macaw.py "notion-todo" <client_name>
+
+3 tests (see client-test-macaw.py):
+    TEST 1  list_tools                -- 4 tools advertised
+    TEST 2  show_all_todos            -- read-only round-trip to Notion
+    TEST 3  add_todo + complete_todo  -- write/cleanup pair (only if
+                                          NOTION_TEST_WRITE=1 is set;
+                                          otherwise skipped)
+
+
+NOT TOUCHED
+-----------
+
+  - 3 Notion API helpers (bodies byte-identical; one renamed)
+  - .env / dotenv / os.getenv plumbing
+  - pyproject.toml, README, assets/, LICENSE

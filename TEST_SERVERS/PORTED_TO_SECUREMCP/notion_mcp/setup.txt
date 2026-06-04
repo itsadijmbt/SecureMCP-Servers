@@ -1,0 +1,121 @@
+notion_mcp (SecureMCP port) -- setup and run
+============================================
+
+Prerequisites (one-time, workspace level)
+-----------------------------------------
+
+    cd ~/MACAW-MCP-STORE
+    export MACAW_HOME=macaw-client-0.9.4-Linux-x86_64-py3.11
+    pip install ./macaw_client-0.9.4-cp311-cp311-manylinux_2_17_x86_64.whl
+    pip install "./secureAI[all]"
+
+The MACAW Local Agent must be reachable.
+
+
+Install this port (one-time)
+----------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/notion_mcp
+    pip install -e .
+
+Pulls in httpx, python-dotenv, mcp (for the type imports we left in).
+
+
+Notion credentials (.env REQUIRED at package root)
+--------------------------------------------------
+
+The server reads credentials at IMPORT time. Without these, even
+`python -c "import notion_mcp.server"` raises.
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/notion_mcp
+    cat > .env <<EOF
+    NOTION_API_KEY=secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    NOTION_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    EOF
+
+Notion setup steps (if you don't already have these):
+  1. notion.so -> Settings -> Integrations -> New integration. Copy
+     the "Internal Integration Secret" -- that's NOTION_API_KEY.
+  2. In the Notion workspace, create a database with the columns:
+       Task     (Title)
+       When     (Select: "today", "later")
+       Checkbox (Checkbox)
+     Share it with the integration (via the database "..." menu ->
+     Connections).
+  3. NOTION_DATABASE_ID is the 32-char id in the database URL.
+
+
+Run the server (Terminal 1)
+---------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/notion_mcp
+    python -m notion_mcp
+
+Expected boot log:
+    SecureMCP server 'notion-todo' started
+    Tools: ['add_todo', 'show_all_todos', 'show_today_todos', 'complete_todo']
+    Registered as agent: local:<user>/app:securemcp-notion-todo:<hash>
+
+
+Run the test client (Terminal 2)
+--------------------------------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/notion_mcp
+    python client-test-macaw.py "notion-todo" <client_name>
+
+3-test suite:
+    TEST 1  list_tools         - mesh advertises 4 tools
+    TEST 2  show_all_todos     - read-only round-trip to Notion
+                                  PASS = handler returned a JSON
+                                  list (could be empty if database
+                                  has no rows)
+    TEST 3  add_todo + complete_todo
+                                - only runs if NOTION_TEST_WRITE=1 in
+                                  the environment. Adds a temporary
+                                  todo, then marks it complete to
+                                  leave the database tidy.
+
+Set NOTION_TEST_WRITE=1 to enable TEST 3:
+    export NOTION_TEST_WRITE=1
+
+
+Common issues
+-------------
+
+  "FileNotFoundError: No .env file found at .../notion_mcp/.env"
+      Create .env at the package root (see Notion credentials above).
+
+  "ValueError: NOTION_API_KEY not found in .env file"
+      The .env exists but is missing the variable, or the .env file
+      is in the wrong directory. The path resolved is
+      Path(__file__).parent.parent.parent / '.env', i.e. the package
+      root (the directory containing pyproject.toml).
+
+  HTTP 401 / 403 from Notion in TEST 2/3
+      Integration secret wrong, or the database has not been shared
+      with the integration. Re-check the Notion Connections menu.
+
+  HTTP 404 from Notion
+      NOTION_DATABASE_ID wrong, or the database was deleted/archived.
+
+  No tools advertised in TEST 1
+      Mesh did not see the SecureMCP registration. Check Terminal 1
+      for "SecureMCP server 'notion-todo' started".
+
+  TEST 2 returns "[]" (empty list)
+      Database is empty. Add a row in Notion manually or run TEST 3
+      with NOTION_TEST_WRITE=1 to add one programmatically.
+
+
+What this port DOES NOT change
+------------------------------
+
+  - The 3 Notion API helper bodies (httpx calls, headers, JSON
+    shapes) are byte-identical to upstream. One was renamed
+    (`complete_todo` helper -> `mark_todo_complete_in_notion`) to
+    resolve a module-level collision with the public tool name --
+    the public tool name `complete_todo` is preserved via
+    @mcp.tool(name="complete_todo").
+  - Tool semantics are byte-identical at the string level:
+    "Added todo: <task> (scheduled for <when>)" etc.
+  - .env loading, env-var validation, NOTION_VERSION constant.
