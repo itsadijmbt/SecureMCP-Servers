@@ -1,0 +1,86 @@
+{
+  "policy_id": "app:databricks-remote-proxy",
+  "version": "0.3.0",
+  "description": "Databricks Managed MCP via SecureMCPProxy .",
+  "resources": [
+    "tool:databricks-remote-proxy/**"
+  ],
+  "attestations": [
+    "allow_write::{ params.query MATCHES '*INSERT INTO*' OR params.query MATCHES '*insert into*' OR params.query MATCHES '*UPDATE *' OR params.query MATCHES '*update *' OR params.query MATCHES '*MERGE INTO*' OR params.query MATCHES '*merge into*' OR params.query MATCHES '*CREATE TABLE*' OR params.query MATCHES '*create table*' OR params.query MATCHES '*COPY INTO*' OR params.query MATCHES '*copy into*' }"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:databricks-remote-proxy/execute_sql": {
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 5000
+        }
+      },
+      "tool:databricks-remote-proxy/execute_sql_read_only": {
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 5000
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:databricks-remote-proxy/execute_sql": {
+        "query": [
+          "*DROP *",
+          "*drop *",
+          "*DELETE *",
+          "*delete *",
+          "*TRUNCATE*",
+          "*truncate*",
+          "*ALTER *",
+          "*alter *",
+          "*REVOKE*",
+          "*revoke*",
+          "*GRANT *",
+          "*grant *",
+          "*VACUUM*",
+          "*vacuum*",
+          "*hr_salaries*"
+        ]
+      },
+      "tool:databricks-remote-proxy/execute_sql_read_only": {
+        "query": [
+          "*DROP *",
+          "*drop *",
+          "*DELETE *",
+          "*delete *",
+          "*INSERT *",
+          "*insert *",
+          "*UPDATE *",
+          "*update *",
+          "*ALTER *",
+          "*alter *",
+          "*CREATE *",
+          "*create *",
+          "*TRUNCATE*",
+          "*truncate*",
+          "*MERGE *",
+          "*merge *",
+          "*GRANT *",
+          "*grant *",
+          "*REVOKE*",
+          "*revoke*",
+          "*VACUUM*",
+          "*vacuum*",
+          "*COPY INTO*",
+          "*copy into*",
+          "*hr_salaries*"
+        ]
+      }
+    },
+    "attestations": {
+      "allow_write": {
+        "approval_criteria": "role:manager",
+        "timeout": 300,
+        "one_time": false
+      }
+    }
+  }
+}

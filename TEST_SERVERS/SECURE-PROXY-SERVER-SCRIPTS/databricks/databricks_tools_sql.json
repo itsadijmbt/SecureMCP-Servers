@@ -1,0 +1,50 @@
+[
+  {
+    "name": "execute_sql",
+    "description": "Execute SQL queries in Databricks Unity Catalog. This tool executes SQL in Databricks SQL (DBSQL), so use DBSQL syntax. Supports SELECT, INSERT, UPDATE, CREATE TABLE, ALTER TABLE, and other standard SQL operations. Unity Catalog uses a three-level namespace: catalog.schema.table. Always use fully qualified names (e.g., catalog.schema.table) in your queries for reliable access.Use backticks to escape names with special characters: catalog.schema.`special-table`.For long-running queries, this tool will return a statement_id that can be used to poll for results.\n\nTo discover available data assets, use the following commands: 1. 'SHOW CATALOGS' to list all accessible catalogs 2. 'SHOW SCHEMAS IN catalog_name' to list schemas in a specific catalog 3. 'SHOW TABLES IN catalog_name.schema_name' to list tables in a schema 4. 'DESCRIBE TABLE catalog_name.schema_name.table_name' to view table structure and columns \n ",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "query"
+      ],
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The SQL query to execute. Use fully qualified Unity Catalog names (catalog.schema.table) for best results."
+        }
+      }
+    }
+  },
+  {
+    "name": "execute_sql_read_only",
+    "description": "Execute read-only SQL queries in Databricks Unity Catalog. This tool executes SQL in Databricks SQL (DBSQL), so use DBSQL syntax. Unity Catalog uses a three-level namespace: catalog.schema.table. Always use fully qualified names (e.g., catalog.schema.table) in your queries for reliable access.Use backticks to escape names with special characters: catalog.schema.`special-table`.For long-running queries, this tool will return a statement_id that can be used to poll for results.\n\nTo discover available data assets, use the following commands: 1. 'SHOW CATALOGS' to list all accessible catalogs 2. 'SHOW SCHEMAS IN catalog_name' to list schemas in a specific catalog 3. 'SHOW TABLES IN catalog_name.schema_name' to list tables in a schema 4. 'DESCRIBE TABLE catalog_name.schema_name.table_name' to view table structure and columns \n ",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "query"
+      ],
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The read-only SQL query to execute (SELECT, SHOW, DESCRIBE commands). Use fully qualified Unity Catalog names (catalog.schema.table) for best results."
+        }
+      }
+    }
+  },
+  {
+    "name": "poll_sql_result",
+    "description": "Poll for the results of a long-running SQL query using its statement ID. Use this tool when execute_sql returns a statement_id for a query that didn't complete immediately.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "statement_id"
+      ],
+      "properties": {
+        "statement_id": {
+          "type": "string",
+          "description": "The statement ID returned by execute_sql for a long-running query."
+        }
+      }
+    }
+  }
+]

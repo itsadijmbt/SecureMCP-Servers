@@ -1,0 +1,43 @@
+[
+  {
+    "name": "query_space_01f1698b36c71285859d95e937f997f7",
+    "description": "Query the Bakehouse Sales Starter Space genie space for data insights.\nYou can ask natural language questions and will receive responses in natural language or as SQL query results.\nYou can ask for a summary of the datasets in the genie space to get an overview of the data available.\nBy default, each query is standalone. Optionally, provide a conversation_id to continue an existing conversation.\nIf you do not have a conversation_id, please provide all relevant context in the query.\nThe response will include the conversation_id, message_id, and status of the message in the genie space.\nIf the message is not complete, use poll_response_01f1698b36c71285859d95e937f997f7 with the returned conversation_id and message_id to poll until the message reaches a completed state.\nThe genie space description is as follows:\nGenie Space description: Welcome to AI/BI Genie, powered by the fictional bakery sales and inventory data. Here, you can ask natural language questions to uncover insights, review trends, and analyze performance.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "query"
+      ],
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Query for genie space"
+        },
+        "conversation_id": {
+          "type": "string",
+          "description": "Optional conversation ID to continue an existing conversation"
+        }
+      }
+    }
+  },
+  {
+    "name": "poll_response_01f1698b36c71285859d95e937f997f7",
+    "description": "Poll for the response of a previously initiated message in the Bakehouse Sales Starter Space genie space.\nUse this tool to retrieve results for a message that was started but not yet completed.\nRequires both conversation_id and message_id returned from the initial query_space_01f1698b36c71285859d95e937f997f7 tool call.\nPlease continue polling with this tool until the message reaches a completed state.",
+    "inputSchema": {
+      "type": "object",
+      "required": [
+        "conversation_id",
+        "message_id"
+      ],
+      "properties": {
+        "conversation_id": {
+          "type": "string",
+          "description": "The conversation ID from the genie space"
+        },
+        "message_id": {
+          "type": "string",
+          "description": "The message ID to poll for the response of"
+        }
+      }
+    }
+  }
+]
