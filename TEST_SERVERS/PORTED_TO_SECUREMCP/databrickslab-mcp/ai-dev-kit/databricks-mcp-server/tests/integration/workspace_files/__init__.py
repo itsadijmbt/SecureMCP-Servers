@@ -1,1 +1,0 @@
-# Workspace files integration tests

@@ -1,1 +1,0 @@
-# Volume files integration tests

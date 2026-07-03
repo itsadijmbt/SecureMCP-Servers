@@ -1,1 +1,0 @@
-"""Compute module integration tests."""

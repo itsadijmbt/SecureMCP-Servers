@@ -1,1 +1,0 @@
-# Apps integration tests

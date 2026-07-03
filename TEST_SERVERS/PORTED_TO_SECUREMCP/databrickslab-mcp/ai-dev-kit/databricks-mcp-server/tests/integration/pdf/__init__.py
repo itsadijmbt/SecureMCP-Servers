@@ -1,1 +1,0 @@
-# PDF integration tests

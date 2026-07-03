@@ -1,1 +1,0 @@
-"""SQL module integration tests."""

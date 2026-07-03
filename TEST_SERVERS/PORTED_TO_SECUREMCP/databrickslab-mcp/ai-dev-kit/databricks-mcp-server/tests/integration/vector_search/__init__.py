@@ -1,1 +1,0 @@
-# Vector search integration tests
