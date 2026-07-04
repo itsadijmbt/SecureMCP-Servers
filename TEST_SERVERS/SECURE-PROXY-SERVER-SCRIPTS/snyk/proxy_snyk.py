@@ -76,38 +76,3 @@ for t in tools:
 result = bound.call_tool("snyk_version", {})
 print(f"\nsnyk_version -> {str(result)[:300]}", file=sys.stderr)
 
-# ============================================================================
-# Test 2 — stdio MCP gateway (uncomment block below to enable).
-# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
-# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
-# ============================================================================
-# import asyncio
-# import json
-# from mcp.server import Server
-# from mcp.server.stdio import stdio_server
-# import mcp.types as types
-#
-# srv = Server("snyk-macaw-proxy")
-# tool_objs = [
-#     types.Tool(
-#         name=t["name"],
-#         description=t.get("description", ""),
-#         inputSchema=t.get("schema") or {"type": "object"},
-#     )
-#     for t in proxy.list_tools()
-# ]
-#
-# @srv.list_tools()
-# async def _list():
-#     return tool_objs
-#
-# @srv.call_tool()
-# async def _call(name, args):
-#     r = bound.call_tool(name, args or {})
-#     return [types.TextContent(type="text", text=json.dumps(r, default=str))]
-#
-# async def _main():
-#     async with stdio_server() as (rd, wr):
-#         await srv.run(rd, wr, srv.create_initialization_options())
-#
-# asyncio.run(_main())
