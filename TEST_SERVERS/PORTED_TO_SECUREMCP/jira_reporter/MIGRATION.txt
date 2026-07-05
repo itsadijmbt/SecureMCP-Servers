@@ -1,0 +1,79 @@
+jira-reporter: FastMCP -> SecureMCP migration
+==============================================
+
+CHANGES WE MADE
+---------------
+
+Framework swap (mechanical):
+
+  1. Import swap (line 13)
+       was:  from mcp.server.fastmcp import FastMCP, Context
+       new:  from macaw_adapters.mcp import SecureMCP, Context
+
+  2. Constructor swap (line 24)
+       was:  mcp = FastMCP("...")
+       new:  mcp = SecureMCP("securemcp-jira-reporter")
+
+Bug fixes applied during the port:
+
+  3. Added `import textwrap` (line 4)
+       Was missing. find_delayed_issues uses textwrap.dedent
+       at line ~302 to build the LLM prompt. Without the import,
+       calling find_delayed_issues(explain_delay=True) raised
+       NameError.
+
+  4. Fixed ctx.sample return shape (line 328)
+       was:  response = task.result()
+             llm_explanations[key] = response.text.strip()
+       new:  llm_explanations[key] = task.result().strip()
+
+       FastMCP's ctx.sample returned an object with a .text field.
+       SecureMCP's ctx.sample (mcp.py:184-191) returns `str`
+       directly. The old code AttributeError'd on the str.
+
+  5. Made generate_jira_report return shape consistent (line 130)
+       Empty-result branch was returning a bare string while every
+       other path returned {"result": ..., "history": [...]}.
+       Caller code reading result["history"] would KeyError on the
+       empty-database branch. Fixed to return the same dict shape
+       on all paths.
+
+  6. Corrected return type annotations
+       get_history:           List[Dict] -> Dict[str, List]   (line 32)
+       generate_jira_report:  str        -> dict              (line 81)
+       Both annotations now match what the functions actually return.
+
+
+PRESERVATION
+------------
+
+Every changed line keeps the original as a "# was:" comment
+immediately above the active replacement (per skills file
+preamble: "ALWAYS KEEP THE OLD CODE COMMENTED").
+
+
+HOW TO RUN
+----------
+
+    cd ~/MACAW-MCP-STORE/TEST_SERVERS/PORTED_TO_SECUREMCP/jira_reporter
+    pip install -r requirements.txt
+    export JIRA_URL=https://<your-org>.atlassian.net
+    export JIRA_USERNAME=you@example.com
+    export JIRA_API_TOKEN=<your-token>
+    python jira_reporter_server.py
+
+In a second terminal:
+
+    python jira_test_client.py jira-reporter <client_name>
+
+
+NOT TOUCHED
+-----------
+
+  - Tool docstrings, JQL queries, report formatting.
+  - The Korean text in find_delayed_issues (business logic).
+  - asyncio.to_thread wrapping around the synchronous jira
+    library calls.
+  - jira_test_client.py.
+  - requirements.txt (the actual install path; pyproject.toml's
+    dependencies = [] is empty and unused).

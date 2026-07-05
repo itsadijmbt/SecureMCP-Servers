@@ -1,0 +1,6 @@
+README.md
+pyproject.toml
+jira_reporter.egg-info/PKG-INFO
+jira_reporter.egg-info/SOURCES.txt
+jira_reporter.egg-info/dependency_links.txt
+jira_reporter.egg-info/top_level.txt
