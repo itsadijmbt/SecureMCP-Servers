@@ -9,30 +9,6 @@ Args:
     1. server filter substring (matches against agent_id on the mesh)
     2. client name (any string for this caller's MACAW identity)
 
-Prerequisites (the server side):
-    1. MACAW Local Agent running.
-    2. macaw_client + secureAI[all] installed in the same env as dispatch_cli.
-    3. Dispatch credentials available to the server (env vars or
-       `dispatch auth login`) so the upstream backend calls inside tool
-       bodies can authenticate.
-    4. Operator MCP server running:
-           dispatch mcp serve operator --namespace <your-namespace>
-       It will register on the MACAW mesh as agent
-       `securemcp-dispatch-operator` (no longer speaks stdio MCP).
-
-What this tests:
-    1. Port-correctness: server registered, all tools advertised on the mesh.
-    2. Schema-flattening: tool input schemas show flat kwargs (namespace,
-       limit, ...) NOT a single `request` parameter. This proves the
-       pydantic-model-as-input rewrite worked.
-    3. Tool reachability: list_namespaces (no args) round-trips through
-       MACAW -> handler -> dispatch backend.
-    4. Argument plumbing: list_agents(namespace=...) round-trips with the
-       flattened arg shape.
-
-Without valid dispatch credentials on the server side, tests 3 and 4 will
-fail at the dispatch backend (expected). Test 1 and 2 do NOT need
-credentials -- they prove port-correctness independent of the backend.
 """
 
 import asyncio
@@ -171,14 +147,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 3 -- list_namespaces (no-args read tool)
-    #
-    # Round-trips through MACAW mesh -> server handler -> dispatch
-    # backend. Two valid outcomes:
-    #   a) Backend reachable + creds correct: returns namespaces.
-    #   b) Bad creds / backend down: tool body raises, exception
-    #      propagates as RuntimeError on the wire.
-    # Either outcome PROVES port-correctness: the call reached the
-    # handler with no schema-shape errors.
+
     # --------------------------------------------------------------
     print("\n[TEST 3] list_namespaces -- handler reachability")
     try:
@@ -204,13 +173,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 4 -- list_agents with namespace kwarg (flattened-arg plumbing)
     #
-    # Same as TEST 3 but with a required argument. Proves:
-    #   - the flattened `namespace: str` parameter is wired correctly
-    #   - the value flows from JSON-RPC into the function body
-    #   - `_get_namespace(namespace)` accepts it
-    #
-    # If the flattening were broken, this would fail with TypeError
-    # before reaching the dispatch backend.
+
     # --------------------------------------------------------------
     print("\n[TEST 4] list_agents(namespace='default') -- argument plumbing")
     try:
@@ -256,16 +219,6 @@ What success looks like across the four tests (no real dispatch backend needed):
                failed at the dispatch backend without TypeError. Proves:
                flattened kwargs reach the function body intact.
 
-If TESTS 1 and 2 PASS, the port itself is correct. TESTS 3 and 4 only
-require dispatch backend credentials to go full green.
-
-Failure modes that mean the PORT is wrong (vs. environment):
-  - TEST 1 missing tools  -> registration step didn't run; check the SecureMCP
-                             import and the create_operator_mcp body.
-  - TEST 2 single `request` param -> flattening missed; some tool still has
-                             `def my_tool(request: SomeRequest)`.
-  - TEST 3/4 TypeError on args -> a tool body still references `request.X`
-                             after the signature was flattened.
 """)
 
 
