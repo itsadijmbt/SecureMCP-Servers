@@ -9,23 +9,7 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-Two layers being checked:
 
-  Caller auth -- "is this caller really who they say they are?"
-  MACAW signs every invoke_tool call with this caller's keypair.
-  If MACAW didn't trust us, none of the calls below would even
-  reach the server. Any response coming back at all is the proof.
-
-  Upstream auth -- "what do we use to talk to Conan?"
-  Conan-mcp has NO upstream auth in the usual sense. The server
-  shells out to the `conan` CLI binary on the host. The "creds"
-  question is replaced by "is the conan binary installed on this
-  host and can the user run it?"
-  Two outcomes both prove the port:
-    - conan installed       -> tools return real data (lists, dicts)
-    - conan NOT installed   -> the SDK raises RuntimeError("Command
-                               not found.") which propagates back
-                               through SecureMCP cleanly.
 """
 
 import asyncio
