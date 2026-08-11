@@ -9,23 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh, all 13
-                            tools advertised. The 13-class -> 13-
-                            wrapper collapse worked.
-    2. obsidian_list_files_in_vault -- read-only, no parameters.
-                                       Reaches the handler regardless
-                                       of whether Obsidian's REST API
-                                       is up. Without it, the handler
-                                       errors gracefully.
-    3. obsidian_simple_search       -- exercises typed-kwarg path
-                                       (query + context_length).
-
-Tests 2-3 do NOT require a running Obsidian instance for handler-
-reach verification. The Obsidian Python client raises on connection
-failure; the wrapper / handler may surface that as a string error
-or as an exception. Either outcome proves the client -> mesh ->
-SecureMCP -> handler chain is intact.
 """
 
 import asyncio
@@ -94,16 +77,7 @@ async def main():
     print("MCP-OBSIDIAN TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
-    # The original used a dict registry with 13 ToolHandler classes;
-    # the port collapses each class into a @app.tool() wrapper. If
-    # all 13 register cleanly we know:
-    #   - import swap (mcp.server.Server -> SecureMCP) didn't break.
-    #   - all 13 wrapper signatures parsed and registered.
-    #   - all 13 module-level handler instances built without errors.
-    # --------------------------------------------------------------
+
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -114,15 +88,7 @@ async def main():
         print("  instance failed to construct. Check server logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- obsidian_list_files_in_vault (no parameters)
-    #
-    # Smallest possible call. No kwargs to pass. Reaches the handler
-    # regardless of Obsidian connectivity. Without a live Obsidian
-    # API on the configured host, the handler raises (the original
-    # behaviour) and the mesh surfaces an error -- still a proof of
-    # reachability.
-    # --------------------------------------------------------------
+
     print("\n[TEST 2] obsidian_list_files_in_vault -- no-arg handler reach")
     try:
         result = await client.call_tool("obsidian_list_files_in_vault", {})
@@ -137,13 +103,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- obsidian_simple_search (exercises typed-kwarg path)
-    #
-    # Passes both the required `query` and the optional
-    # `context_length` kwarg. Verifies the wrapper rebuilds the dict
-    # the handler expects.
-    # --------------------------------------------------------------
     print("\n[TEST 3] obsidian_simple_search(query='macaw', context_length=50) -- typed-kwarg path")
     try:
         result = await client.call_tool(
@@ -182,11 +141,6 @@ What success looks like:
             wrapper's dict-rebuild step; multi-parameter tools
             are wired correctly.
 
-If all three pass, the FastMCP -> SecureMCP port is verified at
-the mesh layer. Validating real Obsidian behaviour (file CRUD,
-note search, periodic notes) requires a live Obsidian REST API
-plugin running and OBSIDIAN_API_KEY / OBSIDIAN_HOST set
-correctly -- out of scope for this smoke test.
 """)
 
 
