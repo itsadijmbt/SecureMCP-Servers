@@ -9,32 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-This script tests TWO independent auth layers:
-
-  ┌──────────────────────────────────────────────────────────────────┐
-  │  CALLER AUTH (handled by MACAW automatically)                    │
-  │  Question: "Is this really me calling?"                          │
-  │  Mechanism: MACAWClient signs every invoke_tool call with this   │
-  │             caller's private key. Server-side MACAW Local Agent  │
-  │             validates the signature before the handler runs.     │
-  │  Tested by: simply being able to invoke any tool. If caller-auth │
-  │             fails, you'd never see a response.                   │
-  └──────────────────────────────────────────────────────────────────┘
-
-  ┌──────────────────────────────────────────────────────────────────┐
-  │  UPSTREAM AUTH (handled by THIS server using _metadata or env)   │
-  │  Question: "Whose Aliyun account do we use to call Aliyun?"      │
-  │  Two paths:                                                      │
-  │    A) env-var service account: caller sends no _metadata, server │
-  │       falls back to ALIBABA_CLOUD_ACCESS_KEY_ID env var.         │
-  │    B) per-caller via _metadata: caller sends                     │
-  │       _metadata={"ak":...,"sk":...,"sts":...} and server uses    │
-  │       those for the Aliyun call.                                 │
-  │  Tested by: comparing the error shapes from the same tool when   │
-  │             called with vs without _metadata. Different error    │
-  │             patterns prove both code paths reach the upstream    │
-  │             call site differently.                               │
-  └──────────────────────────────────────────────────────────────────┘
 """
 
 from macaw_adapters.mcp import Client
