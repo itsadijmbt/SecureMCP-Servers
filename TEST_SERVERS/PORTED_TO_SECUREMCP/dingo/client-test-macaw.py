@@ -9,17 +9,7 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name
 
-What this tests:
-    1. Port-correctness            -- server registered on the mesh,
-                                       all 6 tools advertised.
-    2. list_dingo_metrics or
-       similar read-only tool      -- exercises a no-side-effect tool
-                                       to verify handler reachability.
-    3. get_rule_group_details      -- exercises typed-kwarg path.
 
-The 6 dingo tool names are read off the live tool-list (we don't
-hard-code them all because dingo's tool inventory varies by
-version).
 """
 
 import asyncio
@@ -28,10 +18,7 @@ import sys
 from macaw_adapters.mcp import Client
 
 
-# Sample of 6 expected tools (names read from grep of @mcp.tool sites).
-# The actual function names live at lines 802, 986, 1031, 1093, 1143,
-# 1193 of the original mcp_server.py. We sample 2 here for TEST 1
-# expected-set verification; the live list_tools call shows all 6.
+
 EXPECTED_SAMPLE = {
     "run_dingo_evaluation",
 }
@@ -94,10 +81,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 2 -- run_dingo_evaluation with an obviously bad path
     #
-    # This exercises the typed-kwarg path (input_path, evaluation_type,
-    # etc.). Without a valid input file, dingo's evaluator returns an
-    # error. Either real evaluation result or error string proves the
-    # handler chain is wired.
+
     # --------------------------------------------------------------
     print("\n[TEST 2] run_dingo_evaluation -- typed-kwarg path")
     try:
@@ -135,16 +119,6 @@ What success looks like:
             Proves: typed kwargs (input_path, evaluation_type,
             eval_group_name, kwargs dict) arrive at the handler
             via SecureMCP's parameter introspection.
-
-If both pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating real Dingo evaluation behaviour requires
-a valid input file and the configured rule groups -- out of
-scope for this smoke test.
-
-Note: dingo originally used the third-party `fastmcp` package
-(gofastmcp.com). The port swaps it for the official-MCP-SDK-
-subset SecureMCP. Dingo's usage was minimal (just FastMCP("name")
-+ @mcp.tool()), both of which SecureMCP supports identically.
 """)
 
 
