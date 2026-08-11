@@ -9,20 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh; a sample of
-                            the 21 expected tools is advertised.
-    2. get_projects      -- read-only. Lists Azure DevOps projects.
-                            Requires AZURE_DEVOPS_PAT and
-                            AZURE_DEVOPS_ORGANIZATION_URL on the
-                            server side. Without them, the handler
-                            catches the AzureDevOpsClientError and
-                            returns a string "Error: ...".
-
-Test 2 does NOT require working Azure DevOps creds for handler-reach
-verification: error strings are caught inside each tool body and
-returned. Either real data or an error string proves the chain
-client -> mesh -> SecureMCP -> handler is intact.
 """
 
 import asyncio
@@ -88,14 +74,7 @@ async def main():
     print("MCP-AZURE-DEVOPS TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- representative sample of tools is advertised
-    #
-    # mcp-azure-devops registers ~21 tools across features (projects,
-    # teams, work_items/{tools, query, comments, create, ...}).
-    # Sampling 5 across distinct paths confirms the import swap held
-    # and every register_*() path executed at startup.
-    # --------------------------------------------------------------
+
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_SAMPLE - seen
     if not missing:
@@ -106,14 +85,7 @@ async def main():
         print("  Either a register_*() didn't run or a feature import broke.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- get_projects (read-only Azure DevOps API call)
-    #
-    # Calls connection.clients.get_core_client().get_projects() under
-    # the hood. With valid PAT + org URL set, returns project list.
-    # Without them, get_connection() raises AzureDevOpsClientError,
-    # which the tool body catches and returns as a string.
-    # --------------------------------------------------------------
+
     print("\n[TEST 2] get_projects -- handler reachability + Azure DevOps API")
     try:
         result = await client.call_tool("get_projects", {})
@@ -144,12 +116,7 @@ What success looks like:
             Proves: client -> mesh -> SecureMCP -> handler ->
             azure_client.get_connection() chain is intact.
 
-If both pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating real Azure DevOps behaviour (real project
-listings, work item creation, etc.) requires:
-  - AZURE_DEVOPS_PAT set to a valid Personal Access Token,
-  - AZURE_DEVOPS_ORGANIZATION_URL set to the org URL,
-on the server side. That lives outside this smoke test.
+
 """)
 
 
