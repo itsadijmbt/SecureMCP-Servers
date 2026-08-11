@@ -10,23 +10,8 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness -- server registered, all 3 tools advertised on the mesh.
-    2. list_tables   -- handler reachability (hits Salesforce Data Cloud Query API).
-    3. describe_table -- handler reachability + plain default works (no Field).
-    4. query         -- required-arg ('sql') round-trip + plain default works.
 
-Tests 2-4 reach the real Salesforce Data Cloud Query API via auth_provider.
-Without valid SF auth (sf_cli alias OR oauth client_id+secret) the server
-won't even boot -- auth_provider construction raises SystemExit at module
-load (server.py:23). So if you can run TEST 1, you already have working
-SF auth, and TESTS 2-4 will return real data or a clean upstream error.
 
-What we are proving with this smoke test is:
-  - the FastMCP -> SecureMCP import flip didn't break registration
-  - the pydantic Field strip didn't break call dispatch
-  - default-valued args ('dataspace="default"') and required args ('sql',
-    'table') both round-trip through the mesh correctly
 """
 
 import asyncio
