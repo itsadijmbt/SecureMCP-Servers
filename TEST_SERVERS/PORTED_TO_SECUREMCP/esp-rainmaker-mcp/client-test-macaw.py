@@ -8,30 +8,7 @@ Usage:
 Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
-
-This script tests TWO independent auth layers:
-
-
-    CALLER AUTH (handled by MACAW automatically)                    
-    Question: "Is this really me calling?"                          
-    Mechanism: MACAWClient signs every invoke_tool call with this   
-               caller's private key. Server-side MACAW Local Agent  
-               validates the signature before the handler runs.     
-    Tested by: simply being able to invoke any tool. If caller-auth
-               fails, you'd never see a response 
-
-    UPSTREAM AUTH (handled by the rmaker_lib SDK reading a local    
-    config file written by `esp-rainmaker-cli login`)               
-    Question: "Whose ESP RainMaker account do we use?"              
-    Mechanism: the SDK reads `~/.espressif/...` style config that   
-               contains a refreshable token.  It is single- 
-               user by upstream design the cred file represents   
-               one account; every MACAW caller hitting this server  
-               ends up acting as that account.    
-
-    Tested by: the difference between "no creds on host" (predict-  
-               able SDK error string) and "creds on host" (real     
-               user/node data). See bottom of file for both flows.  
+  
   
 """
 
@@ -162,21 +139,7 @@ async def main():
     TEST 3   same "Login required..."
     => Port is correct; ESP creds are absent (expected on a fresh host).
 
-  With ESP creds on this host (after `esp-rainmaker-cli login`):
-    TEST 1   static markdown
-    TEST 2   "Login session is active for user: <name>"
-    TEST 3   ["nodeid1", "nodeid2", ...] 
 
-How to flip from "no creds" to "with creds":
-  1. pip install esp-rainmaker-cli  
-                                       
-  2. esp-rainmaker-cli login         (opens browser; writes local config)
-  3. Verify file at the path printed by check_login_status (typically
-     under ~/.espressif/...).
-  4. Restart this MCP server so the SecureMCP process picks up the new
-     config (the SDK caches Session state in-process).
-  5. Re-run this script. TEST 2 and TEST 3 should flip to the "creds
-     branch" messages above.
 """)
 
 
