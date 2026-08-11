@@ -9,26 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh, all 8 tools
-                            (4 describe_* + 4 execute_*) advertised.
-    2. describe_kubectl  -- read-only. Calls `kubectl --help` (or the
-                            equivalent for the requested subcommand)
-                            on the server host. Requires kubectl on
-                            the server's PATH; otherwise the handler
-                            returns a CommandHelpResult with
-                            status="error".
-    3. execute_kubectl   -- runs `kubectl version --client`. Reaches
-                            the handler regardless of cluster
-                            connectivity (--client only inspects
-                            local kubectl). Useful as the cleanest
-                            end-to-end verification.
-
-Tests 2-3 do NOT require an actual Kubernetes cluster -- both
-operate against the local kubectl binary. If kubectl is missing
-the handlers return structured error results, which still proves
-client -> mesh -> SecureMCP -> handler -> CLI subprocess plumbing
-all work end-to-end.
 """
 
 import asyncio
@@ -95,13 +75,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 1 -- expected tools all present
     #
-    # Pure port-correctness check. If all 8 tools registered cleanly
-    # we know:
-    #   - import swap (FastMCP -> SecureMCP) didn't break anything.
-    #   - the 8 @mcp.tool decorators ran at import time without
-    #     raising on the now-stripped annotations=/icons= kwargs.
-    #   - SecureMCP accepted name=/description= for each.
-    # No kubectl call yet.
+
     # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
@@ -116,11 +90,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 2 -- describe_kubectl reaches the handler
     #
-    # describe_* tools call get_command_help() which spawns
-    # `<tool> --help` (or `<tool> <subcommand> --help`). No cluster
-    # contact required. With kubectl on PATH this returns the help
-    # text; without kubectl it returns a CommandHelpResult with an
-    # error. Either way, the call traversed mesh -> handler.
+
     # --------------------------------------------------------------
     print("\n[TEST 2] describe_kubectl -- handler reachability (read-only)")
     try:
@@ -142,9 +112,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 3 -- execute_kubectl reaches the handler (read-only sub-cmd)
     #
-    # `kubectl version --client` only inspects the local kubectl
-    # binary; no cluster connection is needed. This is the cleanest
-    # end-to-end check that doesn't require a real cluster.
+    
     # --------------------------------------------------------------
     print("\n[TEST 3] execute_kubectl 'version --client' -- end-to-end (no cluster)")
     try:
@@ -182,10 +150,7 @@ What success looks like:
 
   TEST 3 ✓  execute_kubectl version returned similarly.
 
-If all three pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating real cluster behaviour (kubectl get pods,
-helm install, etc.) requires a configured kubeconfig and a real
-cluster -- that lives outside this smoke test.
+
 """)
 
 
