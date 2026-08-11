@@ -9,23 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh, all 21
-                            tools advertised under their original
-                            (sometimes hyphenated) names.
-    2. list-supported-indices -- pure static return; no Pinot
-                                 connection needed. Reaches the
-                                 handler regardless of cluster
-                                 connectivity.
-    3. list-tables       -- exercises the Pinot client. With a
-                            live Pinot the result is real table
-                            names; without one, the handler's
-                            try/except returns "Error: ..." -- both
-                            outcomes prove handler reachability.
-
-Test 2 is the cleanest signal because it makes no external call.
-Test 3 reaches the same Pinot client path the destructive tools
-use, so its outcome confirms the connection path is wired.
 """
 
 import asyncio
@@ -106,18 +89,6 @@ async def main():
     print("MCP_PINOT_OPS TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
-    # The original used a 21-branch if/elif dispatcher with 21
-    # hand-built Tool() objects; the port collapses each branch
-    # into a @app.tool() wrapper. If all 21 register cleanly we
-    # know:
-    #   - import swap (mcp.server.Server -> SecureMCP) didn't break.
-    #   - all 21 wrapper signatures parsed and registered.
-    #   - hyphenated tool names (list-tables, etc.) survived via
-    #     @app.tool(name="...").
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -128,14 +99,6 @@ async def main():
         print("  name=... kwarg was missed. Check server logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- list-supported-indices (no Pinot call)
-    #
-    # Smallest possible signal. The handler returns a static
-    # newline-separated list -- no Pinot connection, no external
-    # call. If this round-trips through the mesh and returns the
-    # static text, the wrapper -> mesh path is intact.
-    # --------------------------------------------------------------
     print("\n[TEST 2] list-supported-indices -- static return, no Pinot call")
     try:
         result = await client.call_tool("list-supported-indices", {})
@@ -149,15 +112,7 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- list-tables (Pinot client path)
-    #
-    # Calls pinot_instance._get_tables() under the hood. With a
-    # live Pinot controller, returns the real table list. Without
-    # one, the wrapper's try/except returns "Error: ...". Either
-    # outcome proves the wrapper -> handler -> Pinot client chain
-    # is wired.
-    # --------------------------------------------------------------
+
     print("\n[TEST 3] list-tables -- exercises Pinot client path")
     try:
         result = await client.call_tool("list-tables", {})
@@ -194,16 +149,7 @@ What success looks like:
             Proves: the wrapper -> pinot_instance ->
             controller HTTP path is wired.
 
-If all three pass, the FastMCP -> SecureMCP port is verified at
-the mesh layer. Validating real Pinot ops (rebalance, force
-commit, schema ops on a live cluster) requires Pinot
-controllers reachable and configured -- out of scope for this
-smoke test.
 
-Note: 19 of the 21 tools touch a real Pinot cluster. If you
-need full end-to-end verification, point the Pinot client at a
-running cluster and exercise the read-only ones first
-(table-details, segment-list, etc.).
 """)
 
 
