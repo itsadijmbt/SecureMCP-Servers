@@ -4,13 +4,7 @@ MACAW client smoke test for iotdb-mcp-server (post FastMCP -> SecureMCP port).
 Usage:
     python3.11 client-test-macaw.py iotdb_mcp_server iotdb-test-client
 
-The first arg is a substring to match against the server's MACAW agent_id
-(server registers as `securemcp-iotdb_mcp_server:<hash>`).  The second arg
-is just a name for THIS client process.
 
-This script auto-detects which sql_dialect the server was started in
-(`tree` or `table`) by inspecting the registered tool names, and runs
-dialect-appropriate tests.
 """
 
 from macaw_adapters.mcp import Client
@@ -65,25 +59,7 @@ async def main():
     print("\n" + "=" * 50)
     print("IOTDB-MCP TOOL TESTS")
     print("=" * 50)
-    # ============================================================
-    # NOTE: iotdb-mcp-server never had MCP-caller authentication.
-    # The upstream relied on IoTDB's own user/password (passed via
-    # config) to authenticate the SERVER -> IOTDB connection, but
-    # there was no MCP-layer bearer/JWT/OAuth check on incoming
-    # tool calls.  The SecureMCP port did not delete an auth layer
-    # because there wasn't one to delete.
-    #
-    # Under MACAW the missing piece is filled in for free: every
-    # incoming invocation is cryptographically signed by the caller
-    # and validated by the Local Agent before the handler runs.
-    # That is a security upgrade the original server didn't have.
-    #
-    # Every TEST below succeeding is implicitly proof that:
-    #   - the caller's MACAW signature was valid,
-    #   - MAPL policy did not deny the call,
-    #   - the audit entry was written (visible in MACAW console),
-    #   - the FastMCP -> SecureMCP port was successful.
-    # ============================================================
+
 
     if is_table_dialect:
         await run_table_dialect_tests(client)
@@ -136,12 +112,7 @@ async def run_table_dialect_tests(client):
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # TEST 4 — read_query with INSERT (read-only enforcement).
-    # Handler checks the first SQL keyword against an allowlist
-    # (SELECT / SHOW / DESCRIBE / DESC).  An INSERT should be
-    # rejected by the handler BEFORE any IoTDB connection happens,
-    # which means this test passes even when IoTDB is unreachable.
-    # That makes it the cleanest single proof that the port works.
+
     print("\n[TEST 4] read_query — write attempt (should be rejected)")
     try:
         result = await client.call_tool(
@@ -155,8 +126,7 @@ async def run_table_dialect_tests(client):
         else:
             print("  WARN: write query was not rejected — check handler filter")
     except ValueError as e:
-        # Handler raises ValueError("Only SELECT queries are allowed for read_query").
-        # MACAW propagates as an exception on the client side.
+
         msg = str(e).lower()
         if "only select" in msg or "not allowed" in msg:
             print(f"  PASS: rejected with ValueError ({e!s})")
@@ -167,17 +137,10 @@ async def run_table_dialect_tests(client):
         print(f"  Failed: {e}")
 
 
-# ----------------------------------------------------------------
-# TREE DIALECT TESTS
-# Triggered when sql_dialect=tree (the IoTDB default).
-# Tools available: metadata_query, select_query, export_query
-# ----------------------------------------------------------------
+
 async def run_tree_dialect_tests(client):
     print("\n[Tree dialect detected]")
 
-    # TEST 1 — metadata_query with SHOW DATABASES root.**.
-    # The simplest metadata query.  Returns the list of databases
-    # under the root.** path.
     print("\n[TEST 1] metadata_query — SHOW DATABASES root.**")
     try:
         result = await client.call_tool(
@@ -189,9 +152,6 @@ async def run_tree_dialect_tests(client):
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # TEST 2 — metadata_query with COUNT TIMESERIES root.**.
-    # Returns a count even when no timeseries exist (returns 0).
-    # Useful sanity check.
     print("\n[TEST 2] metadata_query — COUNT TIMESERIES root.**")
     try:
         result = await client.call_tool(
@@ -202,10 +162,7 @@ async def run_tree_dialect_tests(client):
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # TEST 3 — select_query with a simple SELECT.
-    # IoTDB's tree dialect requires a path; this is a minimal one.
-    # Will likely return empty or error if no data exists, which
-    # is fine — we're testing dispatch, not data.
+
     print("\n[TEST 3] select_query — SELECT * FROM root.** LIMIT 1")
     try:
         result = await client.call_tool(
@@ -217,14 +174,7 @@ async def run_tree_dialect_tests(client):
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # TEST 4 — metadata_query with unsupported query (rejection test).
-    # The handler accepts only:
-    #   SHOW DATABASES, SHOW TIMESERIES, SHOW CHILD PATHS,
-    #   SHOW CHILD NODES, SHOW DEVICES,
-    #   COUNT TIMESERIES, COUNT NODES, COUNT DEVICES
-    # Anything else hits the else-branch and raises:
-    #   ValueError("Unsupported metadata query. ...")
-    # This proves the handler ran (port verified) without IoTDB.
+
     print("\n[TEST 4] metadata_query — unsupported query (should be rejected)")
     try:
         result = await client.call_tool(
