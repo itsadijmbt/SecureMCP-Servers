@@ -9,26 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh, all 10
-                            tools advertised. The 10-wrapper
-                            collapse from the original if/elif
-                            dispatcher worked.
-    2. list_papers       -- read-only, no arXiv API call. Returns
-                            the locally-stored paper list (probably
-                            empty on a fresh setup). Pure module-
-                            state read; first cleanest signal.
-    3. get_abstract      -- exercises a real arXiv API call with
-                            a fake paper_id. Either real abstract
-                            (if 0000.0001 happens to exist) or an
-                            error string from the upstream. Both
-                            prove handler reach.
-
-Tests 2-3 do NOT require any prior paper download for handler-reach
-verification: list_papers returns whatever's in the local storage
-directory (often nothing on first run); get_abstract makes one
-arXiv API call and either succeeds or fails at the upstream level.
-Either outcome proves the chain client -> mesh -> SecureMCP -> handler.
 """
 
 import asyncio
