@@ -34,7 +34,7 @@ airtable / notion / postman: npx stdio + static API token.
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/snyk/proxy_snyk.py
 ```
 
@@ -54,7 +54,7 @@ significant package). Subsequent runs are fast.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_snyk.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -63,8 +63,8 @@ significant package). Subsequent runs are fast.
 {
   "mcpServers": {
     "snyk-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/snyk/proxy_snyk.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_snyk.py"],
       "env": { "SNYK_TOKEN": "..." }
     }
   }
@@ -75,8 +75,8 @@ significant package). Subsequent runs are fast.
 
 ```bash
 claude mcp add snyk-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/snyk/proxy_snyk.py \
+  python \
+  /path/to/proxy_snyk.py \
   -e SNYK_TOKEN=...
 ```
 
@@ -86,7 +86,7 @@ second entry from the LLM client.
 
 To exercise a real scan:
 
-> "Use snyk-macaw. Call snyk_trust on `/home/itsadijmbt/MACAW-MCP-STORE`,
+> "Use snyk-macaw. Call snyk_trust on `/path/to/repo`,
 > then snyk_sca_scan on the same path. Report only the **count** of
 > vulnerabilities by severity (critical/high/medium/low). Do not list
 > every CVE."

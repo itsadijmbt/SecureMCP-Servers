@@ -1,16 +1,18 @@
 """
-Notion MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
+notion-proxy -> SecureMCPProxy, served natively.
 
-Two tests, one file. Calls go: client identity -> server identity -> upstream,
-so MACAW renders a two-node graph (client ──> server) for both tests.
-
-  Test 1 (active by default):  one bound.call_tool("API-post-search") then exit.
-  Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
+Prereq:
+    export NOTION_TOKEN="..."
+    export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
 Run:
-    export NOTION_TOKEN="ntn_..."
-    /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/notion/proxy_notion.py
+    python proxy_notion.py
+    python proxy_notion.py http 8080
+
+Claude Code:
+    claude mcp add notion-macaw python /path/to/proxy_notion.py \
+      -e NOTION_TOKEN=... \
+      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 """
 
 import os
@@ -34,55 +36,24 @@ proxy = SecureMCPProxy(
         "NOTION_TOKEN": token,
     },
 )
+logging.info("notion-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-# Client identity: registers as securemcp-client-notion-macaw-gateway.
 client = Client("notion-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
-# ============================================================================
-# Test 1 — smoke check (default).
-# Search with empty query returns up to 100 items the integration can see.
-# ============================================================================
-tools = proxy.list_tools()
-print(f"tools: {len(tools)}", file=sys.stderr)
-for t in tools:
-    print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
+import macaw_adapters.mcp._endpoint as _endpoint
 
-result = bound.call_tool("API-post-search", {"query": ""})
-print(f"\nAPI-post-search -> {str(result)[:300]}", file=sys.stderr)
+_StubClient = _endpoint.Client
 
-# ============================================================================
-# Test 2 — stdio MCP gateway (uncomment block below to enable).
-# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
-# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
-# ============================================================================
-import asyncio
-import json
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-import mcp.types as types
 
-srv = Server("notion-macaw-proxy")
-tool_objs = [
-    types.Tool(
-        name=t["name"],
-        description=t.get("description", ""),
-        inputSchema=t.get("schema") or {"type": "object"},
-    )
-    for t in proxy.list_tools()
-]
+def _bound_stub_client(name):
+    stub = _StubClient(name)
+    stub.macaw_client = bound.user_client
+    return stub
 
-@srv.list_tools()
-async def _list():
-    return tool_objs
 
-@srv.call_tool()
-async def _call(name, args):
-    r = bound.call_tool(name, args or {})
-    return [types.TextContent(type="text", text=json.dumps(r, default=str))]
+_endpoint.Client = _bound_stub_client
 
-async def _main():
-    async with stdio_server() as (rd, wr):
-        await srv.run(rd, wr, srv.create_initialization_options())
-
-asyncio.run(_main())
+transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
+proxy.run(transport=transport, port=port)

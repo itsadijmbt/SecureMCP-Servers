@@ -126,14 +126,7 @@ async def main():
     print("""
 What you should see:
 
-  Without a YDB cluster on this host:
-    TEST 1  status returns ydb_connection = "error" with a timeout
-            or discovery message.
-    TEST 2  JSON error string in the result.
-    TEST 3  JSON error string in the result.
-    All three came back cleanly through the handler chain. That is
-    the port-correctness proof. The creds path is the same code,
-    just with no exceptions firing.
+  
 
   With a YDB cluster on this host:
     TEST 1  status returns ydb_connection = "connected".
@@ -169,7 +162,7 @@ How to run with real creds:
 
   If TEST 1 keeps saying error even with YDB running, the MCP
   layer is fine -- the issue is downstream. Check the endpoint
-  is actually reachable from this box (e.g. `nc -vz host 2136`).
+  is actually reachable from this box 
 """)
 
 

@@ -1,0 +1,82 @@
+{
+  "policy_id": "app:airtable-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:airtable-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:airtable-proxy/delete_records",
+    "tool:airtable-proxy/create_table",
+    "tool:airtable-proxy/update_table",
+    "tool:airtable-proxy/create_field",
+    "tool:airtable-proxy/update_field",
+    "tool:airtable-proxy/upload_attachment"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:airtable-proxy/search_records": {
+        "searchTerm": [
+          "*DENYME*"
+        ]
+      }
+    },
+    "parameters": {
+      "tool:airtable-proxy/create_comment": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "recordId": {"type": "string", "max_length": 32, "pattern": "^rec[A-Za-z0-9]+$"},
+        "text": {"type": "string", "min_length": 1, "max_length": 4000}
+      },
+      "tool:airtable-proxy/create_record": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "fields": {"type": "object"}
+      },
+      "tool:airtable-proxy/describe_table": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "detailLevel": {"type": "string", "allowed_values": ["tableIdentifiersOnly", "identifiersOnly", "full"]}
+      },
+      "tool:airtable-proxy/get_record": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "recordId": {"type": "string", "max_length": 32, "pattern": "^rec[A-Za-z0-9]+$"}
+      },
+      "tool:airtable-proxy/list_comments": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "recordId": {"type": "string", "max_length": 32, "pattern": "^rec[A-Za-z0-9]+$"},
+        "pageSize": {"type": "number", "min": 1, "max": 100},
+        "offset": {"type": "string", "max_length": 256}
+      },
+      "tool:airtable-proxy/list_records": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "view": {"type": "string", "max_length": 128},
+        "maxRecords": {"type": "number", "min": 1, "max": 1000},
+        "filterByFormula": {"type": "string", "max_length": 1000},
+        "fields": {"type": "array", "max_items": 50},
+        "sort": {"type": "array", "max_items": 5}
+      },
+      "tool:airtable-proxy/list_tables": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "detailLevel": {"type": "string", "allowed_values": ["tableIdentifiersOnly", "identifiersOnly", "full"]}
+      },
+      "tool:airtable-proxy/search_records": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "searchTerm": {"type": "string", "min_length": 1, "max_length": 256},
+        "maxRecords": {"type": "number", "min": 1, "max": 1000},
+        "fieldIds": {"type": "array", "max_items": 50},
+        "view": {"type": "string", "max_length": 128}
+      },
+      "tool:airtable-proxy/update_records": {
+        "baseId": {"type": "string", "max_length": 32, "pattern": "^app[A-Za-z0-9]+$"},
+        "tableId": {"type": "string", "max_length": 32, "pattern": "^tbl[A-Za-z0-9]+$"},
+        "records": {"type": "array", "min_items": 1, "max_items": 10}
+      }
+    }
+  },
+  "description": "Airtable MCP via SecureMCPProxy -- schema DDL, record deletion and attachment upload denied; ids pattern-bound, reads and writes size-capped."
+}

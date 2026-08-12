@@ -58,12 +58,6 @@ async def main():
     print("COUCHBASE MCP TESTS")
     print("=" * 60)
 
-    # TEST 1 -- get_server_configuration_status
-    # Doesn't actually connect to Couchbase. Just reports what
-    # configuration the server was started with + whether the
-    # cluster object has been built yet (False until a real
-    # cluster-touching tool runs first). Always succeeds end-to-end
-    # if the port is correct.
     print("\n[TEST 1] get_server_configuration_status -- no upstream call")
     try:
         result = await client.call_tool("get_server_configuration_status", {})
@@ -78,14 +72,7 @@ async def main():
         print(f"  FAILED: {e}")
         print("  This is a blocker -- the port itself is broken.")
 
-    # TEST 2 -- test_cluster_connection
-    # Forces a cluster connect. Two outcomes:
-    #   - Couchbase reachable (and creds correct):
-    #     {"status": "success", "cluster_connected": true, ...}
-    #   - Couchbase unreachable / no creds:
-    #     {"status": "error", "cluster_connected": false, "error": "..."}
-    # Either result coming back through SecureMCP proves the
-    # handler chain works AND the upstream connect path executed.
+
     print("\n[TEST 2] test_cluster_connection -- attempts a real cluster connect")
     try:
         result = await client.call_tool("test_cluster_connection", {})
@@ -105,12 +92,7 @@ async def main():
         print("  Mesh-level error -- caller-auth or transport problem, "
               "NOT a Couchbase issue.")
 
-    # TEST 3 -- get_buckets_in_cluster
-    # Goes one step further than TEST 2: actually queries the
-    # cluster manager for bucket names. Two outcomes:
-    #   - With a real Couchbase + valid creds: a list of bucket names.
-    #   - Without: an exception propagating "could not connect" or
-    #     similar from the SDK, caught by the SecureMCP handler.
+   
     print("\n[TEST 3] get_buckets_in_cluster -- read-only cluster query")
     try:
         result = await client.call_tool("get_buckets_in_cluster", {})
@@ -133,48 +115,8 @@ async def main():
             print("  Inspect -- exception shape unexpected.")
 
     print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What you should see:
 
-  Without a real Couchbase cluster on this host:
-    TEST 1  configuration dict (always passes; no upstream call).
-    TEST 2  {"status": "error", "cluster_connected": false} or similar.
-    TEST 3  exception with "connect" / "timeout" / "auth" in the text.
-    All three came back through the SecureMCP handler chain.
-    That is the port-correctness proof.
 
-  With a real Couchbase cluster + creds:
-    TEST 1  configuration dict (unchanged).
-    TEST 2  {"status": "success", "cluster_connected": true, ...}.
-    TEST 3  list of bucket names like ["travel-sample", "default"].
-
-How to run with creds:
-
-  Easiest path -- run a local Couchbase Docker container:
-
-      docker run -d --name couchbase \\
-          -p 8091-8097:8091-8097 -p 11210:11210 \\
-          couchbase/server:7.6.0
-      # Wait ~30 seconds, then open http://localhost:8091 in a
-      # browser and complete the one-time setup wizard
-      # (cluster name, admin user, sample buckets).
-
-  Then start the MCP server with creds matching the wizard:
-
-      export CB_CONNECTION_STRING="couchbase://localhost"
-      export CB_USERNAME="Administrator"
-      export CB_PASSWORD="<password you set in wizard>"
-      python3 -m mcp_server   # in the src/ directory
-
-  Re-run this script in a second terminal. TESTS 2 and 3 should
-  flip from the error-branch to the creds-branch responses.
-
-  If you only want to verify port-correctness (no real Couchbase),
-  just run the server and this script -- the error-branch responses
-  are sufficient proof.
-""")
 
 
 if __name__ == "__main__":

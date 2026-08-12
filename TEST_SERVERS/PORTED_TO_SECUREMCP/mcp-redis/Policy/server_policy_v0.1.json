@@ -1,0 +1,59 @@
+{
+    "policy_id": "app:securemcp-securemcp-Redis-mCP-server",
+    "version": "0.2.0",
+    "description": "Policy for RedisMCP Server. Attestations removed: redis splits each op into its own tool, the operation lives in the TOOL NAME (not a param), and MAPL conditions reference params/principal/context only -- so destructive tools cannot be approve-gated by a param condition (verified from tool sources). Destructive + recon tools are blocked at the resource level via denied_resources (deterministic, proven). denied_parameters is inert in macaw_client 0.9.4.",
+    "resources": [
+        "tool:**"
+    ],
+    "denied_resources": [
+        "tool:scan_keys",
+        "tool:scan_all_keys",
+        "tool:delete",
+        "tool:rename",
+        "tool:lrem",
+        "tool:srem",
+        "tool:zrem",
+        "tool:hdel",
+        "tool:json_del"
+    ],
+    "constraints": {
+        "parameters": {
+            "tool:get":        { "key":  { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:set":        { "key":  { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:type":       { "key":  { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+
+            "tool:expire":     { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 },
+                                 "expire_seconds": { "type": "integer", "min": 1 } },
+
+            "tool:json_get":   { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:json_set":   { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+
+            "tool:lpush":      { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 },
+                                 "expire": { "type": "integer", "min": 1 } },
+            "tool:rpush":      { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 },
+                                 "expire": { "type": "integer", "min": 1 } },
+            "tool:lpop":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:rpop":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:lrange":     { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:llen":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+
+            "tool:sadd":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 },
+                                 "expire_seconds": { "type": "integer", "min": 1 } },
+            "tool:smembers":   { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+
+            "tool:zadd":       { "key":  { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 },
+                                 "expiration": { "type": "integer", "min": 1 } },
+            "tool:zrange":     { "key":  { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+
+            "tool:hset":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 },
+                                 "expire_seconds": { "type": "integer", "min": 1 } },
+            "tool:hget":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:hgetall":    { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:hexists":    { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+
+            "tool:publish":     { "channel": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:subscribe":   { "channel": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
+            "tool:unsubscribe": { "channel": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } }
+        }
+    }
+}

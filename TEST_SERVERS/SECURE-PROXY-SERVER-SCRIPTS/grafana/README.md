@@ -37,7 +37,7 @@ export GRAFANA_SERVICE_ACCOUNT_TOKEN="glsa_..."
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/grafana/proxy_grafana.py
 ```
 
@@ -51,7 +51,7 @@ runs are fast.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_grafana.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -60,8 +60,8 @@ runs are fast.
 {
   "mcpServers": {
     "grafana-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/grafana/proxy_grafana.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_grafana.py"],
       "env": {
         "GRAFANA_URL": "http://localhost:3000",
         "GRAFANA_SERVICE_ACCOUNT_TOKEN": "glsa_..."
@@ -75,8 +75,8 @@ runs are fast.
 
 ```bash
 claude mcp add grafana-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/grafana/proxy_grafana.py \
+  python \
+  /path/to/proxy_grafana.py \
   -e GRAFANA_URL=http://localhost:3000 \
   -e GRAFANA_SERVICE_ACCOUNT_TOKEN=glsa_...
 ```

@@ -1,11 +1,6 @@
 """MACAW client smoke test for notion_mcp (low-level Server -> SecureMCP).
 
-Three tests:
-  TEST 1  list_tools                 -- mesh advertises 4 tools
-  TEST 2  show_all_todos             -- read-only round-trip to Notion
-  TEST 3  add_todo + complete_todo   -- write/cleanup pair, only runs
-                                        if NOTION_TEST_WRITE=1 is set
-                                        in the environment.
+
 
 Usage:
     python client-test-macaw.py "notion-todo" <client_name>

@@ -1,16 +1,6 @@
 """
 MACAW client smoke test for splunk-mcp (post FastMCP -> SecureMCP port).
 
-Three tests:
-  TEST 1  list_tools         -- proves mesh advertises the 11 tools
-  TEST 2  ping               -- no Splunk network; proves handler reachable
-  TEST 3  health_check       -- exercises the lazy Splunk connection
-
-A "PASS" in TEST 3 against fake credentials means the handler ran,
-attempted to connect to Splunk, and degraded gracefully with a string
-error (or the connection succeeded). Both outcomes prove the port path
-works -- credentials are a deployment concern, not a port-correctness
-concern.
 
 Usage:
     python client-test-macaw.py splunk <client_name>

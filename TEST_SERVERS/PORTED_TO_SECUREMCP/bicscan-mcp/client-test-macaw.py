@@ -9,19 +9,7 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh, both
-                            tools advertised.
-    2. get_risk_score    -- exercises typed-kwarg path. Calls
-                            BICScan API with a sample address.
-                            Without a valid BICSCAN_API_KEY, the
-                            handler returns the API's auth-failure
-                            JSON. Either outcome proves handler
-                            reach.
 
-Test 2 does NOT require a working BICSCAN_API_KEY for handler-
-reach verification. The handler wraps httpx errors and returns
-JSON either way.
 """
 
 import asyncio
@@ -89,10 +77,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 2 -- get_risk_score (exercises typed-kwarg + httpx path)
     #
-    # Sends a sample EOA. Without a valid BICSCAN_API_KEY env var on
-    # the server, BICScan returns an auth-failure JSON that the
-    # handler propagates back. Either outcome proves the wrapper ->
-    # handler -> httpx -> BICScan path is wired.
+  
     # --------------------------------------------------------------
     print("\n[TEST 2] get_risk_score -- handler reach + httpx path")
     try:
@@ -126,9 +111,7 @@ What success looks like:
             Proves: client -> mesh -> SecureMCP wrapper ->
             BICScan API chain works end-to-end.
 
-If both pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating real BICScan behaviour requires
-BICSCAN_API_KEY set to a valid key.
+
 """)
 
 

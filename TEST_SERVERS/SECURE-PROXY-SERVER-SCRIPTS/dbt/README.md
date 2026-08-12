@@ -13,7 +13,7 @@ config.
 
 - MACAW LocalAgent running.
 - `uv` / `uvx` installed (verified present in this environment at
-  `/home/itsadijmbt/.local/bin/uvx`). If it goes missing on a fresh box:
+  `uvx`). If it goes missing on a fresh box:
   ```bash
   curl -LsSf https://astral.sh/uv/install.sh | sh
   ```
@@ -48,7 +48,7 @@ config does **not** crash the server — it just hides those tools.
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/dbt/proxy_dbt.py
 ```
 
@@ -61,7 +61,7 @@ dependencies into a uv-managed virtualenv. Subsequent runs reuse the cache.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_dbt.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -70,8 +70,8 @@ dependencies into a uv-managed virtualenv. Subsequent runs reuse the cache.
 {
   "mcpServers": {
     "dbt-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/dbt/proxy_dbt.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_dbt.py"],
       "env": {}
     }
   }
@@ -85,8 +85,8 @@ want to expose more tools.)
 
 ```bash
 claude mcp add dbt-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/dbt/proxy_dbt.py
+  python \
+  /path/to/proxy_dbt.py
 ```
 
 Then prompt: *"Use dbt-macaw to call get_mcp_server_version, then

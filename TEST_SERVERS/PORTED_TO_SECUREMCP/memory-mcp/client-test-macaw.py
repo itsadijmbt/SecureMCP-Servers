@@ -9,18 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness -- server registered on the mesh, all 6 tools advertised.
-    2. store_memory   -- reaches the handler (httpx call to AI_MEMORY_SERVICE_URL).
-    3. retrieve_memory -- reaches the handler (httpx call to AI_MEMORY_SERVICE_URL).
-    4. check_semantic_cache -- reaches the handler (httpx call to SEMANTIC_CACHE_SERVICE_URL).
-
-Tests 2-4 do NOT require the upstream HTTP services (MongoDB AI memory
-service, semantic cache service) to be running. The handlers wrap
-httpx errors and return {"error": ...}, so we treat both "tool ran +
-returned error JSON" and "tool ran + got real result" as PASS. What
-we are proving is that the call traversed: client -> mesh -> SecureMCP
-handler. The handler's downstream HTTP call is out of scope.
 """
 
 import asyncio
@@ -85,17 +73,7 @@ async def main():
     print("MEMORY-MCP TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
-    # Pure port-correctness check. If all 6 tools registered cleanly
-    # we know:
-    #   - import swap (FastMCP -> SecureMCP) didn't break anything
-    #   - register_*_tools(mcp) calls in server.py executed
-    #   - SecureMCP's @mcp.tool decorator accepted (name=, description=)
-    #     for every tool in tools/*.py
-    # No upstream HTTP / MongoDB / Bedrock / Tavily call yet.
-    # --------------------------------------------------------------
+
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -106,15 +84,7 @@ async def main():
               "raised at import time. Check server logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- store_memory reaches the handler
-    #
-    # The handler validates user_id + message_type, then POSTs to
-    # AI_MEMORY_SERVICE_URL/conversation/. Without that service
-    # running, httpx.HTTPError fires and the except branch returns
-    # {"error": "..."} -- which is the proof we want: the handler
-    # ran, args were accepted, validators passed.
-    # --------------------------------------------------------------
+
     print("\n[TEST 2] store_memory -- handler reachability")
     try:
         result = await client.call_tool(
@@ -145,13 +115,7 @@ async def main():
                   "Likely mesh-level or upstream HTTP failure surfaced "
                   "through invoke_tool. The handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- retrieve_memory reaches the handler
-    #
-    # Same shape as TEST 2. GETs AI_MEMORY_SERVICE_URL/retrieve_memory/
-    # with user_id+text params. On HTTP failure the except branch
-    # returns the structured error dict.
-    # --------------------------------------------------------------
+
     print("\n[TEST 3] retrieve_memory -- handler reachability")
     try:
         result = await client.call_tool(
@@ -167,11 +131,7 @@ async def main():
         print("  PASS-ish -- exception surfaced via mesh; handler was "
               "reached, upstream HTTP service was not.")
 
-    # --------------------------------------------------------------
-    # TEST 4 -- check_semantic_cache reaches the handler
-    #
-    # POSTs to SEMANTIC_CACHE_SERVICE_URL/read_cache. Same pattern.
-    # --------------------------------------------------------------
+    
     print("\n[TEST 4] check_semantic_cache -- handler reachability")
     try:
         result = await client.call_tool(
@@ -203,12 +163,6 @@ What success looks like (no upstream HTTP services needed):
 
   TEST 4 ✓  check_semantic_cache call returned similarly.
 
-If all four pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating the tools' actual behavior (storing a real
-memory, hitting MongoDB, calling Bedrock, calling Tavily) requires
-the upstream services running and is out of scope for this smoke
-test -- that is the responsibility of the original memory-mcp
-integration tests in tests/test_memory_mcp.py.
 """)
 
 

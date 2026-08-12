@@ -38,12 +38,12 @@ contains the project you'll use, approve. Token cached in `~/.mcp-auth/`.
 
 ```bash
 # Unscoped (smoke target: list_projects)
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/supabase/proxy_supabase.py
 
 # Or scoped to one project (smoke target: list_tables)
 export SUPABASE_PROJECT_REF="<your-project-ref>"
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/supabase/proxy_supabase.py
 ```
 
@@ -58,7 +58,7 @@ the npm cache and the cached OAuth token.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_supabase.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -67,8 +67,8 @@ the npm cache and the cached OAuth token.
 {
   "mcpServers": {
     "supabase-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/supabase/proxy_supabase.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_supabase.py"],
       "env": { "SUPABASE_PROJECT_REF": "<your-project-ref-or-omit>" }
     }
   }
@@ -79,8 +79,8 @@ the npm cache and the cached OAuth token.
 
 ```bash
 claude mcp add supabase-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/supabase/proxy_supabase.py \
+  python \
+  /path/to/proxy_supabase.py \
   -e SUPABASE_PROJECT_REF=<your-project-ref>
 ```
 

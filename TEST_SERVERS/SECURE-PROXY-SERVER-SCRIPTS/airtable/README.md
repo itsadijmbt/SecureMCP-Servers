@@ -32,7 +32,7 @@ export AIRTABLE_API_KEY="pat123.abc123..."
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/airtable/proxy_airtable.py
 ```
 
@@ -45,7 +45,7 @@ runs reuse the npm cache.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_airtable.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -54,8 +54,8 @@ runs reuse the npm cache.
 {
   "mcpServers": {
     "airtable-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/airtable/proxy_airtable.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_airtable.py"],
       "env": { "AIRTABLE_API_KEY": "pat123.abc123..." }
     }
   }
@@ -66,8 +66,8 @@ runs reuse the npm cache.
 
 ```bash
 claude mcp add airtable-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/airtable/proxy_airtable.py \
+  python \
+  /path/to/proxy_airtable.py \
   -e AIRTABLE_API_KEY=pat123.abc123...
 ```
 

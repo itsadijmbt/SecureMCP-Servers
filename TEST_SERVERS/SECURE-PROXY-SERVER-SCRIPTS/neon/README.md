@@ -34,7 +34,7 @@ page instead — that limits the proxy to projects in that org.
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/neon/proxy_neon.py
 ```
 
@@ -47,7 +47,7 @@ Neon console first.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_neon.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -56,8 +56,8 @@ Neon console first.
 {
   "mcpServers": {
     "neon-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/neon/proxy_neon.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_neon.py"],
       "env": { "NEON_API_KEY": "napi_..." }
     }
   }
@@ -68,8 +68,8 @@ Neon console first.
 
 ```bash
 claude mcp add neon-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/neon/proxy_neon.py \
+  python \
+  /path/to/proxy_neon.py \
   -e NEON_API_KEY=napi_...
 ```
 

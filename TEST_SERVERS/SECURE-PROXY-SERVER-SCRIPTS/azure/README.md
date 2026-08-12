@@ -57,7 +57,7 @@ The script forwards all four when set.
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/azure/proxy_azure.py
 ```
 
@@ -76,7 +76,7 @@ Subsequent runs are fast.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_azure.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -85,8 +85,8 @@ Subsequent runs are fast.
 {
   "mcpServers": {
     "azure-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/azure/proxy_azure.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_azure.py"],
       "env": {
         "AZURE_TENANT_ID": "...",
         "AZURE_CLIENT_ID": "...",
@@ -105,8 +105,8 @@ spawned subprocess won't see `~/.azure/`.)
 
 ```bash
 claude mcp add azure-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/azure/proxy_azure.py \
+  python \
+  /path/to/proxy_azure.py \
   -e AZURE_TENANT_ID=... -e AZURE_CLIENT_ID=... -e AZURE_CLIENT_SECRET=...
 ```
 

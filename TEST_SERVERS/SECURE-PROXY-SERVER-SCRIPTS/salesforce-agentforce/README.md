@@ -69,7 +69,7 @@ In one terminal, start the upstream:
 In another terminal:
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/salesforce-agentforce/proxy_salesforce.py
 ```
 
@@ -84,7 +84,7 @@ MACAW console shows one entry under `app_name=salesforce-agentforce-proxy`.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_salesforce.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI:
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -93,8 +93,8 @@ MACAW console shows one entry under `app_name=salesforce-agentforce-proxy`.
 {
   "mcpServers": {
     "salesforce-agentforce-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/salesforce-agentforce/proxy_salesforce.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_salesforce.py"],
       "env": {
         "AGENTFORCE_MCP_URL": "http://localhost:8000/mcp"
       }
@@ -111,8 +111,8 @@ and Gemini will show `Disconnected`.
 
 ```bash
 claude mcp add salesforce-agentforce-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/salesforce-agentforce/proxy_salesforce.py \
+  python \
+  /path/to/proxy_salesforce.py \
   -e AGENTFORCE_MCP_URL=http://localhost:8000/mcp
 ```
 

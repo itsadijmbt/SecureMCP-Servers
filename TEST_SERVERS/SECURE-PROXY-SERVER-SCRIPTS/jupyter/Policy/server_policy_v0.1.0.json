@@ -1,0 +1,66 @@
+{
+  "policy_id": "app:jupyter-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:jupyter-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:jupyter-proxy/execute_code",
+    "tool:jupyter-proxy/execute_cell",
+    "tool:jupyter-proxy/insert_execute_code_cell",
+    "tool:jupyter-proxy/insert_cell",
+    "tool:jupyter-proxy/edit_cell_source",
+    "tool:jupyter-proxy/overwrite_cell_source",
+    "tool:jupyter-proxy/delete_cell",
+    "tool:jupyter-proxy/move_cell",
+    "tool:jupyter-proxy/clear_cell_output",
+    "tool:jupyter-proxy/restart_notebook",
+    "tool:jupyter-proxy/unuse_notebook",
+    "tool:jupyter-proxy/connect_to_jupyter"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:jupyter-proxy/use_notebook": {
+        "notebook_path": [
+          "*..*",
+          "/*",
+          "~*"
+        ]
+      },
+      "tool:jupyter-proxy/list_files": {
+        "path": [
+          "*..*",
+          "/*",
+          "~*"
+        ]
+      }
+    },
+    "parameters": {
+      "tool:jupyter-proxy/list_files": {
+        "path": {"type": "string", "max_length": 256, "pattern": "^([A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*)?$"},
+        "max_depth": {"type": "integer", "min": 0, "max": 3},
+        "start_index": {"type": "integer", "min": 0},
+        "limit": {"type": "integer", "min": 1, "max": 100},
+        "pattern": {"type": "string", "max_length": 128}
+      },
+      "tool:jupyter-proxy/read_cell": {
+        "cell_index": {"type": "integer", "min": 0, "max": 10000},
+        "notebook_name": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"}
+      },
+      "tool:jupyter-proxy/read_notebook": {
+        "notebook_name": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
+        "response_format": {"type": "string", "allowed_values": ["brief", "detailed"]},
+        "start_index": {"type": "integer", "min": 0},
+        "limit": {"type": "integer", "min": 1, "max": 100}
+      },
+      "tool:jupyter-proxy/use_notebook": {
+        "notebook_name": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
+        "notebook_path": {"type": "string", "min_length": 1, "max_length": 256, "pattern": "^[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*\\.ipynb$"},
+        "mode": {"type": "string", "allowed_values": ["connect"]},
+        "kernel_id": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9-]+$"}
+      }
+    }
+  },
+  "description": "Jupyter MCP via SecureMCPProxy -- all kernel execution, cell mutation and runtime server re-pointing denied; read surface path-bound to relative .ipynb files and size-capped."
+}

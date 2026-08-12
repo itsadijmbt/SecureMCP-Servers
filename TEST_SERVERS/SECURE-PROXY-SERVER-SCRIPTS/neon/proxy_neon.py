@@ -1,91 +1,73 @@
 """
-Neon MCP -> SecureMCPProxy with bind_to_user (remote HTTP upstream).
+neon-proxy -> SecureMCPProxy, served natively.
 
-Two tests, one file. Calls go: client identity -> server identity -> upstream,
-so MACAW renders a two-node graph (client ──> server) for both tests.
-
-  Test 1 (active by default):  one bound.call_tool("list_projects") then exit.
-  Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
-
-Neon's remote MCP at https://mcp.neon.tech/mcp accepts API key auth via
-bearer header — same shape as the GitHub remote proxy. No mcp-remote and
-no OAuth dance.
+Prereq:
+    export NEON_API_KEY="..."
+    export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
 Run:
-    export NEON_API_KEY="napi_..."
-    /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/neon/proxy_neon.py
+    python proxy_neon.py
+    python proxy_neon.py http 8080
+
+Claude Code:
+    claude mcp add neon-macaw python /path/to/proxy_neon.py \
+      -e NEON_API_KEY=... \
+      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 """
 
 import os
 import sys
 import logging
-from macaw_adapters.mcp import SecureMCPProxy, Client
 
+import httpx as _httpx
+
+from macaw_adapters.mcp import SecureMCPProxy, Client
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-api_key = os.environ.get("NEON_API_KEY")
-if not api_key:
+NEON_API_KEY = os.environ.get("NEON_API_KEY")
+if not NEON_API_KEY:
     raise ValueError("NEON_API_KEY is not set (create at https://console.neon.tech/app/settings/api-keys)")
 
-# Append ?readonly=true to the URL if you want to restrict to read-only tools
-# (no project create/delete, no migrations, no run_sql writes). Useful for
-# locking the proxy down to safe ops without touching MAPL policy.
+NEON_MCP_URL = "https://mcp.neon.tech/mcp"
+
+
+def _timed_create_http_client(self):
+    ua = self.upstream_auth
+    headers = {}
+    if getattr(ua, "type", None) == "bearer" and getattr(ua, "token", None):
+        headers["Authorization"] = f"Bearer {ua.token}"
+    elif getattr(ua, "type", None) == "api_key" and getattr(ua, "api_key", None):
+        headers[getattr(ua, "header_name", None) or "X-API-Key"] = ua.api_key
+    return _httpx.AsyncClient(
+        headers=headers or None,
+        timeout=_httpx.Timeout(connect=30, read=300, write=30, pool=30),
+    )
+SecureMCPProxy._create_http_client = _timed_create_http_client
+
 proxy = SecureMCPProxy(
     app_name="neon-proxy",
-    upstream_url="https://mcp.neon.tech/mcp",
-    upstream_auth={"type": "bearer", "token": api_key},
+    upstream_url=NEON_MCP_URL,
+    upstream_auth={"type": "bearer", "token": NEON_API_KEY},
 )
+logging.info("neon-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-# Client identity: registers as securemcp-client-neon-macaw-gateway.
 client = Client("neon-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
-# ============================================================================
-# Test 1 — smoke check (default).
-# list_projects is read-only and proves auth + dispatch end-to-end.
-# ============================================================================
-tools = proxy.list_tools()
-print(f"tools: {len(tools)}", file=sys.stderr)
-for t in tools:
-    print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
+import macaw_adapters.mcp._endpoint as _endpoint
 
-result = bound.call_tool("list_projects", {})
-print(f"\nlist_projects -> {str(result)[:300]}", file=sys.stderr)
+_StubClient = _endpoint.Client
 
-# ============================================================================
-# Test 2 — stdio MCP gateway (uncomment block below to enable).
-# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
-# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
-# ============================================================================
-# import asyncio
-# import json
-# from mcp.server import Server
-# from mcp.server.stdio import stdio_server
-# import mcp.types as types
-#
-# srv = Server("neon-macaw-proxy")
-# tool_objs = [
-#     types.Tool(
-#         name=t["name"],
-#         description=t.get("description", ""),
-#         inputSchema=t.get("schema") or {"type": "object"},
-#     )
-#     for t in proxy.list_tools()
-# ]
-#
-# @srv.list_tools()
-# async def _list():
-#     return tool_objs
-#
-# @srv.call_tool()
-# async def _call(name, args):
-#     r = bound.call_tool(name, args or {})
-#     return [types.TextContent(type="text", text=json.dumps(r, default=str))]
-#
-# async def _main():
-#     async with stdio_server() as (rd, wr):
-#         await srv.run(rd, wr, srv.create_initialization_options())
-#
-# asyncio.run(_main())
+
+def _bound_stub_client(name):
+    stub = _StubClient(name)
+    stub.macaw_client = bound.user_client
+    return stub
+
+
+_endpoint.Client = _bound_stub_client
+
+transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
+proxy.run(transport=transport, port=port)

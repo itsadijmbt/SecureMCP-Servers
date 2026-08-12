@@ -1,0 +1,27 @@
+{
+  "policy_id": "app:dbt-proxy",
+  "version": "0.5.0",
+  "scope": "global",
+  "resources": [
+    "tool:dbt-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:dbt-proxy/execute_sql",
+    "tool:dbt-proxy/run",
+    "tool:dbt-proxy/build",
+    "tool:dbt-proxy/clone",
+    "tool:dbt-proxy/trigger_job_run",
+    "tool:dbt-proxy/cancel_job_run",
+    "tool:dbt-proxy/retry_job_run"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:dbt-proxy/test": {
+        "node_selection": [
+          "*DENYME*"
+        ]
+      }
+    }
+  },
+  "description": "dbt MCP via SecureMCPProxy"
+}

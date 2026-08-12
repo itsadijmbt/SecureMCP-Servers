@@ -1,0 +1,86 @@
+==============================================================================
+ mcp-redis — setup & test bits  (policy v0.2.0: denied_resources + parameters)
+==============================================================================
+ Server identity (verified from src/common/server.py:13)
+   SecureMCP("securemcp-Redis-mCP-server")
+   -> app_name = securemcp-securemcp-Redis-mCP-server   (double "securemcp-")
+   policy_id must be:  app:securemcp-securemcp-Redis-mCP-server
+   Confirm against startup log: "Registered as agent: ...app:<X>:..."
+   (To drop the double prefix, rename the SecureMCP() arg to "Redis-mCP-server"
+    and set policy_id to app:securemcp-Redis-mCP-server.)
+
+ Policy model: NO attestations. Redis = one tool per op, so the operation is
+ the TOOL NAME (a resource), not a param -- MAPL conditions can't select it.
+ Destructive + recon tools are blocked via denied_resources (deterministic).
+
+==============================================================================
+ 1. THROWAWAY REDIS IN DOCKER   (already running as 'macaw-redis')
+==============================================================================
+docker run -d --name macaw-redis -p 6379:6379 redis:7
+docker exec macaw-redis redis-cli ping        # -> PONG
+
+==============================================================================
+ 2. EXPORT ENV FOR THE SERVER   (verified: src/common/config.py:15-27)
+==============================================================================
+export REDIS_HOST=127.0.0.1
+export REDIS_PORT=6379
+export REDIS_DB=0
+# REDIS_USERNAME / REDIS_PWD / REDIS_SSL not needed (defaults: no auth, no TLS)
+
+==============================================================================
+ 3. PUBLISH THE POLICY  (REQUIRED before enforcement)
+==============================================================================
+# Runtime reads the REMOTE store (api.macawsecurity.ai), NOT the file.
+# Publish Policy/server_policy_v0.1.json (version 0.2.0) to the store, keyed on
+# policy_id app:securemcp-securemcp-Redis-mCP-server. Editing the file alone
+# changes nothing -- without publishing, the server uses an allow-all default
+# and every Area A/D denial below will FAIL.
+
+==============================================================================
+ 4. RUN THE SERVER
+==============================================================================
+cd TEST_SERVERS/PORTED_TO_SECUREMCP/mcp-redis
+python -m src.main
+# Watch for: "Registered as agent: local:.../app:securemcp-securemcp-Redis-mCP-server:<id>"
+
+==============================================================================
+ 5. RUN THE CLIENT  (requester)
+==============================================================================
+python client.py Redis-mCP-server redis-requester
+# (filter "Redis-mCP-server" is a substring of the app agent_id)
+# client-analyst.py exists per the standing convention but is NOT exercised by
+# this policy (no attestations to approve).
+
+==============================================================================
+ 6. EXPECTED BEHAVIOUR (12 tests, 4 areas)
+==============================================================================
+ A1 info                 ALLOW  (in tool:** , not denied)
+ A2 scan_keys            DENY   (denied_resources)
+ A3 json_del             DENY   (denied_resources)
+
+ B1 get key=macaw_test_key   ALLOW  (matches pattern)
+ B2 get key=1bad_key         DENY   (starts with digit -> pattern fails)
+ B3 get key=x*150            DENY   (length 150 > max_length 100)
+
+ C1 set key=macaw_key        ALLOW
+ C2 set key=@bad_key         DENY   (starts with '@' -> pattern fails)
+ C3 expire expire_seconds=0  DENY   (0 < min 1)
+
+ D1 delete               DENY   (denied_resources, Theorem 2: deny>allow)
+ D2 rename               DENY   (denied_resources)
+ D3 hdel                 DENY   (denied_resources)
+
+==============================================================================
+ 7. VERIFIED ENFORCEMENT MAP (macaw_client 0.9.4)
+==============================================================================
+ resources / denied_resources (tool:<name>, no app name)   ENFORCED
+ parameters (pattern, min/max, *_length)                   ENFORCED
+ denied_parameters                                          NOT ENFORCED
+ conditional attestations on multi-tool servers (redis)     N/A (no param
+   selects a tool; use denied_resources instead)
+
+==============================================================================
+ CLEANUP
+==============================================================================
+docker stop macaw-redis && docker rm macaw-redis
+==============================================================================

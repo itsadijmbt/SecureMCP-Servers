@@ -1,0 +1,59 @@
+{
+  "policy_id": "app:securemcp-splunk",
+  "version": "0.1.1",
+  "scope": "global",
+  "resources": [
+    "tool:search_splunk",
+    "tool:list_indexes",
+    "tool:get_index_info",
+    "tool:list_saved_searches",
+    "tool:current_user",
+    "tool:list_users",
+    "tool:list_kvstore_collections",
+    "tool:health_check",
+    "tool:get_indexes_and_sourcetypes",
+    "tool:health",
+    "tool:ping"
+  ],
+  "constraints": {
+    "attestations": {
+      "allow_destroy": {
+        "approval_criteria": "role:manager",
+        "one_time": true,
+        "timeout": 300
+      }
+    },
+    "denied_parameters": {
+      "tool:search_splunk": {
+        "search_query": [
+          "*DENYME*"
+        ]
+      }
+    },
+    "parameters": {
+      "tool:get_index_info": {
+        "index_name": {
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "tool:search_splunk": {
+        "max_results": {
+          "max": 1000,
+          "min": 1,
+          "type": "integer"
+        },
+        "search_query": {
+          "max_length": 4000,
+          "min_length": 1,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "attestations": [
+    "allow_destroy::{ params.search_query MATCHES '*delete*' OR params.search_query MATCHES '*DELETE*' OR params.search_query MATCHES '*collect*' OR params.search_query MATCHES '*COLLECT*' OR params.search_query MATCHES '*outputlookup*' OR params.search_query MATCHES '*outputcsv*' OR params.search_query MATCHES '*script*' OR params.search_query MATCHES '*runshell*' OR params.search_query MATCHES '*sendemail*' OR params.search_query MATCHES '*sendalert*' OR params.search_query MATCHES '*stash*' OR params.search_query MATCHES '*tscollect*' OR params.search_query MATCHES '*mcollect*' OR params.search_query MATCHES '*| rest*' OR params.search_query MATCHES '*|rest*' OR params.search_query MATCHES '*dump*' OR params.search_query MATCHES '*| map*' }"
+  ],
+  "description": "Splunk MCP (app:securemcp-splunk)"
+}

@@ -200,17 +200,7 @@ What success looks like across the six tests:
   TEST 5 ✓  plot tool returns a dict with image_format + image_base64.
   TEST 6 ✓  Bad input raises a RuntimeError that propagates cleanly.
 
-If TESTS 1, 3, 4, 5 all pass, every adapter we added is verified:
-  - .model_dump() (TESTS 1, 3, 4)
-  - list[.model_dump()] (TEST 2)
-  - base64 dict for images (TEST 5)
-  - RuntimeError instead of McpError (TEST 6)
-  - tool() forwarder accepting @mcp.tool(structured_output=True)
-    decorations (implicit -- if any tool returns at all, the
-    decorator succeeded).
 
-No upstream creds or external services to set up. Just run the
-server and run this script.
 """)
 
 

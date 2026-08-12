@@ -1,16 +1,18 @@
 """
-Stripe MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
+stripe-proxy -> SecureMCPProxy, served natively.
 
-Two tests, one file. Calls go: client identity -> server identity -> upstream,
-so MACAW renders a two-node graph (client ──> server) for both tests.
-
-  Test 1 (active by default):  one bound.call_tool("list_customers") then exit.
-  Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
+Prereq:
+    export STRIPE_SECRET_KEY="..."
+    export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
 Run:
-    export STRIPE_SECRET_KEY="rk_test_..."   # use a Restricted API Key
-    /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/stripe/proxy_stripe.py
+    python proxy_stripe.py
+    python proxy_stripe.py http 8080
+
+Claude Code:
+    claude mcp add stripe-macaw python /path/to/proxy_stripe.py \
+      -e STRIPE_SECRET_KEY=... \
+      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 """
 
 import os
@@ -25,9 +27,7 @@ api_key = os.environ.get("STRIPE_SECRET_KEY")
 if not api_key:
     raise ValueError("STRIPE_SECRET_KEY is not set (use a Restricted API Key: rk_test_... or rk_live_...)")
 
-# Stripe MCP takes the key as a CLI flag, not an env var. This means the key
-# is visible to anyone with `ps` on this box — use a Restricted API Key with
-# minimal scopes, never your full sk_*.
+
 proxy = SecureMCPProxy(
     app_name="stripe-proxy",
     command=["npx", "-y", "@stripe/mcp", f"--api-key={api_key}"],
@@ -36,53 +36,24 @@ proxy = SecureMCPProxy(
         "HOME": os.environ["HOME"],
     },
 )
+logging.info("stripe-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-# Client identity: registers as securemcp-client-stripe-macaw-gateway.
 client = Client("stripe-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
-# ============================================================================
-# Test 1 — smoke check (default).
-# list_customers with limit=1 is read-only and proves auth + dispatch.
-# ============================================================================
-tools = proxy.list_tools()
-print(f"tools: {len(tools)}", file=sys.stderr)
-for t in tools:
-    print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
+import macaw_adapters.mcp._endpoint as _endpoint
 
-result = bound.call_tool("list_customers", {"limit": 1})
-print(f"\nlist_customers -> {str(result)[:300]}", file=sys.stderr)
+_StubClient = _endpoint.Client
 
-# ============================================================================
-# Test 2 — stdio MCP gateway (uncomment block below to enable).
-# ============================================================================
-import asyncio
-import json
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-import mcp.types as types
 
-srv = Server("stripe-macaw-proxy")
-tool_objs = [
-    types.Tool(
-        name=t["name"],
-        description=t.get("description", ""),
-        inputSchema=t.get("schema") or {"type": "object"},
-    )
-    for t in proxy.list_tools()
-]
+def _bound_stub_client(name):
+    stub = _StubClient(name)
+    stub.macaw_client = bound.user_client
+    return stub
 
-@srv.list_tools()
-async def _list():
-    return tool_objs
 
-@srv.call_tool()
-async def _call(name, args):
-    r = bound.call_tool(name, args or {})
-    return [types.TextContent(type="text", text=json.dumps(r, default=str))]
+_endpoint.Client = _bound_stub_client
 
-async def _main():
-    async with stdio_server() as (rd, wr):
-        await srv.run(rd, wr, srv.create_initialization_options())
-
-asyncio.run(_main())
+transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
+proxy.run(transport=transport, port=port)

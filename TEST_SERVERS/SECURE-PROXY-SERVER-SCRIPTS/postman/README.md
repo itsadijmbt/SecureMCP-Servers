@@ -25,7 +25,7 @@ export POSTMAN_API_KEY="PMAK-..."
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/postman/proxy_postman.py
 ```
 
@@ -38,7 +38,7 @@ runs reuse the npm cache.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_postman.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -47,8 +47,8 @@ runs reuse the npm cache.
 {
   "mcpServers": {
     "postman-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/postman/proxy_postman.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_postman.py"],
       "env": { "POSTMAN_API_KEY": "PMAK-..." }
     }
   }
@@ -59,8 +59,8 @@ runs reuse the npm cache.
 
 ```bash
 claude mcp add postman-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/postman/proxy_postman.py \
+  python \
+  /path/to/proxy_postman.py \
   -e POSTMAN_API_KEY=PMAK-...
 ```
 

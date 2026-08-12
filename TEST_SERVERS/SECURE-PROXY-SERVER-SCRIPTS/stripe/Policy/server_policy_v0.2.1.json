@@ -1,0 +1,30 @@
+{
+  "policy_id": "app:stripe-proxy",
+  "version": "0.2.1",
+  "scope": "global",
+  "resources": [
+    "tool:stripe-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:stripe-proxy/stripe_api_execute",
+    "tool:stripe-proxy/create_refund",
+    "tool:stripe-proxy/update_dispute",
+    "tool:stripe-proxy/cancel_subscription",
+    "tool:stripe-proxy/finalize_invoice",
+    "tool:stripe-proxy/update_subscription",
+    "tool:stripe-proxy/create_payment_link",
+    "tool:stripe-proxy/create_coupon",
+    "tool:stripe-proxy/create_invoice",
+    "tool:stripe-proxy/create_invoice_item"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:stripe-proxy/search_stripe_documentation": {
+        "question": [
+          "*DENYME*"
+        ]
+      }
+    }
+  },
+  "description": "Stripe MCP via SecureMCPProxy"
+}
