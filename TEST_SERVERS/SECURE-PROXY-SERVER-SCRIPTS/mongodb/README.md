@@ -1,87 +1,37 @@
-# MongoDB MCP — SecureMCPProxy (Docker stdio)
+# MongoDB MCP — SecureMCPProxy
 
-Wraps the official `mongodb/mongodb-mcp-server` Docker image with MACAW.
-One Python file, two tests.
+Wraps `mongodb/mongodb-mcp-server` in Docker over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
 
-## Prereqs
+## What it needs
 
-- MACAW LocalAgent running.
-- Docker daemon running, image pulled:
-  ```bash
-  docker pull mongodb/mongodb-mcp-server:latest
-  ```
-- A reachable MongoDB. Local quick-start:
-  ```bash
-  docker run -d --name mongo-test -p 27017:27017 mongo:7
-  ```
+- MACAW LocalAgent running, `MACAW_HOME` set.
+- Docker daemon running.
+- Image pulled: `docker pull mongodb/mongodb-mcp-server:latest`.
 
-## Credentials
+Environment variables:
 
-```bash
-export MDB_MCP_CONNECTION_STRING="mongodb://localhost:27017"
-```
+- `MDB_MCP_CONNECTION_STRING`
+- `MDB_MCP_API_CLIENT_ID`
+- `MDB_MCP_API_CLIENT_SECRET`
 
-Or, for Atlas:
+## Setup
 
 ```bash
+export MDB_MCP_CONNECTION_STRING="..."
 export MDB_MCP_API_CLIENT_ID="..."
 export MDB_MCP_API_CLIENT_SECRET="..."
+export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
+
+python proxy_mongodb.py            # stdio
+python proxy_mongodb.py http 8080  # http
 ```
 
-## Test 1 — proxy works (1 dot)
+Register with Claude Code:
 
 ```bash
-python \
-    TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/mongodb/proxy_mongodb.py
+claude mcp add mongodb-macaw python /path/to/proxy_mongodb.py \
+  -e MDB_MCP_CONNECTION_STRING=... \
+  -e MDB_MCP_API_CLIENT_ID=... \
+  -e MDB_MCP_API_CLIENT_SECRET=... \
+  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 ```
-
-Expected: tool list on stderr, then `list-databases -> {...}`. MACAW console
-shows one entry under `app_name=mongodb-proxy`.
-
-## Test 2 — real CLI through the proxy (2nd dot)
-
-1. No edit needed — the script serves natively over stdio.
-2. Configure your CLI to spawn this script as an MCP server.
-
-**Gemini CLI** — `~/.gemini/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "mongodb-macaw": {
-      "command": "python",
-      "args": ["/path/to/proxy_mongodb.py"],
-      "env": { "MDB_MCP_CONNECTION_STRING": "mongodb://localhost:27017" }
-    }
-  }
-}
-```
-
-**Claude Code CLI:**
-
-```bash
-claude mcp add mongodb-macaw \
-  python \
-  /path/to/proxy_mongodb.py \
-  -e MDB_MCP_CONNECTION_STRING=mongodb://localhost:27017
-```
-
-Then in the CLI, prompt: *"Use the mongodb-macaw tool to call list-databases."*
-MACAW console shows a second entry — originated from a real LLM client, not
-the smoke test.
-
-## Notes on what could go wrong
-
-- The MongoDB MCP server emits `notifications/resources/updated` for
-  `debug://mongodb` right after responding to `tools/list`. That notification
-  arrives while the mcp SDK's stdio_client is already exiting its
-  ClientSession context, so the consumer channel is closed and the SDK raises
-  `BrokenResourceError`. This surfaces as a `ConnectionError` from the proxy
-  constructor. The script uses plain `SecureMCPProxy` and does not suppress it,
-  so a failed connection reports as a failure rather than a silent success.
-- `MDB_MCP_READ_ONLY=true` is passed to the upstream container so create /
-  delete / drop / update / insert / rename tools never register. Keep it on
-  for testing; flip when you actually want write access.
-- The container uses `--network=host` so `mongodb://localhost:27017` reaches
-  the local mongo. On a non-host-network setup, replace with
-  `host.docker.internal` and adjust `MDB_MCP_CONNECTION_STRING` accordingly.

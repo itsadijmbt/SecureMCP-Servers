@@ -1,0 +1,9 @@
+{
+  "policy_id": "app:azure-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:azure-proxy/**"
+  ],
+  "description": "azure-proxy -- placeholder policy, all tools allowed."
+}
