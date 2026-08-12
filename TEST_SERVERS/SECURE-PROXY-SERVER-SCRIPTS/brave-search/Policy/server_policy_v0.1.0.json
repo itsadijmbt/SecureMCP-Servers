@@ -1,0 +1,76 @@
+{
+  "policy_id": "app:brave-search-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:brave-search-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:brave-search-proxy/brave_llm_context"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:brave-search-proxy/brave_web_search": {
+        "query": ["*DENYME*", "*-----BEGIN*PRIVATE KEY*"],
+        "goggles": ["*"]
+      },
+      "tool:brave-search-proxy/brave_news_search": {
+        "query": ["*DENYME*"],
+        "goggles": ["*"]
+      },
+      "tool:brave-search-proxy/brave_local_search": {
+        "query": ["*DENYME*"],
+        "goggles": ["*"]
+      }
+    },
+    "parameters": {
+      "tool:brave-search-proxy/brave_web_search": {
+        "query": {"type": "string", "min_length": 1, "max_length": 400},
+        "count": {"type": "number", "min": 1, "max": 20},
+        "offset": {"type": "number", "min": 0, "max": 9},
+        "safesearch": {"type": "string", "allowed_values": ["moderate", "strict"]},
+        "freshness": {"type": "string", "allowed_values": ["pd", "pw", "pm", "py"]},
+        "result_filter": {"type": "array", "min_items": 1, "max_items": 10},
+        "units": {"type": "string", "allowed_values": ["metric", "imperial"]}
+      },
+      "tool:brave-search-proxy/brave_local_search": {
+        "query": {"type": "string", "min_length": 1, "max_length": 400},
+        "count": {"type": "number", "min": 1, "max": 20},
+        "offset": {"type": "number", "min": 0, "max": 9},
+        "safesearch": {"type": "string", "allowed_values": ["moderate", "strict"]}
+      },
+      "tool:brave-search-proxy/brave_news_search": {
+        "query": {"type": "string", "min_length": 1, "max_length": 400},
+        "count": {"type": "number", "min": 1, "max": 50},
+        "offset": {"type": "number", "min": 0, "max": 9},
+        "safesearch": {"type": "string", "allowed_values": ["moderate", "strict"]},
+        "freshness": {"type": "string", "allowed_values": ["pd", "pw", "pm", "py"]}
+      },
+      "tool:brave-search-proxy/brave_video_search": {
+        "query": {"type": "string", "min_length": 1, "max_length": 400},
+        "count": {"type": "number", "min": 1, "max": 50},
+        "offset": {"type": "number", "min": 0, "max": 9},
+        "safesearch": {"type": "string", "allowed_values": ["moderate", "strict"]},
+        "freshness": {"type": "string", "allowed_values": ["pd", "pw", "pm", "py"]}
+      },
+      "tool:brave-search-proxy/brave_image_search": {
+        "query": {"type": "string", "min_length": 1, "max_length": 400},
+        "count": {"type": "number", "min": 1, "max": 50},
+        "safesearch": {"type": "string", "allowed_values": ["strict"]}
+      },
+      "tool:brave-search-proxy/brave_place_search": {
+        "query": {"type": "string", "min_length": 1, "max_length": 400},
+        "count": {"type": "number", "min": 1, "max": 50},
+        "latitude": {"type": "number", "min": -90, "max": 90},
+        "longitude": {"type": "number", "min": -180, "max": 180},
+        "radius": {"type": "number", "min": 1, "max": 50000},
+        "safesearch": {"type": "string", "allowed_values": ["moderate", "strict"]},
+        "units": {"type": "string", "allowed_values": ["metric", "imperial"]}
+      },
+      "tool:brave-search-proxy/brave_summarizer": {
+        "key": {"type": "string", "min_length": 1, "max_length": 512}
+      }
+    }
+  },
+  "description": "Brave Search MCP via SecureMCPProxy -- bulk LLM-context extraction denied and custom goggles re-ranking blocked; queries length-capped, safesearch pinned above off, and result counts held to the upstream schema maxima."
+}

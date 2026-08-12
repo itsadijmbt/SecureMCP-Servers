@@ -1,0 +1,9 @@
+{
+  "policy_id": "app:terraform-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:terraform-proxy/**"
+  ],
+  "description": "terraform-proxy -- placeholder policy, all tools allowed."
+}

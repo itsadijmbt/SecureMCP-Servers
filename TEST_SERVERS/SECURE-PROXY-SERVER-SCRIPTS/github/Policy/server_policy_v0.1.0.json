@@ -1,0 +1,9 @@
+{
+  "policy_id": "app:github-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:github-proxy/**"
+  ],
+  "description": "github-proxy -- placeholder policy, all tools allowed."
+}

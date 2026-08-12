@@ -1,0 +1,9 @@
+{
+  "policy_id": "app:pan-mcp-relay-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:pan-mcp-relay-proxy/**"
+  ],
+  "description": "pan-mcp-relay-proxy -- placeholder policy, all tools allowed."
+}

@@ -1,0 +1,9 @@
+{
+  "policy_id": "app:atlassian-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:atlassian-proxy/**"
+  ],
+  "description": "atlassian-proxy -- placeholder policy, all tools allowed."
+}
