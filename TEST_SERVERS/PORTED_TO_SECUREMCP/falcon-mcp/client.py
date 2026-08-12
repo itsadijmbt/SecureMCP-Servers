@@ -31,7 +31,6 @@ async def main():
                   
       client.set_default_server(server_id)
 
-      # List all tools
       tools = await client.list_tools(server_name=name)
       seen = set()                                                                                                                                                                            
       for t in tools:
@@ -43,7 +42,6 @@ async def main():
       print("FALCON-MCP TOOL TESTS")
       print("=" * 50)                                                                                                                                                                         
    
-      # Test 1: Check connectivity                                                                                                                                                            
       print("\n[TEST 1] falcon_check_connectivity")
       try:                                                                                                                                                                                    
           result = await client.call_tool("falcon_check_connectivity", {})
@@ -51,7 +49,6 @@ async def main():
       except Exception as e:
           print(f"  Failed: {e}")
                                                                                                                                                                                               
-      # Test 2: List enabled modules
       print("\n[TEST 2] falcon_list_enabled_modules")                                                                                                                                         
       try:        
           result = await client.call_tool("falcon_list_enabled_modules", {})
@@ -59,7 +56,6 @@ async def main():
       except Exception as e:
           print(f"  Failed: {e}")
 
-      # Test 3: List all available modules
       print("\n[TEST 3] falcon_list_modules")
       try:
           result = await client.call_tool("falcon_list_modules", {})
@@ -67,7 +63,6 @@ async def main():
       except Exception as e:
           print(f"  Failed: {e}")
                                                                                                                                                                                               
-      # Test 4: Get a resource (FQL guide)
       print("\n[TEST 4] Resource: hosts FQL guide")                                                                                                                                           
       try:        
           result = await client.get_resource("falcon://hosts/search/fql-guide")

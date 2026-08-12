@@ -22,7 +22,6 @@ from macaw_adapters.mcp import Client
 
 SMOKE_FILE = "/tmp/excal_port_smoke.excalidraw"
 
-# Tiny mermaid sample -- 3 nodes, 2 edges, all upstream parser-supported.
 SMOKE_MERMAID = """flowchart LR
     A[Frontend] --> B[API]
     B --> C[(Postgres)]
@@ -59,11 +58,9 @@ async def main():
     client.set_default_server(server_id)
     print(f"Connected to: {server_id}")
 
-    # Clean any leftover from a previous run so TEST 2 assertions are honest.
     if os.path.exists(SMOKE_FILE):
         os.remove(SMOKE_FILE)
 
-    # TEST 1 -- mesh-native tool discovery
     print("\n" + "=" * 60)
     print("TEST 1: list_tools  (mesh advertises 4 excalidraw tools)")
     print("=" * 60)
@@ -80,7 +77,6 @@ async def main():
     assert not missing, f"FAIL: missing tools {missing}"
     print("  PASS -- all 4 expected tools present")
 
-    # TEST 2 -- mermaid_to_excalidraw writes a real .excalidraw file
     print("\n" + "=" * 60)
     print("TEST 2: mermaid_to_excalidraw  (writes /tmp file)")
     print("=" * 60)
@@ -95,7 +91,6 @@ async def main():
     assert size > 0, f"FAIL: {SMOKE_FILE} is empty"
     print(f"  PASS -- {SMOKE_FILE} written ({size} bytes)")
 
-    # TEST 3 -- get_diagram_info reads back what TEST 2 wrote
     print("\n" + "=" * 60)
     print("TEST 3: get_diagram_info  (read back, assert nodes survive)")
     print("=" * 60)
@@ -103,15 +98,11 @@ async def main():
     output3 = r3.get("result", r3) if isinstance(r3, dict) else r3
     summary = str(output3)
     print(f"  summary head: {summary[:240]}")
-    # We don't pin exact labels because upstream component-detection may
-    # rewrite "Postgres" styling; we check the labels we provided exist
-    # somewhere in the printed summary.
     for label in ("Frontend", "API", "Postgres"):
         assert label in summary, f"FAIL: label '{label}' missing from summary"
     print("  PASS -- all 3 mermaid labels round-tripped through "
           "parse -> layout -> render -> read")
 
-    # Cleanup so reruns are honest.
     if os.path.exists(SMOKE_FILE):
         os.remove(SMOKE_FILE)
 

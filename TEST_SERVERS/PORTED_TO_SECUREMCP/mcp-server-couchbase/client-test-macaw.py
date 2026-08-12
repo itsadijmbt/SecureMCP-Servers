@@ -70,7 +70,6 @@ async def main():
             print("  Inspect -- shape unexpected.")
     except Exception as e:
         print(f"  FAILED: {e}")
-        print("  This is a blocker -- the port itself is broken.")
 
 
     print("\n[TEST 2] test_cluster_connection -- attempts a real cluster connect")

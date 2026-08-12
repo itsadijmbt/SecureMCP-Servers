@@ -44,9 +44,6 @@ async def main():
             unique_tools.append(t)
             print(f" - {t['name']}")
 
-    # ============================================================
-    # TEST 1: chroma_create_collection — create a new collection
-    # ============================================================
     print("\n" + "=" * 60)
     print("TEST 1: chroma_create_collection")
     print("=" * 60)
@@ -60,9 +57,6 @@ async def main():
     )
     print("create result:", r1)
 
-    # ============================================================
-    # TEST 2: chroma_add_documents — insert documents
-    # ============================================================
     print("\n" + "=" * 60)
     print("TEST 2: chroma_add_documents")
     print("=" * 60)
@@ -80,9 +74,6 @@ async def main():
     )
     print("add result:", r2)
 
-    # ============================================================
-    # TEST 3: chroma_query_documents — semantic search
-    # ============================================================
     print("\n" + "=" * 60)
     print("TEST 3: chroma_query_documents (semantic match for physics)")
     print("=" * 60)
@@ -99,9 +90,6 @@ async def main():
         "FAIL: stored entry not retrievable by semantic query"
     print("PASS: semantic roundtrip works")
 
-    # ============================================================
-    # TEST 4: chroma_list_collections — verify collection is listed
-    # ============================================================
     print("\n" + "=" * 60)
     print("TEST 4: chroma_list_collections")
     print("=" * 60)
@@ -111,17 +99,6 @@ async def main():
     )
     print("list result:", r4)
 
-    # # ============================================================
-    # # TEST 5: chroma_delete_collection — cleanup
-    # # ============================================================
-    # print("\n" + "=" * 60)
-    # print("TEST 5: chroma_delete_collection")
-    # print("=" * 60)
-    # r5 = await client.call_tool(
-    #     "chroma_delete_collection",
-    #     {"collection_name": "physics_notes"},
-    # )
-    # print("delete result:", r5)
 
 
 if __name__ == "__main__":

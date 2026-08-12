@@ -31,7 +31,6 @@ async def main():
                   
       client.set_default_server(server_id)
 
-      # List all tools
       tools = await client.list_tools(server_name=name)
       seen = set()                                                                                                                                                                            
       for t in tools:
@@ -44,7 +43,6 @@ async def main():
       print("=" * 50)
 
 
-      # Test 1: Verify Pinot connectivity
       print("\n[TEST 1] test_connection")
       try:
           result = await client.call_tool("test_connection", {})
@@ -52,7 +50,6 @@ async def main():
       except Exception as e:
           print(f"  Failed: {e}")
 
-      # Test 2: List tables in the Pinot cluster
       print("\n[TEST 2] list_tables")
       try:
           result = await client.call_tool("list_tables", {})
@@ -60,8 +57,6 @@ async def main():
       except Exception as e:
           print(f"  Failed: {e}")
 
-      # Test 3: Fetch details for a specific table
-      # NOTE: replace "airlineStats" with a table that exists in your cluster
       print("\n[TEST 3] table_details")
       try:
           result = await client.call_tool("table_details", {"tableName": "airlineStats"})

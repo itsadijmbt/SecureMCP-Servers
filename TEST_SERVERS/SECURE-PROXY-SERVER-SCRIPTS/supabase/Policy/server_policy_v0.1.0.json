@@ -21,60 +21,154 @@
     "tool:supabase-proxy/get_publishable_keys"
   ],
   "constraints": {
-    "denied_parameters": {
-      "tool:supabase-proxy/search_docs": {
-        "graphql_query": [
-          "*DENYME*"
-        ]
-      }
-    },
     "parameters": {
       "tool:supabase-proxy/generate_typescript_types": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/get_advisors": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"},
-        "type": {"type": "string", "allowed_values": ["security", "performance"]}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        },
+        "type": {
+          "type": "string",
+          "allowed_values": [
+            "security",
+            "performance"
+          ]
+        }
       },
       "tool:supabase-proxy/get_cost": {
-        "type": {"type": "string", "allowed_values": ["project", "branch"]},
-        "organization_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "type": {
+          "type": "string",
+          "allowed_values": [
+            "project",
+            "branch"
+          ]
+        },
+        "organization_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/get_edge_function": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"},
-        "function_slug": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        },
+        "function_slug": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       },
       "tool:supabase-proxy/get_logs": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"},
-        "service": {"type": "string", "allowed_values": ["api", "branch-action", "postgres", "edge-function", "auth", "storage", "realtime"]}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        },
+        "service": {
+          "type": "string",
+          "allowed_values": [
+            "api",
+            "branch-action",
+            "postgres",
+            "edge-function",
+            "auth",
+            "storage",
+            "realtime"
+          ]
+        }
       },
       "tool:supabase-proxy/get_organization": {
-        "id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/get_project": {
-        "id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/get_project_url": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/list_branches": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/list_edge_functions": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/list_extensions": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/list_migrations": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        }
       },
       "tool:supabase-proxy/list_tables": {
-        "project_id": {"type": "string", "min_length": 16, "max_length": 32, "pattern": "^[a-z0-9]{16,32}$"},
-        "schemas": {"type": "array", "min_items": 1, "max_items": 10}
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        },
+        "schemas": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 10
+        }
       },
       "tool:supabase-proxy/search_docs": {
-        "graphql_query": {"type": "string", "min_length": 1, "max_length": 2000}
+        "graphql_query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 2000
+        }
       }
     }
   },

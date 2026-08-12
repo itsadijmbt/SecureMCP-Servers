@@ -18,69 +18,172 @@
     "tool:notion-proxy/API-patch-block-children"
   ],
   "constraints": {
-    "denied_parameters": {
-      "tool:notion-proxy/API-post-search": {
-        "query": [
-          "*DENYME*"
-        ]
-      }
-    },
     "parameters": {
       "tool:notion-proxy/API-get-block-children": {
-        "block_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"},
-        "start_cursor": {"type": "string", "max_length": 256},
-        "page_size": {"type": "integer", "min": 1, "max": 100}
+        "block_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        },
+        "start_cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:notion-proxy/API-get-user": {
-        "user_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"}
+        "user_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        }
       },
       "tool:notion-proxy/API-get-users": {
-        "start_cursor": {"type": "string", "max_length": 256},
-        "page_size": {"type": "integer", "min": 1, "max": 100}
+        "start_cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:notion-proxy/API-list-data-source-templates": {
-        "data_source_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"},
-        "start_cursor": {"type": "string", "max_length": 256},
-        "page_size": {"type": "integer", "min": 1, "max": 100}
+        "data_source_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        },
+        "start_cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:notion-proxy/API-post-search": {
-        "query": {"type": "string", "max_length": 256},
-        "start_cursor": {"type": "string", "max_length": 256},
-        "page_size": {"type": "integer", "min": 1, "max": 100}
+        "query": {
+          "type": "string",
+          "max_length": 256
+        },
+        "start_cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:notion-proxy/API-query-data-source": {
-        "data_source_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"},
-        "filter_properties": {"type": "array", "max_items": 50},
-        "sorts": {"type": "array", "max_items": 10},
-        "start_cursor": {"type": "string", "max_length": 256},
-        "page_size": {"type": "integer", "min": 1, "max": 100}
+        "data_source_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        },
+        "filter_properties": {
+          "type": "array",
+          "max_items": 50
+        },
+        "sorts": {
+          "type": "array",
+          "max_items": 10
+        },
+        "start_cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:notion-proxy/API-retrieve-a-block": {
-        "block_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"}
+        "block_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        }
       },
       "tool:notion-proxy/API-retrieve-a-comment": {
-        "block_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"},
-        "start_cursor": {"type": "string", "max_length": 256},
-        "page_size": {"type": "integer", "min": 1, "max": 100}
+        "block_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        },
+        "start_cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:notion-proxy/API-retrieve-a-data-source": {
-        "data_source_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"}
+        "data_source_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        }
       },
       "tool:notion-proxy/API-retrieve-a-database": {
-        "database_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"}
+        "database_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        }
       },
       "tool:notion-proxy/API-retrieve-a-page": {
-        "page_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"},
-        "filter_properties": {"type": "string", "max_length": 256}
+        "page_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        },
+        "filter_properties": {
+          "type": "string",
+          "max_length": 256
+        }
       },
       "tool:notion-proxy/API-retrieve-a-page-property": {
-        "page_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"},
-        "property_id": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9%_~.-]+$"},
-        "start_cursor": {"type": "string", "max_length": 256},
-        "page_size": {"type": "integer", "min": 1, "max": 100}
+        "page_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        },
+        "property_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9%_~.-]+$"
+        },
+        "start_cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:notion-proxy/API-retrieve-page-markdown": {
-        "page_id": {"type": "string", "max_length": 36, "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"}
+        "page_id": {
+          "type": "string",
+          "max_length": 36,
+          "pattern": "^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$"
+        }
       }
     }
   },

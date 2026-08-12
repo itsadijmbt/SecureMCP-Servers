@@ -33,133 +33,475 @@
   "constraints": {
     "denied_parameters": {
       "tool:mongodb-proxy/aggregate": {
-        "pipeline": ["*$out*", "*$merge*", "*$function*", "*$where*", "*$accumulator*", "*$listLocalSessions*"]
+        "pipeline": [
+          "*$out*",
+          "*$merge*",
+          "*$function*",
+          "*$where*",
+          "*$accumulator*",
+          "*$listLocalSessions*"
+        ]
       },
       "tool:mongodb-proxy/aggregate-db": {
-        "pipeline": ["*$out*", "*$merge*", "*$function*", "*$where*", "*$accumulator*", "*$listLocalSessions*"]
+        "pipeline": [
+          "*$out*",
+          "*$merge*",
+          "*$function*",
+          "*$where*",
+          "*$accumulator*",
+          "*$listLocalSessions*"
+        ]
       },
       "tool:mongodb-proxy/find": {
-        "filter": ["*$where*", "*$function*"]
+        "filter": [
+          "*$where*",
+          "*$function*"
+        ]
       },
       "tool:mongodb-proxy/count": {
-        "query": ["*$where*", "*$function*"]
-      },
-      "tool:mongodb-proxy/search-knowledge": {
-        "query": ["*DENYME*"]
+        "query": [
+          "*$where*",
+          "*$function*"
+        ]
       }
     },
     "parameters": {
       "tool:mongodb-proxy/aggregate": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "collection": {"type": "string", "min_length": 1, "max_length": 120, "pattern": "^[A-Za-z0-9_.-]+$"},
-        "pipeline": {"type": "array", "min_items": 1, "max_items": 20},
-        "responseBytesLimit": {"type": "number", "min": 1, "max": 1048576}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "collection": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 120,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "pipeline": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 20
+        },
+        "responseBytesLimit": {
+          "type": "number",
+          "min": 1,
+          "max": 1048576
+        }
       },
       "tool:mongodb-proxy/aggregate-db": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "pipeline": {"type": "array", "min_items": 1, "max_items": 20},
-        "responseBytesLimit": {"type": "number", "min": 1, "max": 1048576}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "pipeline": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 20
+        },
+        "responseBytesLimit": {
+          "type": "number",
+          "min": 1,
+          "max": 1048576
+        }
       },
       "tool:mongodb-proxy/atlas-connect-cluster": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"},
-        "clusterName": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "connectionType": {"type": "string", "allowed_values": ["standard", "private", "privateEndpoint"]}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        },
+        "clusterName": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "connectionType": {
+          "type": "string",
+          "allowed_values": [
+            "standard",
+            "private",
+            "privateEndpoint"
+          ]
+        }
       },
       "tool:mongodb-proxy/atlas-get-performance-advisor": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"},
-        "clusterName": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "operations": {"type": "array", "min_items": 1, "max_items": 4}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        },
+        "clusterName": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "operations": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 4
+        }
       },
       "tool:mongodb-proxy/atlas-inspect-access-list": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
       },
       "tool:mongodb-proxy/atlas-inspect-cluster": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"},
-        "clusterName": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        },
+        "clusterName": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       },
       "tool:mongodb-proxy/atlas-list-alerts": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"},
-        "status": {"type": "string", "allowed_values": ["OPEN", "TRACKING", "CLOSED"]},
-        "limit": {"type": "integer", "min": 1, "max": 500},
-        "pageNum": {"type": "integer", "min": 1, "max": 10000}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        },
+        "status": {
+          "type": "string",
+          "allowed_values": [
+            "OPEN",
+            "TRACKING",
+            "CLOSED"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "pageNum": {
+          "type": "integer",
+          "min": 1,
+          "max": 10000
+        }
       },
       "tool:mongodb-proxy/atlas-list-clusters": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
       },
       "tool:mongodb-proxy/atlas-list-db-users": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
       },
       "tool:mongodb-proxy/atlas-list-orgs": {
-        "limit": {"type": "integer", "min": 1, "max": 500},
-        "pageNum": {"type": "integer", "min": 1, "max": 10000}
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "pageNum": {
+          "type": "integer",
+          "min": 1,
+          "max": 10000
+        }
       },
       "tool:mongodb-proxy/atlas-list-projects": {
-        "orgId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"},
-        "limit": {"type": "integer", "min": 1, "max": 500},
-        "pageNum": {"type": "integer", "min": 1, "max": 10000}
+        "orgId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "pageNum": {
+          "type": "integer",
+          "min": 1,
+          "max": 10000
+        }
       },
       "tool:mongodb-proxy/atlas-streams-discover": {
-        "projectId": {"type": "string", "min_length": 24, "max_length": 24, "pattern": "^[0-9a-fA-F]{24}$"},
-        "action": {"type": "string", "allowed_values": ["list-workspaces", "inspect-workspace", "list-connections", "inspect-connection", "list-processors", "inspect-processor", "diagnose-processor", "get-networking"]},
-        "responseFormat": {"type": "string", "allowed_values": ["concise", "detailed"]},
-        "limit": {"type": "integer", "min": 1, "max": 100}
+        "projectId": {
+          "type": "string",
+          "min_length": 24,
+          "max_length": 24,
+          "pattern": "^[0-9a-fA-F]{24}$"
+        },
+        "action": {
+          "type": "string",
+          "allowed_values": [
+            "list-workspaces",
+            "inspect-workspace",
+            "list-connections",
+            "inspect-connection",
+            "list-processors",
+            "inspect-processor",
+            "diagnose-processor",
+            "get-networking"
+          ]
+        },
+        "responseFormat": {
+          "type": "string",
+          "allowed_values": [
+            "concise",
+            "detailed"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:mongodb-proxy/collection-indexes": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "collection": {"type": "string", "min_length": 1, "max_length": 120, "pattern": "^[A-Za-z0-9_.-]+$"}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "collection": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 120,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        }
       },
       "tool:mongodb-proxy/collection-schema": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "collection": {"type": "string", "min_length": 1, "max_length": 120, "pattern": "^[A-Za-z0-9_.-]+$"},
-        "sampleSize": {"type": "number", "min": 1, "max": 1000},
-        "responseBytesLimit": {"type": "number", "min": 1, "max": 1048576}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "collection": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 120,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "sampleSize": {
+          "type": "number",
+          "min": 1,
+          "max": 1000
+        },
+        "responseBytesLimit": {
+          "type": "number",
+          "min": 1,
+          "max": 1048576
+        }
       },
       "tool:mongodb-proxy/collection-storage-size": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "collection": {"type": "string", "min_length": 1, "max_length": 120, "pattern": "^[A-Za-z0-9_.-]+$"}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "collection": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 120,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        }
       },
       "tool:mongodb-proxy/count": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "collection": {"type": "string", "min_length": 1, "max_length": 120, "pattern": "^[A-Za-z0-9_.-]+$"}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "collection": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 120,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        }
       },
       "tool:mongodb-proxy/db-stats": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       },
       "tool:mongodb-proxy/explain": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "collection": {"type": "string", "min_length": 1, "max_length": 120, "pattern": "^[A-Za-z0-9_.-]+$"},
-        "method": {"type": "array", "min_items": 1, "max_items": 5},
-        "verbosity": {"type": "string", "allowed_values": ["queryPlanner", "queryPlannerExtended", "executionStats", "allPlansExecution"]}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "collection": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 120,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "method": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 5
+        },
+        "verbosity": {
+          "type": "string",
+          "allowed_values": [
+            "queryPlanner",
+            "queryPlannerExtended",
+            "executionStats",
+            "allPlansExecution"
+          ]
+        }
       },
       "tool:mongodb-proxy/find": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"},
-        "collection": {"type": "string", "min_length": 1, "max_length": 120, "pattern": "^[A-Za-z0-9_.-]+$"},
-        "limit": {"type": "number", "min": 1, "max": 1000},
-        "responseBytesLimit": {"type": "number", "min": 1, "max": 1048576}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "collection": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 120,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "limit": {
+          "type": "number",
+          "min": 1,
+          "max": 1000
+        },
+        "responseBytesLimit": {
+          "type": "number",
+          "min": 1,
+          "max": 1048576
+        }
       },
       "tool:mongodb-proxy/list-collections": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "database": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "database": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       },
       "tool:mongodb-proxy/list-databases": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       },
       "tool:mongodb-proxy/mongodb-logs": {
-        "connectionId": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_-]+$"},
-        "limit": {"type": "integer", "min": 1, "max": 1024}
+        "connectionId": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1024
+        }
       },
       "tool:mongodb-proxy/search-knowledge": {
-        "query": {"type": "string", "min_length": 1, "max_length": 512},
-        "limit": {"type": "number", "min": 1, "max": 100}
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 512
+        },
+        "limit": {
+          "type": "number",
+          "min": 1,
+          "max": 100
+        }
       }
     }
   },

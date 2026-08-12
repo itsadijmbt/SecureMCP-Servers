@@ -74,17 +74,6 @@ async def main():
     print("ARXIV-MCP-SERVER TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
-    # Pure port-correctness check. The original used an if/elif
-    # dispatcher with 10 branches; the port collapses each branch
-    # into a @app.tool() wrapper. If all 10 register cleanly we
-    # know:
-    #   - import swap (mcp.server.Server -> SecureMCP) didn't break.
-    #   - all 10 wrapper signatures parsed and registered.
-    #   - no Field-default issues, no broken handle_*() imports.
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -95,15 +84,6 @@ async def main():
         print("  import broke. Check server logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- list_papers (read-only, no arXiv API)
-    #
-    # list_papers reads the local storage directory listed by
-    # ARXIV_STORAGE_PATH and returns paper IDs. No external API
-    # call. On a fresh setup the result will be the empty-list
-    # message, which is fine -- proves the wrapper -> handler ->
-    # filesystem path is intact.
-    # --------------------------------------------------------------
     print("\n[TEST 2] list_papers -- handler reach (no arXiv API)")
     try:
         result = await client.call_tool("list_papers", {})
@@ -117,15 +97,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- get_abstract (exercises arXiv API)
-    #
-    # get_abstract makes one external API call. Even with a paper
-    # ID that may not exist, the handler returns a structured
-    # result either way. Tests the parameter-passing path
-    # (paper_id arrives as a typed kwarg, gets rebuilt into the
-    # dict the handler expects).
-    # --------------------------------------------------------------
     print("\n[TEST 3] get_abstract(paper_id='2401.12345') -- typed-kwarg path")
     try:
         result = await client.call_tool(
@@ -142,39 +113,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  All 10 expected tools advertised on the mesh.
-            Proves: import swap held; the 10-wrapper collapse
-            from the original if/elif dispatcher registered
-            cleanly; all handle_*() imports resolved.
-
-  TEST 2 ✓  list_papers returned (real IDs or empty-list message).
-            Proves: client -> mesh -> SecureMCP -> wrapper ->
-            handle_list_papers -> local-storage filesystem path
-            is intact. No external dependency.
-
-  TEST 3 ✓  get_abstract returned (real abstract or arXiv API
-            error).
-            Proves: typed kwarg paper_id arrives at the handler
-            via the wrapper's dict-rebuild step; the handler ->
-            arXiv API path is intact.
-
-If all three pass, the FastMCP -> SecureMCP port is verified at
-the mesh layer. Validating real research-workflow behaviour
-(real searches, real downloads, real read_paper after a
-download) requires arXiv connectivity and storage configured
-via ARXIV_STORAGE_PATH -- out of scope for this smoke test.
-
-Note: the prompts subsystem (paper analysis prompt, summarize
-paper, compare papers, literature review) is dropped under the
-port. See MIGRATION.txt -> BROKEN ON PURPOSE (a) for the
-restoration path if a downstream consumer needs them.
-""")
 
 
 if __name__ == "__main__":

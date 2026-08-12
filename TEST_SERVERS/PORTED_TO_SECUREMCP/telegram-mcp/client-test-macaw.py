@@ -17,10 +17,6 @@ import sys
 from macaw_adapters.mcp import Client
 
 
-# Telegram has ~100+ tools; we don't enumerate all here. Just sample the
-# tools that exercise different shapes (sync helper, account-aware,
-# entity-resolution, file-path). If these are advertised, the @mcp.tool
-# import-time decoration ran on every tool path.
 EXPECTED_SAMPLE = {
     "list_accounts",
     "get_chats",
@@ -75,11 +71,7 @@ async def main():
     print("TELEGRAM-MCP TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- representative sample of tools is advertised
-    #
 
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_SAMPLE - seen
     if not missing:
@@ -91,11 +83,7 @@ async def main():
               "broke something. Check server import logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- list_accounts (pure dict read)
-    #
 
-    # --------------------------------------------------------------
     print("\n[TEST 2] list_accounts -- handler reachability + module state")
     try:
         result = await client.call_tool("list_accounts", {})
@@ -110,10 +98,7 @@ async def main():
               "dependency. Check that TELEGRAM_API_ID / TELEGRAM_API_HASH and "
               "at least one TELEGRAM_SESSION_* are set in the server's .env.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- get_me (lazy connect to Telegram)
 
-    # --------------------------------------------------------------
     print("\n[TEST 3] get_me -- lazy-connect verification")
     try:
         result = await client.call_tool("get_me", {})
@@ -130,28 +115,6 @@ async def main():
         print("  PASS-ish -- exception surfaced via mesh. Handler was "
               "reached; the failure is downstream of the port boundary.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  Representative sample of tools advertised on the mesh.
-            Proves: import swap and the bulk @mcp.tool() registration
-            (109 decorator strips + plain ones) succeeded.
-
-  TEST 2 ✓  list_accounts returned real account labels.
-            Proves: module-level state initialization survived the
-            port; handler reachability via mesh works.
-
-  TEST 3 ✓  get_me returned (real user object OR Telethon error
-            string).
-            Proves: lazy-connect (ensure_connected, replacing the
-            dropped eager cl.start()) entered SecureMCP's loop and
-            the handler executed.
-
-
-""")
 
 
 if __name__ == "__main__":

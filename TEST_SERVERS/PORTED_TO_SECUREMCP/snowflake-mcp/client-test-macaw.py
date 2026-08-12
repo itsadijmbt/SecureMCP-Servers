@@ -62,9 +62,6 @@ async def main():
     print("SNOWFLAKE MCP TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- list_tools came back, run_snowflake_query is in it
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     if "run_snowflake_query" in seen:
         print("  PASS -- run_snowflake_query advertised.")
@@ -78,9 +75,6 @@ async def main():
         print("  Inspect -- no create_/drop_ tools. Object manager may be disabled "
               "in the YAML config; the deny-by-name test below will be inconclusive.")
 
-    # --------------------------------------------------------------
-    # TEST 2 -- run_snowflake_query with SELECT (allow path)
-    # --------------------------------------------------------------
     print("\n[TEST 2] run_snowflake_query with SELECT -- allow path")
     try:
         result = await client.call_tool(
@@ -111,10 +105,7 @@ async def main():
                   "wrapper (no 'not allowed'). Came from upstream / mesh, "
                   "which means the wrapper let SELECT through.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- run_snowflake_query with DROP (deny path, statement-arg)
 
-    # --------------------------------------------------------------
     print("\n[TEST 3] run_snowflake_query with DROP -- statement-arg deny")
     try:
         result = await client.call_tool(
@@ -145,9 +136,6 @@ async def main():
                   "Possible: mesh-level error, or wrapper fell through and "
                   "snowflake refused. Print the full error to diagnose.")
 
-    # --------------------------------------------------------------
-    # TEST 4 -- drop_object (deny path, tool-name prefix
-    # --------------------------------------------------------------
     print("\n[TEST 4] drop_object -- name-prefix deny")
     try:
         result = await client.call_tool(

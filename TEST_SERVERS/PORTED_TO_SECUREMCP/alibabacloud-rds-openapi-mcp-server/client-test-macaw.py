@@ -44,14 +44,6 @@ async def main():
         return
     client.set_default_server(server_id)
 
-    # ----------------------------------------------------------------
-    # CALLER AUTH proof (passive): we just registered as
-    # `securemcp-client-<client_type>:<hash>`. Every invoke_tool below
-    # carries our cryptographic signature. If MACAW didn't trust us,
-    # NONE of the calls below would even reach the server's handlers.
-    # We're proving caller-auth simply by getting any successful
-    # response (or a server-side error rather than a mesh-rejection).
-    # ----------------------------------------------------------------
 
     tools = await client.list_tools(server_name=name)
     seen = set()
@@ -66,12 +58,6 @@ async def main():
     print("RDS-MCP TESTS")
     print("=" * 60)
 
-    # ----------------------------------------------------------------
-    # TEST 1 — get_current_time
-    # A tool that doesn't need Aliyun credentials. Proves the chain
-    # MACAW signature → mesh dispatch → bridge wrap → handler → return
-    # works end-to-end. 
-    # ----------------------------------------------------------------
     print("\n[TEST 1] get_current_time — no credentials needed")
     try:
         result = await client.call_tool("get_current_time", {})
@@ -79,13 +65,8 @@ async def main():
         print("  PASS — full dispatch chain works (caller-auth implicit)")
     except Exception as e:
         print(f"  FAILED: {e}")
-        print("  This is a BLOCKER — the port itself isn't working.")
 
-    # ----------------------------------------------------------------
-    # TEST 2 — describe_db_instances WITHOUT _metadata
-    # Tests the SERVICE-ACCOUNT (env-var fallback) upstream path.
 
-    # ----------------------------------------------------------------
     print("\n[TEST 2] describe_db_instances — env-var fallback path (no _metadata)")
     try:
         result = await client.call_tool(
@@ -102,10 +83,7 @@ async def main():
         else:
             print("  Inspect server logs to confirm error origin (handler ran but failed).")
 
-    # ----------------------------------------------------------------
-    # TEST 3 — describe_db_instances WITH fake _metadata
  
-    # ----------------------------------------------------------------
     print("\n[TEST 3] describe_db_instances — per-caller path (_metadata with fake AK/SK)")
     try:
         result = await client.call_tool(
@@ -128,10 +106,7 @@ async def main():
         else:
             print("  Compare error against TEST 2 — different message means both paths work.")
 
-    # ----------------------------------------------------------------
-    # TEST 4 — describe_rc_instances (rds_custom toolset)
     
-    # ----------------------------------------------------------------
     print("\n[TEST 4] describe_rc_instances — service-account-only tool (env vars only)")
     try:
         result = await client.call_tool(
@@ -144,27 +119,6 @@ async def main():
         print(f"  Got error: {msg[:200]}")
         print("  Note: This tool ignores _metadata by design. Always uses env vars.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like across the four tests:
-
-  TEST 1 ✓  Full dispatch chain works (port-correctness proof).
-  TEST 2 ✗  Failure from Aliyun SDK (env-var path reached, creds empty/invalid).
-  TEST 3 ✗  Different failure from Aliyun SDK (bridge path reached, fake creds rejected).
-  TEST 4 ✗  Same shape as TEST 2 (both ignore _metadata; both use env vars).
-
-If TESTS 2 and 3 produce DIFFERENT error messages, the SecureMCP port
-is verified end-to-end on both upstream-auth paths.
-
-If you want TEST 2 to succeed cleanly, set real Aliyun creds:
-    export ALIBABA_CLOUD_ACCESS_KEY_ID=LTAI...
-    export ALIBABA_CLOUD_ACCESS_KEY_SECRET=...
-
-If you want TEST 3 to succeed cleanly, replace the fake AK/SK in this
-file with your real Aliyun credentials.
-""")
 
 
 if __name__ == "__main__":

@@ -62,9 +62,7 @@ async def main():
     print("=" * 60)
 
 
-    # TEST 1 -- ydb_status
    
-    #  the response coming back proves the chain works.
     print("\n[TEST 1] ydb_status -- check connection health")
     try:
         result = await client.call_tool("ydb_status", {})
@@ -80,11 +78,7 @@ async def main():
             print("  Inspect -- response shape is unexpected.")
     except Exception as e:
         print(f"  FAILED: {e}")
-        print("  Blocker -- the port itself is broken.")
 
-    # TEST 2 -- ydb_query with a tiny SELECT
-    # With YDB up and creds correct, you get a row back. Without it,
-    # you get a JSON error string. Both are valid proofs of the port.
     print("\n[TEST 2] ydb_query ")
     try:
         result = await client.call_tool("ydb_query", {"sql": "SELECT 1 AS x"})
@@ -101,8 +95,6 @@ async def main():
     except Exception as e:
         print(f"  Got error: {e}")
 
-    # TEST 3 -- ydb_list_directory("/")
-    #  ydb_query (which uses the query session pool). Useful as  a second independent proof that both SDK surfaces are reachable.
     print("\n[TEST 3] ydb_list_directory -- list root /")
     try:
         result = await client.call_tool("ydb_list_directory", {"path": "/"})
@@ -120,50 +112,6 @@ async def main():
     except Exception as e:
         print(f"  Got error: {e}")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What you should see:
-
-  
-
-  With a YDB cluster on this host:
-    TEST 1  status returns ydb_connection = "connected".
-    TEST 2  a row with {"x": 1}.
-    TEST 3  a directory listing under "/".
-
-How to run with real creds:
-
-  Easiest path -- run a local YDB in Docker. Anonymous mode is fine,
-  no extra setup.
-
-      docker run -d --name ydb-local \\
-          -p 2136:2136 -p 8765:8765 \\
-          ydbplatform/local-ydb:latest
-
-  Wait about ten seconds. Then start the MCP server with no extra
-  flags -- defaults are grpc://localhost:2136 and database /local,
-  auth_mode=anonymous. That is enough to flip TEST 1 to connected
-  and TEST 2/3 to real responses.
-
-  If you have a real YDB cluster already, set env vars before
-  starting the server:
-
-      export YDB_ENDPOINT=grpcs://your.host:2135
-      export YDB_DATABASE=/your/database
-      export YDB_AUTH_MODE=access-token
-      export YDB_ACCESS_TOKEN=your-token
-
-  Restart the MCP server after setting any of these so it picks
-  them up. Then re-run this script. The three tests should flip
-  from the error-branch lines above to the connected/creds-branch
-  lines.
-
-  If TEST 1 keeps saying error even with YDB running, the MCP
-  layer is fine -- the issue is downstream. Check the endpoint
-  is actually reachable from this box 
-""")
 
 
 if __name__ == "__main__":

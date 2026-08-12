@@ -29,7 +29,6 @@ async def main():
     if not server_id:
         return
 
-    # CRITICAL: Set the target server before calling tools!
     client.set_default_server(server_id)
 
     tools = await client.list_tools(server_name=name)
@@ -45,22 +44,15 @@ async def main():
     print("STARTING POSTGRESQL TOOL TESTS")
     print("="*50)
 
-    # ---------------------------------------------------------
-    # Example 1: Call 'list_tables' (No arguments needed)
-    # ---------------------------------------------------------
     print("\n[TEST 1] Executing 'list_tables'...")
     try:
         result = await client.call_tool("list_tables", {})
         
-        # Safely extract the output
         output = result.get("result", result) if isinstance(result, dict) else getattr(result, "text", result)
         print("Result:\n", output)
     except Exception as e:
         print(f"[Tool failed: {e}]")
 
-    # ---------------------------------------------------------
-    # Example 2: Call 'get_table_schema' (Requires an argument)
-    # ---------------------------------------------------------
     print("\n[TEST 2] Executing 'get_table_schema' for table 'users'...")
     try:
     
@@ -71,9 +63,6 @@ async def main():
     except Exception as e:
         print(f"[Tool failed: {e}]")
 
-    # ---------------------------------------------------------
-    # Example 3: Call 'execute_query' (Requires an argument)
-    # ---------------------------------------------------------
     print("\n[TEST 3] Executing 'execute_query' (SELECT LIMIT 2)...")
     try:
 

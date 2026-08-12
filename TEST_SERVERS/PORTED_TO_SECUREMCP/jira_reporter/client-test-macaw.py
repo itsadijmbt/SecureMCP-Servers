@@ -51,16 +51,11 @@ async def main():
     print("TEST 1: generate_jira_report (raw, no LLM)")
     print("=" * 60)
  
-    # RECOMMENDED: asyncio.to_thread — truly non-blocking
-    # invoke_tool is synchronous and blocks the event loop.
-    # to_thread runs it in a background thread so event loop stays free.
 
     try:
         result = await client.call_tool(
             "generate_jira_report",
             {"max_results": 5, "summarize": False},
-            # target_server can be skipped as we set default server while using call_tool
-            # target_server =server_id
             )
         
         

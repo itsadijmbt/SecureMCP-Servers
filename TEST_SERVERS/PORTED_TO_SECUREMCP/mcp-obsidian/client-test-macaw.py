@@ -119,29 +119,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  All 13 expected tools advertised on the mesh.
-            Proves: import swap held; the 13-class -> 13-wrapper
-            collapse registered cleanly; all 13 module-level
-            ToolHandler instances built without errors.
-
-  TEST 2 ✓  obsidian_list_files_in_vault returned (real list or
-            error).
-            Proves: client -> mesh -> SecureMCP -> wrapper ->
-            handler.run_tool -> Obsidian client chain is intact.
-
-  TEST 3 ✓  obsidian_simple_search returned with both kwargs
-            applied.
-            Proves: typed kwargs arrive at the handler via the
-            wrapper's dict-rebuild step; multi-parameter tools
-            are wired correctly.
-
-""")
 
 
 if __name__ == "__main__":

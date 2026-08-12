@@ -34,7 +34,6 @@ async def main():
 
     client.set_default_server(server_id)
 
-    # List all tools registered on the server
     tools = await client.list_tools(server_name=name)
     seen = set()
     print("Tools advertised by server:")
@@ -80,7 +79,6 @@ async def main():
             {"query": "INSERT INTO foo VALUES (1)"},
         )
         print(f"  Result: {result}")
-        # Expected: {"result": "Only read-only queries are allowed."}
         if "read-only" in str(result).lower():
             print("  PASS: read-only filter is intact")
         else:

@@ -72,11 +72,7 @@ async def main():
     print("K8S-MCP-SERVER TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
 
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -87,11 +83,7 @@ async def main():
         print("  rewrite broke the signature. Check server import logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- describe_kubectl reaches the handler
-    #
 
-    # --------------------------------------------------------------
     print("\n[TEST 2] describe_kubectl -- handler reachability (read-only)")
     try:
         result = await client.call_tool(
@@ -109,11 +101,7 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- execute_kubectl reaches the handler (read-only sub-cmd)
-    #
     
-    # --------------------------------------------------------------
     print("\n[TEST 3] execute_kubectl 'version --client' -- end-to-end (no cluster)")
     try:
         result = await client.call_tool(
@@ -131,27 +119,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  All 8 expected tools advertised on the mesh.
-            Proves: import swap, decorator-strip (annotations= and
-            icons=), Field-default rewrite (12 instances),
-            ctx.<sync> rewrite (11 awaits stripped) all succeeded
-            at module import time.
-
-  TEST 2 ✓  describe_kubectl returned (help text or structured
-            error).
-            Proves: client -> mesh -> SecureMCP handler -> CLI
-            subprocess plumbing works end-to-end.
-
-  TEST 3 ✓  execute_kubectl version returned similarly.
-
-
-""")
 
 
 if __name__ == "__main__":

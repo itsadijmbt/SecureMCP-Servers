@@ -24,7 +24,6 @@ def get_server(name, client):
         a for a in agents
         if name in a.get("agent_id", "")
         and "/tool." not in a.get("agent_id", "")
-        # Exclude this client's own agent (its id contains "securemcp-client-")
         and "securemcp-client-" not in a.get("agent_id", "")
     ]
     if not server:
@@ -61,9 +60,6 @@ async def main():
     print("OPTUNA MCP HOLISTIC TESTS")
     print("=" * 60)
 
-    # TEST 1 -- create_study
-    # Exercises: .model_dump() at a BaseModel return site (StudyResponse).
-    # Expectation: response is a dict containing "study_name".
     print("\n[TEST 1] create_study -- BaseModel return path")
     try:
         result = await client.call_tool(
@@ -80,9 +76,6 @@ async def main():
         print(f"  FAILED: {e}")
         return
 
-    # TEST 2 -- get_all_study_names
-    # Exercises: list[BaseModel] return path (list comprehension with .model_dump()).
-    # Expectation: a list with at least one entry containing "macaw-smoke".
     print("\n[TEST 2] get_all_study_names -- list[BaseModel] return path")
     try:
         result = await client.call_tool("get_all_study_names", {})
@@ -95,9 +88,6 @@ async def main():
     except Exception as e:
         print(f"  Got error: {e}")
 
-    # TEST 3 -- ask
-    # Exercises: study state read + TrialResponse.model_dump() return.
-    # Search space is a single float distribution between -10 and 10.
     print("\n[TEST 3] ask -- suggest a parameter")
     try:
         result = await client.call_tool(
@@ -125,9 +115,6 @@ async def main():
     except Exception as e:
         print(f"  Got error: {e}")
 
-    # TEST 4 -- tell + best_trial
-    # Tell trial 0 a value, then read best_trial back. Exercises:
-    # study mutation, error-free flow, and another TrialResponse return.
     print("\n[TEST 4] tell trial 0 a value, then read best_trial")
     try:
         tell_result = await client.call_tool(
@@ -145,16 +132,12 @@ async def main():
     except Exception as e:
         print(f"  Got error: {e}")
 
-    # TEST 5 -- plot_optimization_history
-    # Exercises: the base64 dict return (replacement for Image).
-    # Expectation: dict with image_format and image_base64 keys.
     print("\n[TEST 5] plot_optimization_history -- base64 image dict path")
     try:
         result = await client.call_tool(
             "plot_optimization_history", {"target_name": "Objective Value"}
         )
         text = str(result)
-        # Don't print the whole base64 payload; just check the keys exist.
         snippet = text[:120] + "..." if len(text) > 120 else text
         print(f"  Result snippet: {snippet}")
         if "image_format" in text and "image_base64" in text:
@@ -165,14 +148,11 @@ async def main():
     except Exception as e:
         print(f"  Got error: {e}")
 
-    # TEST 6 -- error path
-    # Call a tool that requires a study with a fresh server context where
-    # study state mismatches. 
     print("\n[TEST 6] error path -- intentionally bad set_metric_names")
     try:
         result = await client.call_tool(
             "set_metric_names",
-            {"metric_names": ["a", "b", "c", "d", "e"]},  # too many names
+            {"metric_names": ["a", "b", "c", "d", "e"]},
         )
         text = str(result)
         print(f"  Result: {text[:200]}")
@@ -187,21 +167,6 @@ async def main():
         else:
             print("  Inspect -- mesh-level error rather than tool-level.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like across the six tests:
-
-  TEST 1 ✓  StudyResponse.model_dump() returns a usable dict.
-  TEST 2 ✓  List of dumped models returns cleanly.
-  TEST 3 ✓  ask gives back a TrialResponse with params populated.
-  TEST 4 ✓  tell + best_trial round-trips a value through study state.
-  TEST 5 ✓  plot tool returns a dict with image_format + image_base64.
-  TEST 6 ✓  Bad input raises a RuntimeError that propagates cleanly.
-
-
-""")
 
 
 if __name__ == "__main__":

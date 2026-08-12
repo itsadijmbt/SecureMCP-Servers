@@ -74,11 +74,7 @@ async def main():
         print(f"  FAILED -- missing tools: {sorted(missing)}")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- get_risk_score (exercises typed-kwarg + httpx path)
-    #
   
-    # --------------------------------------------------------------
     print("\n[TEST 2] get_risk_score -- handler reach + httpx path")
     try:
         result = await client.call_tool(
@@ -95,24 +91,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  Both expected tools (get_risk_score, get_assets)
-            advertised on the mesh.
-            Proves: import swap held; both @mcp.tool decorators
-            ran cleanly at module import.
-
-  TEST 2 ✓  get_risk_score returned (real BICScan response or
-            auth-failure JSON).
-            Proves: client -> mesh -> SecureMCP wrapper ->
-            BICScan API chain works end-to-end.
-
-
-""")
 
 
 if __name__ == "__main__":

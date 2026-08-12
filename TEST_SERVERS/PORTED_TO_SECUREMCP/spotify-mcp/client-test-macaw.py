@@ -83,10 +83,7 @@ async def main():
               "import time. Check server logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- SpotifySearch reaches the handler
 
-    # --------------------------------------------------------------
     print("\n[TEST 2] SpotifySearch -- handler reachability")
     try:
         result = await client.call_tool(
@@ -104,10 +101,7 @@ async def main():
         print("  PASS-ish -- exception surfaced via mesh; handler was "
               "reached, upstream Spotify API was not (or auth missing).")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- SpotifyPlayback (action=get) reaches the handler
    
-    # --------------------------------------------------------------
     print("\n[TEST 3] SpotifyPlayback action=get -- handler reachability")
     try:
         result = await client.call_tool("SpotifyPlayback", {"action": "get"})
@@ -119,10 +113,7 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 4 -- SpotifyQueue (action=get) reaches the handler
    
-    # --------------------------------------------------------------
     print("\n[TEST 4] SpotifyQueue action=get -- handler reachability")
     try:
         result = await client.call_tool("SpotifyQueue", {"action": "get"})
@@ -134,24 +125,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like (no Spotify OAuth required):
-
-  TEST 1 ✓  All 5 expected tools advertised on the mesh with the
-            original Spotify-prefixed names.
-            Proves: import swap and tool registration succeeded.
-
-  TEST 2 ✓  SpotifySearch returned (real results or {"error": ...}).
-            Proves: client -> mesh -> SecureMCP handler is intact.
-
-  TEST 3 ✓  SpotifyPlayback action=get returned similarly.
-
-  TEST 4 ✓  SpotifyQueue action=get returned similarly.
-
-""")
 
 
 if __name__ == "__main__":
