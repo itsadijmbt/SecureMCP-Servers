@@ -37,7 +37,7 @@ export STRIPE_SECRET_KEY="rk_test_..."
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/stripe/proxy_stripe.py
 ```
 
@@ -52,7 +52,7 @@ auth + dispatch, not that you have customers.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_stripe.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -61,8 +61,8 @@ auth + dispatch, not that you have customers.
 {
   "mcpServers": {
     "stripe-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/stripe/proxy_stripe.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_stripe.py"],
       "env": { "STRIPE_SECRET_KEY": "rk_test_..." }
     }
   }
@@ -73,8 +73,8 @@ auth + dispatch, not that you have customers.
 
 ```bash
 claude mcp add stripe-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/stripe/proxy_stripe.py \
+  python \
+  /path/to/proxy_stripe.py \
   -e STRIPE_SECRET_KEY=rk_test_...
 ```
 

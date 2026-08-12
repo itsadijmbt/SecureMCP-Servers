@@ -36,7 +36,7 @@ instead of spawning a new one).
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/chrome-devtools/proxy_chrome_devtools.py
 ```
 
@@ -53,8 +53,7 @@ Chrome to spawn cold. Subsequent runs are faster but not instant
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_chrome_devtools.py`. Uncomment the **Test 2** block at the
-   bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -63,8 +62,8 @@ Chrome to spawn cold. Subsequent runs are faster but not instant
 {
   "mcpServers": {
     "chrome-devtools-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/chrome-devtools/proxy_chrome_devtools.py"]
+      "command": "python",
+      "args": ["/path/to/proxy_chrome_devtools.py"]
     }
   }
 }
@@ -76,8 +75,8 @@ No env vars — there are no credentials.
 
 ```bash
 claude mcp add chrome-devtools-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/chrome-devtools/proxy_chrome_devtools.py
+  python \
+  /path/to/proxy_chrome_devtools.py
 ```
 
 Then prompt: *"Use the chrome-devtools-macaw MCP server. Navigate to

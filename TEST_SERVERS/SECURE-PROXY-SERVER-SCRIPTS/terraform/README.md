@@ -33,7 +33,7 @@ For **only** public registry usage (the smoke test), leave both unset.
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/terraform/proxy_terraform.py
 ```
 
@@ -45,7 +45,7 @@ First run downloads the Docker image (~50 MB). Subsequent runs reuse it.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_terraform.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -54,8 +54,8 @@ First run downloads the Docker image (~50 MB). Subsequent runs reuse it.
 {
   "mcpServers": {
     "terraform-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/terraform/proxy_terraform.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_terraform.py"],
       "env": {}
     }
   }
@@ -68,8 +68,8 @@ First run downloads the Docker image (~50 MB). Subsequent runs reuse it.
 
 ```bash
 claude mcp add terraform-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/terraform/proxy_terraform.py
+  python \
+  /path/to/proxy_terraform.py
 ```
 
 Then prompt: *"Use the terraform-macaw tool to search for the AWS provider

@@ -31,7 +31,7 @@ export MDB_MCP_API_CLIENT_SECRET="..."
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/mongodb/proxy_mongodb.py
 ```
 
@@ -40,7 +40,7 @@ shows one entry under `app_name=mongodb-proxy`.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_mongodb.py`. The Test 2 block is already active (uncommented).
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -49,8 +49,8 @@ shows one entry under `app_name=mongodb-proxy`.
 {
   "mcpServers": {
     "mongodb-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/mongodb/proxy_mongodb.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_mongodb.py"],
       "env": { "MDB_MCP_CONNECTION_STRING": "mongodb://localhost:27017" }
     }
   }
@@ -61,8 +61,8 @@ shows one entry under `app_name=mongodb-proxy`.
 
 ```bash
 claude mcp add mongodb-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/mongodb/proxy_mongodb.py \
+  python \
+  /path/to/proxy_mongodb.py \
   -e MDB_MCP_CONNECTION_STRING=mongodb://localhost:27017
 ```
 
@@ -76,9 +76,9 @@ the smoke test.
   `debug://mongodb` right after responding to `tools/list`. That notification
   arrives while the mcp SDK's stdio_client is already exiting its
   ClientSession context, so the consumer channel is closed and the SDK raises
-  `BrokenResourceError`. `TolerantSecureMCPProxy` in this file ignores the
-  error iff tools were already discovered — the connection is functional.
-  Per-server quirk; stays in this file rather than in `SecureMCPProxy`.
+  `BrokenResourceError`. This surfaces as a `ConnectionError` from the proxy
+  constructor. The script uses plain `SecureMCPProxy` and does not suppress it,
+  so a failed connection reports as a failure rather than a silent success.
 - `MDB_MCP_READ_ONLY=true` is passed to the upstream container so create /
   delete / drop / update / insert / rename tools never register. Keep it on
   for testing; flip when you actually want write access.

@@ -1,31 +1,24 @@
 """
-Azure MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
+azure-proxy -> SecureMCPProxy, served natively.
 
-Two tests, one file. Calls go: client identity -> server identity -> upstream,
-so MACAW renders a two-node graph (client ──> server) for both tests.
-
-  Test 1 (active by default):  one bound.call_tool("subscription_list") then exit.
-  Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
-
-Auth: Azure MCP uses the official Azure Identity SDK. Two paths:
-
-  A. Azure CLI session — run `az login` once, then this script picks up
-     the cached creds from ~/.azure/. Default for human dev boxes.
-
-  B. Service principal — set AZURE_TENANT_ID + AZURE_CLIENT_ID +
-     AZURE_CLIENT_SECRET in env. Default for CI / headless agents.
-
-The script forwards both: HOME so az-login creds work, and the SP env
-vars when present. Whichever the SDK finds first wins.
-
-If `subscription_list` isn't in the tool list that prints, swap the
-smoke target on line 50 for one of the names you see (Azure MCP tool
-names sometimes carry an `azmcp_` prefix depending on version).
+Prereq:
+    export AZURE_CLIENT_ID="..."
+    export AZURE_CLIENT_SECRET="..."
+    export AZURE_SUBSCRIPTION_ID="..."
+    export AZURE_TENANT_ID="..."
+    export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
 Run:
-    az login                                           # one-time
-    /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/azure/proxy_azure.py
+    python proxy_azure.py
+    python proxy_azure.py http 8080
+
+Claude Code:
+    claude mcp add azure-macaw python /path/to/proxy_azure.py \
+      -e AZURE_CLIENT_ID=... \
+      -e AZURE_CLIENT_SECRET=... \
+      -e AZURE_SUBSCRIPTION_ID=... \
+      -e AZURE_TENANT_ID=... \
+      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 """
 
 import os
@@ -38,7 +31,7 @@ logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
 upstream_env = {
     "PATH": os.environ["PATH"],
-    "HOME": os.environ["HOME"],   # for az-login creds at ~/.azure/
+    "HOME": os.environ["HOME"],
 }
 for k in ("AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET",
           "AZURE_SUBSCRIPTION_ID"):
@@ -50,57 +43,24 @@ proxy = SecureMCPProxy(
     command=["npx", "-y", "@azure/mcp@latest", "server", "start"],
     env=upstream_env,
 )
+logging.info("azure-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-# Client identity: registers as securemcp-client-azure-macaw-gateway.
 client = Client("azure-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
-# ============================================================================
-# Test 1 — smoke check (default).
-# subscription_list / azmcp_subscription_list returns the user's accessible
-# Azure subscriptions. No args, read-only. Swap the name if it's not in the
-# printed tools list — Azure MCP changes tool names between versions.
-# ============================================================================
-tools = proxy.list_tools()
-print(f"tools: {len(tools)}", file=sys.stderr)
-for t in tools:
-    print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
+import macaw_adapters.mcp._endpoint as _endpoint
 
-result = bound.call_tool("subscription_list", {})
-print(f"\nsubscription_list -> {str(result)[:300]}", file=sys.stderr)
+_StubClient = _endpoint.Client
 
-# ============================================================================
-# Test 2 — stdio MCP gateway (uncomment block below to enable).
-# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
-# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
-# ============================================================================
-import asyncio
-import json
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-import mcp.types as types
 
-srv = Server("azure-macaw-proxy")
-tool_objs = [
-    types.Tool(
-        name=t["name"],
-        description=t.get("description", ""),
-        inputSchema=t.get("schema") or {"type": "object"},
-    )
-    for t in proxy.list_tools()
-]
+def _bound_stub_client(name):
+    stub = _StubClient(name)
+    stub.macaw_client = bound.user_client
+    return stub
 
-@srv.list_tools()
-async def _list():
-    return tool_objs
 
-@srv.call_tool()
-async def _call(name, args):
-    r = bound.call_tool(name, args or {})
-    return [types.TextContent(type="text", text=json.dumps(r, default=str))]
+_endpoint.Client = _bound_stub_client
 
-async def _main():
-    async with stdio_server() as (rd, wr):
-        await srv.run(rd, wr, srv.create_initialization_options())
-
-asyncio.run(_main())
+transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
+proxy.run(transport=transport, port=port)

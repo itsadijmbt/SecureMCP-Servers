@@ -73,7 +73,7 @@ export PRISMA_AIRS_AI_PROFILE="..."       # profile name or ID
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/pan-mcp-relay/proxy_pan_mcp_relay.py
 ```
 
@@ -89,7 +89,7 @@ First run is slow (10–30s) — `uvx` downloads `pan-mcp-relay` and
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_pan_mcp_relay.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -98,8 +98,8 @@ First run is slow (10–30s) — `uvx` downloads `pan-mcp-relay` and
 {
   "mcpServers": {
     "pan-mcp-relay-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/pan-mcp-relay/proxy_pan_mcp_relay.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_pan_mcp_relay.py"],
       "env": {
         "PRISMA_AIRS_API_KEY": "...",
         "PRISMA_AIRS_AI_PROFILE": "..."

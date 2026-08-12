@@ -16,7 +16,7 @@ if you intend to exercise those tools through Test 2.
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv311/bin/python \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/github/proxy_github.py
 ```
 
@@ -25,8 +25,7 @@ one entry under `app_name=github-remote-proxy`.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_github.py`. Uncomment the **Test 2** block (the `# import asyncio`
-   ... `# asyncio.run(_main())` lines at the bottom).
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -35,8 +34,8 @@ one entry under `app_name=github-remote-proxy`.
 {
   "mcpServers": {
     "github-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv311/bin/python",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/github/proxy_github.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_github.py"],
       "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxx" }
     }
   }
@@ -47,8 +46,8 @@ one entry under `app_name=github-remote-proxy`.
 
 ```bash
 claude mcp add github-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv311/bin/python \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/github/proxy_github.py \
+  python \
+  /path/to/proxy_github.py \
   -e GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx
 ```
 

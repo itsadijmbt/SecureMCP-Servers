@@ -182,41 +182,6 @@ async def main():
                   "the wrapper fell through and snowflake rejected.")
 
     print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like across the four tests (no real Snowflake needed):
-
-  TEST 1 ✓  Server registered on the mesh; run_snowflake_query advertised.
-            Proves: framework swap and tool registration work.
-
-  TEST 2 ✓  SELECT either succeeded or failed at the upstream connector
-            without 'not allowed' anywhere. Proves: wrapper allow path.
-
-  TEST 3 ✓  DROP via run_snowflake_query rejected with 'not allowed'.
-            Proves: wrapper statement-arg deny path. (This is the
-            replacement for the old CheckQueryType.on_call_tool that
-            inspected context.message.arguments['statement'].)
-
-  TEST 4 ✓  drop_object rejected with 'not allowed'.
-            Proves: wrapper name-prefix deny path. (This is the
-            replacement for the old branch that did
-            tool_name.startswith('create') or .startswith('drop').)
-
-If TESTS 3 and 4 both say PASS, the middleware-to-wrapper rewrite is
-verified. The original CheckQueryType middleware is fully replaced
-without losing any of its enforcement.
-
-How to run with real Snowflake creds (for richer TEST 2 output):
-
-  Set the connection params via env vars or CLI flags when starting
-  the server. See snowflake-mcp's README for the exact flags. Once
-  the server can authenticate, TEST 2 will return actual query rows
-  instead of a connector error.
-
-  None of TESTS 1, 3, 4 need credentials. They prove the port itself
-  is correct, independent of whether Snowflake is reachable.
-""")
 
 
 if __name__ == "__main__":

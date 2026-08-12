@@ -9,38 +9,7 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh, all 3 tools
-                            advertised. Specifically the two NEW tools
-                            we added (list_tables, read_table) plus the
-                            existing execute_sql.
-    2. list_tables       -- replaces the dropped @app.list_resources()
-                            path. Should return either a header line
-                            + list of table names, or an error string
-                            if the DB is unreachable.
-    3. read_table(table=...) -- replaces the dropped @app.read_resource()
-                                path. Same SELECT * FROM X LIMIT 100 query
-                                as the original; should return CSV or
-                                an error string.
-    4. execute_sql("SELECT 1 + 1 AS answer") -- the existing tool, only
-                                the decorator changed in the port.
-                                Smallest possible read query that does
-                                not depend on any table existing.
 
-Tests 2-4 do NOT require a working MySQL connection for handler-reach
-verification. The handlers catch mysql.connector.Error and return the
-message as a string. Either real data or an error string proves the
-client -> mesh -> SecureMCP -> handler chain is intact.
-
-Why this set of tests was chosen:
-  - The port REPLACED two MCP-protocol resource paths with two tools.
-    Verifying both new tools are advertised AND callable end-to-end
-    is the single strongest proof the resource-to-tool conversion
-    holds.
-  - execute_sql with `SELECT 1 + 1` exercises the most minimal query
-    that the original code's "result set" branch can possibly handle.
-    If that round-trips, the cursor.description / row-formatting code
-    survived the port.
 """
 
 import asyncio
@@ -99,17 +68,6 @@ async def main():
     print("MYSQL_MCP_SERVER TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
-    # Pure port-correctness check. The port REPLACED resources with
-    # tools (list_tables, read_table) and kept execute_sql. If all
-    # three register, we know:
-    #   - import swap (mcp.server.Server -> SecureMCP) didn't break.
-    #   - the resource-to-tool conversion works at the decorator level
-    #     (both new @app.tool functions registered cleanly).
-    #   - execute_sql still registers.
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -120,14 +78,7 @@ async def main():
         print("  broke the module import. Check server logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- list_tables (the new replacement for resources/list)
-    #
-    # Reaches the handler regardless of DB connectivity. With env vars
-    # set + a real MySQL listening, returns the table list. Without,
-    # the handler catches mysql.connector.Error and returns
-    # "Error listing tables: ...".
-    # --------------------------------------------------------------
+
     print("\n[TEST 2] list_tables -- replaces dropped resources/list")
     try:
         result = await client.call_tool("list_tables", {})
@@ -142,13 +93,7 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- read_table (the new replacement for resources/read)
-    #
-    # Same shape as TEST 2: real CSV data or an error string. The
-    # table name argument exercises the parameter-extraction path
-    # that replaced the URI parser in the original read_resource.
-    # --------------------------------------------------------------
+
     print("\n[TEST 3] read_table(table='dummy') -- replaces dropped resources/read")
     try:
         result = await client.call_tool("read_table", {"table": "dummy"})
@@ -162,14 +107,7 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 4 -- execute_sql (the existing tool, decorator-only change)
-    #
-    # `SELECT 1 + 1 AS answer` is the smallest read query that has a
-    # result set. If the DB is reachable, it returns the value. If not,
-    # the handler returns the error string. Either way proves the
-    # @app.call_tool -> @app.tool conversion works for execute_sql.
-    # --------------------------------------------------------------
+
     print("\n[TEST 4] execute_sql('SELECT 1 + 1 AS answer') -- decorator-only port")
     try:
         result = await client.call_tool(
@@ -210,13 +148,6 @@ What success looks like:
   TEST 4 ✓  execute_sql returned (result row or 'Error: ...').
             Proves: the existing tool survived the decorator change.
 
-If all four pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating real MySQL behaviour (real table listings,
-real query results) requires:
-  - MYSQL_HOST / MYSQL_PORT / MYSQL_USER / MYSQL_PASSWORD /
-    MYSQL_DATABASE set in the server's environment,
-  - a running MySQL server reachable from the host,
-and is out of scope for this smoke test.
 """)
 
 

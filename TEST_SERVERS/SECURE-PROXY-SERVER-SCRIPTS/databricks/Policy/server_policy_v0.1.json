@@ -5,9 +5,6 @@
   "resources": [
     "tool:databricks-remote-proxy/**"
   ],
-  "attestations": [
-    "allow_write::{ params.query MATCHES '*INSERT INTO*' OR params.query MATCHES '*insert into*' OR params.query MATCHES '*UPDATE *' OR params.query MATCHES '*update *' OR params.query MATCHES '*MERGE INTO*' OR params.query MATCHES '*merge into*' OR params.query MATCHES '*CREATE TABLE*' OR params.query MATCHES '*create table*' OR params.query MATCHES '*COPY INTO*' OR params.query MATCHES '*copy into*' }"
-  ],
   "constraints": {
     "parameters": {
       "tool:databricks-remote-proxy/execute_sql": {
@@ -73,13 +70,6 @@
           "*copy into*",
           "*hr_salaries*"
         ]
-      }
-    },
-    "attestations": {
-      "allow_write": {
-        "approval_criteria": "role:manager",
-        "timeout": 300,
-        "one_time": false
       }
     }
   }

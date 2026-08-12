@@ -1,0 +1,44 @@
+{
+  "policy_id": "app:grafana-proxy",
+  "version": "0.1.3",
+  "scope": "global",
+  "resources": [
+    "tool:grafana-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:grafana-proxy/grafana_api_request",
+    "tool:grafana-proxy/install_plugin",
+    "tool:grafana-proxy/alerting_manage_rules",
+    "tool:grafana-proxy/update_dashboard",
+    "tool:grafana-proxy/create_annotation",
+    "tool:grafana-proxy/update_annotation",
+    "tool:grafana-proxy/create_folder",
+    "tool:grafana-proxy/create_incident",
+    "tool:grafana-proxy/add_activity_to_incident"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:grafana-proxy/query_athena": {
+        "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
+      },
+      "tool:grafana-proxy/query_clickhouse": {
+        "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
+      },
+      "tool:grafana-proxy/query_influxdb": {
+        "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
+      },
+      "tool:grafana-proxy/query_snowflake": {
+        "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
+      },
+      "tool:grafana-proxy/search_dashboards": {
+        "query": ["*DENYME*"]
+      }
+    },
+    "parameters": {
+      "tool:grafana-proxy/search_dashboards": {
+        "limit": {"max": 100, "min": 1, "type": "integer"}
+      }
+    }
+  },
+  "description": "Grafana MCP via SecureMCPProxy"
+}

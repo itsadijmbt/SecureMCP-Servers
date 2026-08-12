@@ -1,6 +1,6 @@
 # Cloudflare MCP — SecureMCPProxy
 
-Wraps Cloudflare's Documentation MCP server (`https://docs.mcp.cloudflare.com/mcp`)
+Wraps Cloudflare's Workers Bindings MCP server (`https://bindings.mcp.cloudflare.com/mcp`)
 with MACAW. Direct HTTPS + Bearer API token auth — no `mcp-remote`, no OAuth
 browser dance. Same shape as `proxy_github.py`. One Python file, two tests.
 
@@ -34,9 +34,10 @@ Pick one URL based on what you need to expose:
 | Cloudflare One CASB | `https://casb.mcp.cloudflare.com/mcp` |
 | GraphQL | `https://graphql.mcp.cloudflare.com/mcp` |
 
-This script defaults to **Documentation** because it's read-only with the
-smallest scope and lowest blast radius. To wrap another, edit
-`CF_MCP_URL` in `proxy_cloudflare.py`.
+This script targets **Workers Bindings** (23 tools: D1, KV, R2, Hyperdrive,
+Workers) because that is the surface a MAPL policy can actually govern. The
+Documentation server (`https://docs.mcp.cloudflare.com/mcp`, 2 public tools) needs
+no auth at all. To switch, edit `CF_MCP_URL` in `proxy_cloudflare.py`.
 
 ## Prereqs
 
@@ -65,7 +66,7 @@ export CLOUDFLARE_API_TOKEN="..."
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/cloudflare/proxy_cloudflare.py
 ```
 
@@ -79,7 +80,7 @@ will error with a clear message. Check the printed tool list and replace
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_cloudflare.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -88,8 +89,8 @@ will error with a clear message. Check the printed tool list and replace
 {
   "mcpServers": {
     "cloudflare-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/cloudflare/proxy_cloudflare.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_cloudflare.py"],
       "env": { "CLOUDFLARE_API_TOKEN": "..." }
     }
   }
@@ -100,8 +101,8 @@ will error with a clear message. Check the printed tool list and replace
 
 ```bash
 claude mcp add cloudflare-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/cloudflare/proxy_cloudflare.py \
+  python \
+  /path/to/proxy_cloudflare.py \
   -e CLOUDFLARE_API_TOKEN=...
 ```
 
@@ -113,7 +114,8 @@ Then prompt: *"Use the cloudflare-macaw tool to search Cloudflare docs for
 - **`401 Unauthorized`** — token wrong or revoked.
 - **`403 Forbidden`** on a non-docs server — token is missing the scope that
   particular server needs (e.g. `bindings` requires Workers Scripts:Edit).
-  Generate a wider token, or stick to `docs.mcp.cloudflare.com`.
+  Generate a wider token. Note R2 tools also 403 with `10042` until R2 is
+  enabled on the account.
 - **Smoke tool name mismatch** — Cloudflare may rename
   `search_cloudflare_documentation`. Look at the printed tool list and
   swap the call-tool target. Doesn't break the wrap; just the smoke

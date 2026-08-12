@@ -9,19 +9,7 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh, all 5 tools advertised
-                            with the original Spotify-prefixed names.
-    2. SpotifySearch     -- reaches the handler (calls spotipy.search()).
-    3. SpotifyPlayback   -- reaches the handler with action="get".
-    4. SpotifyQueue      -- reaches the handler with action="get".
 
-Tests 2-4 do NOT require a working Spotify OAuth session. The handlers
-catch SpotifyException and return {"error": ...}, so we treat both
-"tool ran + returned error JSON" and "tool ran + got real data" as PASS.
-What we are proving is that the call traversed:
-    client -> mesh -> SecureMCP handler.
-The handler's downstream Spotify Web API call is out of scope.
 """
 
 import asyncio
@@ -85,17 +73,6 @@ async def main():
     print("SPOTIFY-MCP TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
-    # Pure port-correctness check. If all 5 tools registered cleanly
-    # we know:
-    #   - import swap (low-level Server -> SecureMCP) didn't break anything
-    #   - the 5 @mcp.tool() decorators ran at module import time
-    #   - SecureMCP's .tool() accepted (name=, description=) for each
-    #   - the original tool names (Spotify-prefixed) were preserved
-    # No upstream Spotify Web API call yet.
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -108,11 +85,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 2 -- SpotifySearch reaches the handler
-    #
-    # Calls spotify_client.search(query, qtype, limit). Without
-    # working OAuth credentials, spotipy raises SpotifyException
-    # which the tool body catches and returns as {"error": ...}.
-    # Either outcome proves the call reached the handler.
+
     # --------------------------------------------------------------
     print("\n[TEST 2] SpotifySearch -- handler reachability")
     try:
@@ -133,8 +106,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 3 -- SpotifyPlayback (action=get) reaches the handler
-    #
-    # Read-only -- "get" returns the current track, no playback change.
+   
     # --------------------------------------------------------------
     print("\n[TEST 3] SpotifyPlayback action=get -- handler reachability")
     try:
@@ -149,8 +121,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 4 -- SpotifyQueue (action=get) reaches the handler
-    #
-    # Read-only -- "get" returns the current queue.
+   
     # --------------------------------------------------------------
     print("\n[TEST 4] SpotifyQueue action=get -- handler reachability")
     try:
@@ -180,15 +151,6 @@ What success looks like (no Spotify OAuth required):
 
   TEST 4 ✓  SpotifyQueue action=get returned similarly.
 
-If all four pass, the low-level-Server -> SecureMCP port is verified
-at the mesh layer. Validating actual Spotify behaviour (real playback
-control, real search results, real playlist edits) requires:
-  - SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET / SPOTIFY_REDIRECT_URI
-    set in the spotify-mcp environment,
-  - a completed user OAuth flow (.cache file present),
-and is out of scope for this smoke test -- that responsibility lives
-with the original integration tests / manual verification against
-a real Spotify account.
 """)
 
 

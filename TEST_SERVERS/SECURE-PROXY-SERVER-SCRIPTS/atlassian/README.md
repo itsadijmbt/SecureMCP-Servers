@@ -36,7 +36,7 @@ authorize, approve the requested scopes. Token cached in `~/.mcp-auth/`.
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/atlassian/proxy_atlassian.py
 ```
 
@@ -56,7 +56,7 @@ are fast.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_atlassian.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -65,8 +65,8 @@ are fast.
 {
   "mcpServers": {
     "atlassian-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/atlassian/proxy_atlassian.py"]
+      "command": "python",
+      "args": ["/path/to/proxy_atlassian.py"]
     }
   }
 }
@@ -78,8 +78,8 @@ No env vars needed — `mcp-remote` reads the cached OAuth token from `$HOME`.
 
 ```bash
 claude mcp add atlassian-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/atlassian/proxy_atlassian.py
+  python \
+  /path/to/proxy_atlassian.py
 ```
 
 Then prompt: *"Use the atlassian-macaw tool to list my accessible

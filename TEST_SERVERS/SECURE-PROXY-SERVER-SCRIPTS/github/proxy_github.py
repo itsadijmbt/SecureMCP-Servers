@@ -1,21 +1,25 @@
 """
-GitHub remote MCP -> SecureMCPProxy with bind_to_user.
+github-proxy -> SecureMCPProxy, served natively.
 
-Two tests, one file. Calls go: client identity -> server identity -> upstream,
-so MACAW renders a two-node graph (client ──> server) for both tests.
-
-  Test 1 (active by default):  one bound.call_tool("get_me") then exit.
-  Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
+Prereq:
+    export GITHUB_PERSONAL_ACCESS_TOKEN="..."
+    export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
 Run:
-    export GITHUB_PERSONAL_ACCESS_TOKEN="ghp_..."
-    /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/github/proxy_github.py
+    python proxy_github.py
+    python proxy_github.py http 8080
+
+Claude Code:
+    claude mcp add github-macaw python /path/to/proxy_github.py \
+      -e GITHUB_PERSONAL_ACCESS_TOKEN=... \
+      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 """
 
 import os
 import sys
 import logging
+
+import httpx as _httpx
 from macaw_adapters.mcp import SecureMCPProxy, Client
 
 
@@ -25,61 +29,43 @@ token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
 if not token:
     raise ValueError("GITHUB_PERSONAL_ACCESS_TOKEN is not set")
 
+
+def _timed_create_http_client(self):
+    ua = self.upstream_auth
+    headers = {}
+    if getattr(ua, "type", None) == "bearer" and getattr(ua, "token", None):
+        headers["Authorization"] = f"Bearer {ua.token}"
+    elif getattr(ua, "type", None) == "api_key" and getattr(ua, "api_key", None):
+        headers[getattr(ua, "header_name", None) or "X-API-Key"] = ua.api_key
+    return _httpx.AsyncClient(
+        headers=headers or None,
+        timeout=_httpx.Timeout(connect=30, read=300, write=30, pool=30),
+    )
+SecureMCPProxy._create_http_client = _timed_create_http_client
+
 proxy = SecureMCPProxy(
-    app_name="github-remote-proxy",
+    app_name="github-proxy",
     upstream_url="https://api.githubcopilot.com/mcp/",
     upstream_auth={"type": "bearer", "token": token},
 )
+logging.info("github-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-# Client identity: registers as securemcp-client-github-macaw-gateway.
-# Static identity — sufficient for testing; swap to RemoteIdentityProvider for prod.
 client = Client("github-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
-# ============================================================================
-# Test 1 — smoke check (default).
-# bound.call_tool routes via the client identity, so MACAW shows: client -> proxy.
-# ============================================================================
-tools = proxy.list_tools()
-print(f"tools: {len(tools)}", file=sys.stderr)
-for t in tools:
-    print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
+import macaw_adapters.mcp._endpoint as _endpoint
 
-result = bound.call_tool("get_me", {})
-print(f"\nget_me -> {str(result)[:300]}", file=sys.stderr)
+_StubClient = _endpoint.Client
 
-# ============================================================================
-# Test 2 — stdio MCP gateway (uncomment block below to enable).
-# Re-publishes upstream tools as a stdio MCP server. Each tools/call from
-# Gemini/Claude CLI is forwarded via bound -> same 2-node graph as Test 1.
-# ============================================================================
-import asyncio
-import json
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-import mcp.types as types
 
-srv = Server("github-macaw-proxy")
-tool_objs = [
-    types.Tool(
-        name=t["name"],
-        description=t.get("description", ""),
-        inputSchema=t.get("schema") or {"type": "object"},
-    )
-    for t in proxy.list_tools()
-]
+def _bound_stub_client(name):
+    stub = _StubClient(name)
+    stub.macaw_client = bound.user_client
+    return stub
 
-@srv.list_tools()
-async def _list():
-    return tool_objs
 
-@srv.call_tool()
-async def _call(name, args):
-    r = bound.call_tool(name, args or {})
-    return [types.TextContent(type="text", text=json.dumps(r, default=str))]
+_endpoint.Client = _bound_stub_client
 
-async def _main():
-    async with stdio_server() as (rd, wr):
-        await srv.run(rd, wr, srv.create_initialization_options())
-
-asyncio.run(_main())
+transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
+proxy.run(transport=transport, port=port)

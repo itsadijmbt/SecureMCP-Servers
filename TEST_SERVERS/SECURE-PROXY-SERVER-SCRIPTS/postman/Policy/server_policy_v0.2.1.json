@@ -1,0 +1,100 @@
+{
+  "policy_id": "app:postman-proxy",
+  "version": "0.2.1",
+  "scope": "global",
+  "resources": [
+    "tool:postman-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:postman-proxy/deleteWorkspace",
+    "tool:postman-proxy/deleteCollection",
+    "tool:postman-proxy/deleteEnvironment",
+    "tool:postman-proxy/deleteMock",
+    "tool:postman-proxy/deleteMonitor",
+    "tool:postman-proxy/deleteSpec",
+    "tool:postman-proxy/deleteSpecFile",
+    "tool:postman-proxy/deleteCollectionFolder",
+    "tool:postman-proxy/deleteCollectionRequest",
+    "tool:postman-proxy/deleteCollectionResponse",
+    "tool:postman-proxy/deleteApiCollectionComment",
+    "tool:postman-proxy/deleteCollectionComment",
+    "tool:postman-proxy/deleteFolderComment",
+    "tool:postman-proxy/deleteRequestComment",
+    "tool:postman-proxy/deleteResponseComment",
+    "tool:postman-proxy/runCollection",
+    "tool:postman-proxy/runMonitor",
+    "tool:postman-proxy/createMonitor",
+    "tool:postman-proxy/updateMonitor",
+    "tool:postman-proxy/createMock",
+    "tool:postman-proxy/publishMock",
+    "tool:postman-proxy/publishDocumentation",
+    "tool:postman-proxy/unpublishMock",
+    "tool:postman-proxy/unpublishDocumentation",
+    "tool:postman-proxy/getWorkspaceGlobalVariables",
+    "tool:postman-proxy/updateWorkspaceGlobalVariables",
+    "tool:postman-proxy/addWorkspaceToPrivateNetwork",
+    "tool:postman-proxy/removeWorkspaceFromPrivateNetwork",
+    "tool:postman-proxy/respondPrivateNetworkAddRequest"
+  ],
+  "constraints": {
+    "attestations": {
+      "allow_write": {
+        "approval_criteria": "role:manager",
+        "one_time": true,
+        "timeout": 300
+      }
+    },
+    "denied_parameters": {
+      "tool:postman-proxy/createCollection": {
+        "collection": ["*169.254.169.254*", "*metadata.google.internal*", "*webhook.site*", "*burpcollaborator*", "*.oastify.com*"]
+      },
+      "tool:postman-proxy/patchCollection": {
+        "collection": ["*169.254.169.254*", "*metadata.google.internal*", "*webhook.site*", "*burpcollaborator*", "*.oastify.com*"]
+      },
+      "tool:postman-proxy/putCollection": {
+        "collection": ["*169.254.169.254*", "*metadata.google.internal*", "*webhook.site*", "*burpcollaborator*", "*.oastify.com*"]
+      },
+      "tool:postman-proxy/searchPostmanElements": {
+        "q": ["*DENYME*"]
+      }
+    },
+    "parameters": {
+      "tool:postman-proxy/createCollection": {
+        "workspace": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/createEnvironment": {
+        "workspace": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/getCollection": {
+        "collectionId": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"},
+        "model": {"allowed_values": ["minimal", "full"], "type": "string"}
+      },
+      "tool:postman-proxy/getCollections": {
+        "workspace": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/getWorkspace": {
+        "workspaceId": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/patchCollection": {
+        "collectionId": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/patchEnvironment": {
+        "environmentId": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/putCollection": {
+        "collectionId": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/putEnvironment": {
+        "environmentId": {"max_length": 128, "pattern": "^[A-Za-z0-9-]{1,128}$", "type": "string"}
+      },
+      "tool:postman-proxy/searchPostmanElements": {
+        "limit": {"max": 100, "min": 1, "type": "integer"},
+        "q": {"max_length": 256, "min_length": 1, "type": "string"}
+      }
+    }
+  },
+  "attestations": [
+    "allow_write::{ params.collection MATCHES '*' OR params.environment MATCHES '*' OR params.body MATCHES '*' }"
+  ],
+  "description": "Postman MCP via SecureMCPProxy"
+}

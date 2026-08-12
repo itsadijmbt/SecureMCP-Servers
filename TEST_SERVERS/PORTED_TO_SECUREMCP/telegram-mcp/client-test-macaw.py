@@ -9,20 +9,6 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness  -- server registered on the mesh; a representative
-                            sample of expected tools is advertised.
-    2. list_accounts     -- pure dict read, no Telegram network call.
-                            Should return real account labels.
-    3. get_me            -- reaches the handler; needs Telegram auth.
-                            Without a working session, telethon raises
-                            and the handler returns a string error,
-                            which still proves handler reachability.
-
-Tests 2-3 do NOT require live Telegram connectivity for handler-reach
-verification: telethon errors are caught inside each tool body and
-returned as a string. A successful handler call (real or error) proves
-the chain client -> mesh -> SecureMCP -> handler is intact.
 """
 
 import asyncio
@@ -92,10 +78,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 1 -- representative sample of tools is advertised
     #
-    # Pure port-correctness check. Telegram has many tools; we just
-    # confirm the sample shows up. If they do, we know the bulk
-    # @mcp.tool decoration ran on every tool path, the import swap
-    # held, and SecureMCP accepted name=/description= for each.
+
     # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_SAMPLE - seen
@@ -111,9 +94,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 2 -- list_accounts (pure dict read)
     #
-    # list_accounts reads the module-level `clients` dict built at
-    # import time by _discover_accounts(). No Telegram network call.
-    # Should return real account labels even without telegram auth.
+
     # --------------------------------------------------------------
     print("\n[TEST 2] list_accounts -- handler reachability + module state")
     try:
@@ -131,12 +112,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 3 -- get_me (lazy connect to Telegram)
-    #
-    # get_me hits cl.get_me() which needs ensure_connected() -> the
-    # lazy-connect path that replaces the dropped eager cl.start().
-    # If telegram session is valid, returns user info. If not, the
-    # handler catches and returns a string error -- both prove the
-    # handler ran on SecureMCP's loop.
+
     # --------------------------------------------------------------
     print("\n[TEST 3] get_me -- lazy-connect verification")
     try:
@@ -174,16 +150,7 @@ What success looks like:
             dropped eager cl.start()) entered SecureMCP's loop and
             the handler executed.
 
-If all three pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating real Telegram behaviour (sending messages,
-fetching dialogs, file uploads/downloads with allowed roots) requires
-real TELEGRAM_API_ID/HASH/SESSION_STRING env vars and a valid
-Telegram session -- that lives outside this smoke test.
 
-Note on roots (Path A under this port): file-path tools
-(upload_file, download_media, ...) are gated by SERVER_ALLOWED_ROOTS
-set via the --allowed-root CLI argument on the server. There is no
-client-side register_roots flow in this port; see MIGRATION.txt.
 """)
 
 

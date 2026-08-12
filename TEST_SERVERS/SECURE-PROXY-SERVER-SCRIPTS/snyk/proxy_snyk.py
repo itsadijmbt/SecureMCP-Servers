@@ -1,32 +1,20 @@
 """
-Snyk MCP -> SecureMCPProxy with bind_to_user (npx stdio upstream).
+snyk-proxy -> SecureMCPProxy, served natively.
 
-Two tests, one file. Calls go: client identity -> server identity -> upstream,
-so MACAW renders a two-node graph (client ──> server) for both tests.
-
-  Test 1 (active by default):  one bound.call_tool("snyk_version") then exit.
-  Test 2 (uncomment block):    stdio MCP gateway for Gemini/Claude CLI.
-
-Snyk's MCP is part of the official Snyk CLI (v1.1298.0+), invoked as
-`snyk mcp -t stdio`. Same wrap shape as airtable / notion / postman:
-npx stdio with PATH + HOME forwarded, plus SNYK_TOKEN for auth.
-
-Tools exposed (read-mostly, scanning surface):
-  - snyk_sca_scan        (open source dependency vulnerabilities)
-  - snyk_code_scan       (proprietary code SAST)
-  - snyk_iac_scan        (Infrastructure as Code)
-  - snyk_container_scan  (container images)
-  - snyk_sbom_scan       (existing SBOM analysis)
-  - snyk_aibom           (AI Bill of Materials)
-  - snyk_trust           (trust a folder before scanning)
-  - snyk_auth            (login — usually automatic)
-  - snyk_logout          (terminate session)
-  - snyk_version         (zero-arg smoke target)
+Prereq:
+    export SNYK_CFG_ORG="..."
+    export SNYK_TOKEN="..."
+    export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
 Run:
-    export SNYK_TOKEN="..."
-    /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \\
-        TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/snyk/proxy_snyk.py
+    python proxy_snyk.py
+    python proxy_snyk.py http 8080
+
+Claude Code:
+    claude mcp add snyk-macaw python /path/to/proxy_snyk.py \
+      -e SNYK_CFG_ORG=... \
+      -e SNYK_TOKEN=... \
+      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 """
 
 import os
@@ -49,7 +37,6 @@ upstream_env = {
     "HOME": os.environ["HOME"],
     "SNYK_TOKEN": token,
 }
-# Optional — multi-org Snyk accounts need this to scope correctly.
 if os.environ.get("SNYK_CFG_ORG"):
     upstream_env["SNYK_CFG_ORG"] = os.environ["SNYK_CFG_ORG"]
 
@@ -58,21 +45,24 @@ proxy = SecureMCPProxy(
     command=["npx", "-y", "snyk@latest", "mcp", "-t", "stdio"],
     env=upstream_env,
 )
+logging.info("snyk-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-# Client identity: registers as securemcp-client-snyk-macaw-gateway.
 client = Client("snyk-macaw-gateway")
 bound = proxy.bind_to_user(client.macaw_client)
 
-# ============================================================================
-# Test 1 — smoke check (default).
-# snyk_version is zero-arg, no scope-gated, no scan side effects. Proves
-# auth handshake + dispatch end-to-end without burning Snyk scan quota.
-# ============================================================================
-tools = proxy.list_tools()
-print(f"tools: {len(tools)}", file=sys.stderr)
-for t in tools:
-    print(f"  - {t['name']}: {t.get('description','')[:80]}", file=sys.stderr)
+import macaw_adapters.mcp._endpoint as _endpoint
 
-result = bound.call_tool("snyk_version", {})
-print(f"\nsnyk_version -> {str(result)[:300]}", file=sys.stderr)
+_StubClient = _endpoint.Client
 
+
+def _bound_stub_client(name):
+    stub = _StubClient(name)
+    stub.macaw_client = bound.user_client
+    return stub
+
+
+_endpoint.Client = _bound_stub_client
+
+transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
+proxy.run(transport=transport, port=port)

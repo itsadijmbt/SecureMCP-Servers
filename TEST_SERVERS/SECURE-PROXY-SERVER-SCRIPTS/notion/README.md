@@ -35,7 +35,7 @@ export NOTION_TOKEN="ntn_..."
 ## Test 1 — proxy works (1 dot)
 
 ```bash
-/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
+python \
     TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/notion/proxy_notion.py
 ```
 
@@ -47,7 +47,7 @@ First run is slow (10–20s) because `npx -y` downloads the package.
 
 ## Test 2 — real CLI through the proxy (2nd dot)
 
-1. Open `proxy_notion.py`. Uncomment the **Test 2** block at the bottom.
+1. No edit needed — the script serves natively over stdio.
 2. Configure your CLI to spawn this script as an MCP server.
 
 **Gemini CLI** — `~/.gemini/settings.json`:
@@ -56,8 +56,8 @@ First run is slow (10–20s) because `npx -y` downloads the package.
 {
   "mcpServers": {
     "notion-macaw": {
-      "command": "/home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11",
-      "args": ["/home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/notion/proxy_notion.py"],
+      "command": "python",
+      "args": ["/path/to/proxy_notion.py"],
       "env": { "NOTION_TOKEN": "ntn_..." }
     }
   }
@@ -68,8 +68,8 @@ First run is slow (10–20s) because `npx -y` downloads the package.
 
 ```bash
 claude mcp add notion-macaw \
-  /home/itsadijmbt/MACAW-MCP-STORE/venv/bin/python3.11 \
-  /home/itsadijmbt/MACAW-MCP-STORE/TEST_SERVERS/SECURE-PROXY-SERVER-SCRIPTS/notion/proxy_notion.py \
+  python \
+  /path/to/proxy_notion.py \
   -e NOTION_TOKEN=ntn_...
 ```
 

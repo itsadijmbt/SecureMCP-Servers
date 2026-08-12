@@ -9,33 +9,8 @@ Args:
     1. server filter substring (matches against agent_id)
     2. client name (any string for this caller's MACAW identity)
 
-What this tests:
-    1. Port-correctness        -- server registered on the mesh; the
-                                  representative sample of expected
-                                  tools is advertised. Names verified
-                                  against actual `def` lines in
-                                  src/excel_mcp/server.py.
-    2. get_workbook_metadata   -- read-only, no file written. Reaches
-                                  the handler regardless of whether
-                                  the file exists. Without a real
-                                  .xlsx the handler returns
-                                  "Error: ...".
-    3. validate_formula_syntax -- read-only, no file written. Same
-                                  reachability shape.
 
-Tests 2-3 do NOT require a real Excel file for handler-reach
-verification: every tool has a try/except that catches
-ValidationError / WorkbookError and returns "Error: ..." as a
-string. Either real output or an error string proves the
-client -> mesh -> SecureMCP -> handler chain is intact.
 
-Why these two read-only tools were picked:
-  - Both invoke openpyxl-backed code paths but from different
-    modules (workbook vs validation). If both reach their handlers,
-    the bulk of the @mcp.tool registration on writeable tools is
-    almost certainly fine too -- they share the same decorator
-    machinery.
-  - Both are safe to call repeatedly (no side effects).
 """
 
 import asyncio
@@ -108,12 +83,7 @@ async def main():
     # --------------------------------------------------------------
     # TEST 1 -- representative sample of tools is advertised
     #
-    # Pure port-correctness check. excel-mcp-server registers 25
-    # tools; sampling 10 across the categories in server.py confirms
-    # the bulk @mcp.tool registration ran on every category file
-    # (calculations, validation, formatting, data, workbook, chart,
-    # pivot, tables) without raising on the now-stripped annotations=
-    # kwarg.
+
     # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_SAMPLE - seen
@@ -128,12 +98,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 2 -- get_workbook_metadata (read-only, openpyxl path)
-    #
-    # Calls workbook.get_workbook_info() under the hood. Without a
-    # valid .xlsx at the given path, openpyxl raises and the
-    # handler's try/except returns "Error: ...". Either outcome
-    # proves the call traversed mesh -> handler -> openpyxl.
-    # --------------------------------------------------------------
+    
     print("\n[TEST 2] get_workbook_metadata -- read-only handler reach")
     try:
         result = await client.call_tool(
@@ -152,10 +117,7 @@ async def main():
 
     # --------------------------------------------------------------
     # TEST 3 -- validate_formula_syntax (read-only, validation path)
-    #
-    # Calls validation.validate_formula_in_cell_operation() under
-    # the hood. Same shape: real result or error string. Verifies
-    # that a different module's @mcp.tool registration also works.
+
     # --------------------------------------------------------------
     print("\n[TEST 3] validate_formula_syntax -- different-module handler reach")
     try:
@@ -198,11 +160,6 @@ What success looks like:
             Proves: a different module's @mcp.tool also registered
             and dispatched cleanly.
 
-If all three pass, the FastMCP -> SecureMCP port is verified at the
-mesh layer. Validating real Excel behaviour (write_data_to_excel,
-create_chart, etc., on real .xlsx files) requires a writable
-EXCEL_FILES_PATH directory and real Excel files -- that lives
-outside this smoke test.
 """)
 
 

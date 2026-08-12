@@ -1,0 +1,132 @@
+{
+  "policy_id": "app:neon-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:neon-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:neon-proxy/delete_project",
+    "tool:neon-proxy/delete_branch",
+    "tool:neon-proxy/reset_from_parent",
+    "tool:neon-proxy/create_project",
+    "tool:neon-proxy/create_branch",
+    "tool:neon-proxy/run_sql",
+    "tool:neon-proxy/run_sql_transaction",
+    "tool:neon-proxy/explain_sql_statement",
+    "tool:neon-proxy/prepare_database_migration",
+    "tool:neon-proxy/complete_database_migration",
+    "tool:neon-proxy/prepare_query_tuning",
+    "tool:neon-proxy/complete_query_tuning",
+    "tool:neon-proxy/get_connection_string",
+    "tool:neon-proxy/configure_neon_auth",
+    "tool:neon-proxy/provision_neon_auth",
+    "tool:neon-proxy/provision_neon_data_api"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:neon-proxy/search": {
+        "query": [
+          "*DENYME*"
+        ]
+      }
+    },
+    "parameters": {
+      "tool:neon-proxy/compare_database_schema": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "databaseName": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/describe_branch": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "databaseName": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/describe_project": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/describe_table_schema": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "databaseName": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "tableName": {"type": "string", "max_length": 128, "pattern": "^[A-Za-z0-9_.$-]+$"}
+      },
+      "tool:neon-proxy/fetch": {
+        "id": {"type": "string", "min_length": 1, "max_length": 128, "pattern": "^[A-Za-z0-9_.:/-]+$"}
+      },
+      "tool:neon-proxy/get_database_tables": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "databaseName": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/get_doc_resource": {
+        "slug": {"type": "string", "min_length": 1, "max_length": 256, "pattern": "^[A-Za-z0-9_/-]+$"}
+      },
+      "tool:neon-proxy/get_neon_auth_config": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/inspect_database": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "databaseName": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "computeId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "check": {"type": "string", "allowed_values": ["table-sizes", "index-sizes", "unused-indexes", "seq-scans", "long-running-queries", "locks", "outliers", "calls", "lfc-hit-rate", "working-set", "vacuum-stats", "bloat", "replication-slots", "subscriptions"]},
+        "limit": {"type": "integer", "min": 1, "max": 200}
+      },
+      "tool:neon-proxy/list_branch_computes": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/list_log_field_values": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "field": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "since": {"type": "string", "max_length": 32}
+      },
+      "tool:neon-proxy/list_log_fields": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/list_organizations": {
+        "search": {"type": "string", "max_length": 128}
+      },
+      "tool:neon-proxy/list_projects": {
+        "limit": {"type": "number", "min": 1, "max": 100},
+        "search": {"type": "string", "max_length": 128},
+        "cursor": {"type": "string", "max_length": 256},
+        "org_id": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"}
+      },
+      "tool:neon-proxy/list_shared_projects": {
+        "limit": {"type": "number", "min": 1, "max": 100},
+        "search": {"type": "string", "max_length": 128},
+        "cursor": {"type": "string", "max_length": 256}
+      },
+      "tool:neon-proxy/list_slow_queries": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "databaseName": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "computeId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "limit": {"type": "number", "min": 1, "max": 100},
+        "minExecutionTime": {"type": "number", "min": 0}
+      },
+      "tool:neon-proxy/query_logs": {
+        "projectId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "branchId": {"type": "string", "max_length": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
+        "source": {"type": "string", "allowed_values": ["function", "storage", "pg_endpoint"]},
+        "minSeverity": {"type": "string", "allowed_values": ["trace", "debug", "info", "warn", "error", "fatal"]},
+        "serviceName": {"type": "string", "min_length": 1, "max_length": 128},
+        "severityText": {"type": "string", "min_length": 1, "max_length": 32},
+        "bodyContains": {"type": "string", "min_length": 1, "max_length": 256},
+        "traceId": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+        "logql": {"type": "string", "min_length": 1, "max_length": 1000},
+        "query": {"type": "string", "min_length": 1, "max_length": 1000},
+        "limit": {"type": "integer", "min": 1, "max": 200}
+      },
+      "tool:neon-proxy/search": {
+        "query": {"type": "string", "min_length": 3, "max_length": 128}
+      }
+    }
+  },
+  "description": "Neon MCP via SecureMCPProxy -- project/branch destruction, arbitrary SQL, migrations, provisioning and connection-string disclosure denied; ids pattern-bound and result sets capped on the read surface."
+}
