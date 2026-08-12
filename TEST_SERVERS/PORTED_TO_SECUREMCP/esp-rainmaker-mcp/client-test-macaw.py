@@ -74,19 +74,8 @@ async def main():
             print("  Inspect the response — handler ran but content is unexpected.")
     except Exception as e:
         print(f"  FAILED: {e}")
-        print("  This is a BLOCKER — the port itself isn't working.")
 
-    # ----------------------------------------------------------------
-    # TEST 2 — check_login_status
 
-    #
-    # Two valid outcomes — BOTH prove the port works:
-    #   A) NO creds on host  -> tool returns the SDK-translated string
-    #      "
-    #   B) CREDS on host     -> tool returns
-    #     
-    #
-    # ----------------------------------------------------------------
     print("\n[TEST 2]  exercises the SDK auth path")
     try:
         result = await client.call_tool("check_login_status", {})
@@ -103,8 +92,7 @@ async def main():
             print("  Inspect server logs — handler ran but message shape is new.")
     except Exception as e:
         print(f"  Got error: {e}")
-        print("  Mesh-level error — caller-auth or transport problem, NOT an "
-              "ESP-creds issue.")
+
 
 
   
@@ -124,23 +112,9 @@ async def main():
             print("  Inspect — unexpected response shape.")
     except Exception as e:
         print(f"  Got error: {e}")
-        print("  Mesh-level or SDK-level exception leaking through. "
-              "Compare to TEST 2's behavior.")
 
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
 
-  Without ESP creds on this host:
-    TEST 1   static markdown returned )
-    TEST 2   "Login required..."
-    TEST 3   same "Login required..."
-    => Port is correct; ESP creds are absent (expected on a fresh host).
-
-
-""")
 
 
 if __name__ == "__main__":

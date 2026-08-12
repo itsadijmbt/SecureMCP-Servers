@@ -1,0 +1,84 @@
+{
+  "policy_id": "app:chrome-devtools-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:chrome-devtools-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:chrome-devtools-proxy/evaluate_script",
+    "tool:chrome-devtools-proxy/execute_webmcp_tool",
+    "tool:chrome-devtools-proxy/upload_file",
+    "tool:chrome-devtools-proxy/install_extension",
+    "tool:chrome-devtools-proxy/uninstall_extension",
+    "tool:chrome-devtools-proxy/reload_extension",
+    "tool:chrome-devtools-proxy/trigger_extension_action",
+    "tool:chrome-devtools-proxy/install_pwa",
+    "tool:chrome-devtools-proxy/uninstall_pwa",
+    "tool:chrome-devtools-proxy/launch_pwa",
+    "tool:chrome-devtools-proxy/take_heapsnapshot",
+    "tool:chrome-devtools-proxy/handle_dialog"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:chrome-devtools-proxy/fill": {
+        "value": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      },
+      "tool:chrome-devtools-proxy/type_text": {
+        "value": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      }
+    },
+    "parameters": {
+      "tool:chrome-devtools-proxy/navigate_page": {
+        "url": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 2048,
+          "pattern": "^https?://.+$"
+        }
+      },
+      "tool:chrome-devtools-proxy/new_page": {
+        "url": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 2048,
+          "pattern": "^https?://.+$"
+        }
+      },
+      "tool:chrome-devtools-proxy/fill": {
+        "uid": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128
+        },
+        "value": {
+          "type": "string",
+          "max_length": 4096
+        }
+      },
+      "tool:chrome-devtools-proxy/type_text": {
+        "value": {
+          "type": "string",
+          "max_length": 4096
+        }
+      },
+      "tool:chrome-devtools-proxy/resize_page": {
+        "width": {
+          "type": "number",
+          "min": 1,
+          "max": 8192
+        },
+        "height": {
+          "type": "number",
+          "min": 1,
+          "max": 8192
+        }
+      }
+    }
+  },
+  "description": "Chrome DevTools MCP via SecureMCPProxy -- in-page script execution, page-supplied webmcp tool execution, local file upload, extension and PWA installation, heap capture and dialog handling denied; navigation restricted to http(s) schemes and input values length-capped."
+}

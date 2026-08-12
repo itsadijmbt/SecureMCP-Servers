@@ -17,8 +17,6 @@ import sys
 from macaw_adapters.mcp import Client
 
 
-# All 21 tool names preserved verbatim from the original (mix of
-# hyphenated and underscored; we kept both via @app.tool(name=...)).
 EXPECTED_TOOLS = {
     "list-tables",
     "table-details",
@@ -126,31 +124,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  All 21 expected tools advertised on the mesh under
-            their original names (hyphenated and underscored
-            preserved via @app.tool(name=...)).
-            Proves: import swap, the 21-class -> 21-wrapper
-            collapse, name-kwarg preservation all worked at
-            module import time.
-
-  TEST 2 ✓  list-supported-indices returned the static index
-            list.
-            Proves: client -> mesh -> SecureMCP wrapper round-
-            trip works for the simplest case (no external
-            dependencies).
-
-  TEST 3 ✓  list-tables returned (real list or 'Error: ...').
-            Proves: the wrapper -> pinot_instance ->
-            controller HTTP path is wired.
-
-
-""")
 
 
 if __name__ == "__main__":

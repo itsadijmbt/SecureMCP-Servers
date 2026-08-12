@@ -19,20 +19,17 @@ import sys
 from macaw_adapters.mcp import Client
 
 
-# Sample of the 25 tools across the categories in server.py.
-# Names taken from the actual `def <name>(...)` lines in the source,
-# not guessed.
 EXPECTED_SAMPLE = {
-    "apply_formula",            # calculations / formula application
-    "validate_formula_syntax",  # validation
-    "format_range",             # formatting
-    "read_data_from_excel",     # data
-    "write_data_to_excel",      # data
-    "create_workbook",          # workbook management
-    "create_chart",             # chart
-    "create_pivot_table",       # pivot
-    "create_table",             # tables
-    "get_workbook_metadata",    # workbook (used in TEST 2)
+    "apply_formula",
+    "validate_formula_syntax",
+    "format_range",
+    "read_data_from_excel",
+    "write_data_to_excel",
+    "create_workbook",
+    "create_chart",
+    "create_pivot_table",
+    "create_table",
+    "get_workbook_metadata",
 }
 
 
@@ -80,11 +77,7 @@ async def main():
     print("EXCEL-MCP-SERVER TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- representative sample of tools is advertised
-    #
 
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_SAMPLE - seen
     if not missing:
@@ -96,8 +89,6 @@ async def main():
         print("  broke a signature. Check server import logs.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- get_workbook_metadata (read-only, openpyxl path)
     
     print("\n[TEST 2] get_workbook_metadata -- read-only handler reach")
     try:
@@ -115,10 +106,7 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- validate_formula_syntax (read-only, validation path)
 
-    # --------------------------------------------------------------
     print("\n[TEST 3] validate_formula_syntax -- different-module handler reach")
     try:
         result = await client.call_tool(
@@ -138,29 +126,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  Representative sample of tools advertised on the mesh.
-            Proves: import swap, the 25-decorator strip
-            (annotations=ToolAnnotations(...) -> @mcp.tool()) all
-            succeeded at module import time across every category
-            module (workbook, validation, formatting, data, chart,
-            pivot, tables, sheet management).
-
-  TEST 2 ✓  get_workbook_metadata returned (real metadata or
-            'Error: ...').
-            Proves: client -> mesh -> SecureMCP handler -> openpyxl
-            workbook-info path is intact.
-
-  TEST 3 ✓  validate_formula_syntax returned similarly.
-            Proves: a different module's @mcp.tool also registered
-            and dispatched cleanly.
-
-""")
 
 
 if __name__ == "__main__":

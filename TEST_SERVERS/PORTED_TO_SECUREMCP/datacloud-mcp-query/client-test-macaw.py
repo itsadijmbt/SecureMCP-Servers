@@ -69,16 +69,6 @@ async def main():
     print("DATACLOUD-MCP-QUERY TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- expected tools all present
-    #
-    # Pure port-correctness check. Proves:
-    #   - import swap (mcp.server.fastmcp -> SecureMCP) succeeded
-    #   - SecureMCP("Demo") boot succeeded
-    #   - all three @mcp.tool(...) decorators executed without
-    #     pydantic.Field at signature-parse time
-    # No upstream Data Cloud call yet.
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     missing = EXPECTED_TOOLS - seen
     if not missing:
@@ -90,16 +80,6 @@ async def main():
               "server log for traceback.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- list_tables with default dataspace
-    #
-    # Caller passes NO args. The handler signature is now
-    #   async def list_tables(dataspace: str = "default")
-    # Without the Field strip, dataspace would default to a FieldInfo
-    # object and the SQL parameter for tableFilter would still bind
-    # ok, but the dataspace string would be malformed -- this test
-    # exercises the plain-default path post-port.
-    # --------------------------------------------------------------
     print("\n[TEST 2] list_tables -- default-arg path")
     try:
         result = await client.call_tool("list_tables", {})
@@ -118,13 +98,6 @@ async def main():
                   "Likely upstream Data Cloud / auth issue. Handler "
                   "was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- describe_table with required arg
-    #
-    # 'table' is now a required Python arg (no default). If the
-    # mesh dispatch layer mishandled the new signature, we'd see
-    # a TypeError before the handler runs.
-    # --------------------------------------------------------------
     print("\n[TEST 3] describe_table -- required-arg path")
     try:
         result = await client.call_tool(
@@ -146,12 +119,6 @@ async def main():
             print("  PASS-ish -- exception was not a signature mismatch. "
                   "Handler was reached.")
 
-    # --------------------------------------------------------------
-    # TEST 4 -- query with required 'sql' and plain default kwargs
-    #
-    # Smallest valid query that proves the round-trip without
-    # depending on a specific table existing.
-    # --------------------------------------------------------------
     print("\n[TEST 4] query -- required + default args")
     try:
         result = await client.call_tool(
@@ -172,15 +139,6 @@ async def main():
                   "was reached; upstream Data Cloud / SQL surface is "
                   "where the failure came from.")
 
-    # ==================================================================
-    # RED-TEAM POLICY TESTS (server_policy_v0.1.json)
-    # These are DETERMINISTIC denials evaluated on the mesh BEFORE the
-    # tool body -> they work even WITHOUT valid Salesforce creds.
-    # "No result received" on the client = the policy-deny timeout;
-    # the real reason is in the server-side [TOOL-AGENT] audit log.
-    # There are NO denied_parameters (inert in 0.9.4) -- these use the
-    # enforced layers: allowed_values, pattern, max_length, attestation.
-    # ==================================================================
 
     async def run(label, tool, args):
         print(f"\n[{label}] {tool} {args if tool != 'query' or len(str(args)) < 120 else '<long sql>'}")
@@ -190,35 +148,21 @@ async def main():
         except Exception as e:
             print(f"  Failed: {str(e)[:200]}")
 
-    # D1 -- cross-dataspace access blocked (allowed_values: ['default'])
     await run("D1 query dataspace='prod_secret' (expect DENY: dataspace not in allowed_values)",
               "query", {"sql": "SELECT 1", "dataspace": "prod_secret"})
 
-    # D4 -- malformed table identifier blocked (pattern ^[A-Za-z_][A-Za-z0-9_]*$)
     await run("D4 describe_table table='bad-name!' (expect DENY: table fails pattern)",
               "describe_table", {"table": "bad-name!"})
 
-    # D5 -- oversized SQL blocked (sql max_length: 5000)
     await run("D5 query with >5000-char sql (expect DENY: sql exceeds maximum length 5000)",
               "query", {"sql": "SELECT '" + ("A" * 5200) + "' AS x"})
 
-    # A1 -- destructive SQL trips allow_destroy attestation (blocks for role:manager;
-    #       no approver here -> waits to timeout. 'DROP' is in a string literal so the
-    #       query itself is a harmless SELECT. Run last.)
     await run("A1 query w/ 'DROP' literal (expect BLOCK -> allow_destroy/role:manager)",
               "query", {"sql": "SELECT 'pretend DROP' AS note", "dataspace": "default"})
 
-    # DP1 -- CONTROL TEST for denied_parameters 
-    #   Policy has denied_parameters tool:query/sql blocking '*SECRET*'.
-    #   The query contains SECRET in a string literal (harmless SELECT).
-    #   EXPECTED: NOT a policy deny -> the call reaches the tool body
-    #   (returns data or an auth/upstream error)
     await run("DP1 query w/ 'SECRET' (denied_parameters CONTROL -- expect NOT denied i.e. inert)",
               "query", {"sql": "SELECT 'SECRET' AS x", "dataspace": "default"})
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
    
 
 

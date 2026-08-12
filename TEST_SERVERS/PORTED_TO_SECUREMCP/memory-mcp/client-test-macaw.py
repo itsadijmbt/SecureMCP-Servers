@@ -104,9 +104,6 @@ async def main():
     except Exception as e:
         msg = str(e)
         print(f"  Got error: {msg[:240]}")
-        # validate_user_id / validate_message_type raise ValueError on
-        # bad input. Our inputs are valid, so a ValueError here means
-        # validators changed shape -- inspect.
         if "ValueError" in msg or "validate" in msg.lower():
             print("  Inspect -- validator rejected our inputs. Check "
                   "utils/validators.py for the accepted shape.")
@@ -146,24 +143,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like (no upstream HTTP services needed):
-
-  TEST 1 ✓  All 6 expected tools advertised on the mesh.
-            Proves: import swap and tool registration succeeded.
-
-  TEST 2 ✓  store_memory call returned (either upstream JSON or
-            {"error": ...}). Proves: client -> mesh -> SecureMCP
-            handler path is intact.
-
-  TEST 3 ✓  retrieve_memory call returned similarly.
-
-  TEST 4 ✓  check_semantic_cache call returned similarly.
-
-""")
 
 
 if __name__ == "__main__":

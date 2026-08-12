@@ -17,16 +17,13 @@ import sys
 from macaw_adapters.mcp import Client
 
 
-# Sample of the 21 tools across projects/teams/work_items features.
-# Names verified against the live tool advertisement, not guessed.
-# If these register, the bulk @mcp.tool decoration ran on every path.
 EXPECTED_SAMPLE = {
-    "get_projects",          # features/projects/tools.py
-    "get_all_teams",         # features/teams/tools.py
-    "get_team_members",      # features/teams/tools.py
-    "get_work_item",         # features/work_items/tools/read.py
-    "create_work_item",      # features/work_items/tools/create.py
-    "query_work_items",      # features/work_items/tools/query.py
+    "get_projects",
+    "get_all_teams",
+    "get_team_members",
+    "get_work_item",
+    "create_work_item",
+    "query_work_items",
 }
 
 
@@ -100,24 +97,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  Representative sample of the 21 tools advertised
-            on the mesh.
-            Proves: import swap held, register_all() /
-            register_all_prompts() executed, all @mcp.tool
-            decorators ran without raising.
-
-  TEST 2 ✓  get_projects returned (real list or 'Error: ...').
-            Proves: client -> mesh -> SecureMCP -> handler ->
-            azure_client.get_connection() chain is intact.
-
-
-""")
 
 
 if __name__ == "__main__":

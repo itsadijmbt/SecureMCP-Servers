@@ -45,7 +45,6 @@ async def main():
     client.set_default_server(server_id)
     print(f"Connected to: {server_id}")
 
-    # TEST 1 -- mesh-native tool discovery
     print("\n" + "=" * 60)
     print("TEST 1: list_tools  (mesh advertises 4 notion tools)")
     print("=" * 60)
@@ -61,17 +60,12 @@ async def main():
     assert not missing, f"FAIL: missing tools {missing}"
     print("  PASS -- all 4 expected tools present")
 
-    # TEST 2 -- show_all_todos: read-only round-trip
     print("\n" + "=" * 60)
     print("TEST 2: show_all_todos  (read-only Notion round-trip)")
     print("=" * 60)
     r2 = await client.call_tool("show_all_todos", {})
     output2 = r2.get("result", r2) if isinstance(r2, dict) else r2
     print(f"  result head: {str(output2)[:200]}")
-    # The handler returns json.dumps(formatted_todos, indent=2). On
-    # success that's a JSON array (possibly empty if the database has
-    # no rows). On Notion API failure the handler returns the human
-    # error string starting with "Error fetching todos:".
     if isinstance(output2, str) and output2.lstrip().startswith("["):
         try:
             parsed = json.loads(output2)
@@ -87,7 +81,6 @@ async def main():
     else:
         print(f"  Inspect -- unexpected shape: {type(output2).__name__}")
 
-    # TEST 3 -- add_todo + complete_todo (only if NOTION_TEST_WRITE=1)
     print("\n" + "=" * 60)
     print("TEST 3: add_todo + complete_todo  (write+cleanup pair)")
     print("=" * 60)
@@ -106,7 +99,6 @@ async def main():
         f"FAIL: add_todo did not confirm; got: {output3a}"
     )
 
-    # Find the page we just created so we can mark it complete.
     r3b = await client.call_tool("show_all_todos", {})
     output3b = r3b.get("result", r3b) if isinstance(r3b, dict) else r3b
     todos = json.loads(output3b)

@@ -63,14 +63,6 @@ async def main():
     print(" CONAN MCP TESTS")
     print("=" * 60)
 
-    # TEST 1 -- list_conan_profiles
-    # Simplest possible call. No arguments. Calls `conan profile list`
-    # which returns the local profiles. Default install gives at least
-    # one profile named "default".
-    # Outcomes:
-    #   - conan installed     -> a Python list of profile names.
-    #   - conan NOT installed -> exception with "Command not found."
-    #     (or the chain returns an error result wrapping it).
     print("\n[TEST 1] list_conan_profiles -- no args, basic call")
     try:
         result = await client.call_tool("list_conan_profiles", {})
@@ -94,10 +86,6 @@ async def main():
         else:
             print("  Inspect -- exception type unexpected; may be a port issue.")
 
-    # TEST 2 -- get_conan_profile
-    # Calls `conan profile show` for the default profile. Slightly
-    # more involved than TEST 1 because the tool body builds a
-    # command pattern. Same two outcome branches.
     print("\n[TEST 2] get_conan_profile -- default profile")
     try:
         result = await client.call_tool("get_conan_profile", {})
@@ -119,12 +107,6 @@ async def main():
         else:
             print("  Inspect -- unexpected exception.")
 
-    # TEST 3 -- list_conan_packages with a popular package name
-    # Hits a remote Conan registry. With conan installed and network
-    # access, returns a dict listing package versions. Without
-    # conan, same "Command not found" shape as the other tests.
-    # Useful as the "real upstream call" test in the creds branch
-    # since it proves remote queries work, not just local profile lookups.
     print("\n[TEST 3] list_conan_packages -- search for 'fmt' on conancenter")
     try:
         result = await client.call_tool(
@@ -152,48 +134,6 @@ async def main():
         else:
             print("  Inspect.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What you should see:
-
-  Without conan installed on this host:
-    TEST 1, 2, 3 all return / raise with "Command not found." or
-    "RuntimeError: Command not found." from the run_command helper.
-    All three came back through the SecureMCP handler chain. That
-    is the port-correctness proof.
-
-  With conan installed:
-    TEST 1  Python list of profiles, e.g. ["default"].
-    TEST 2  Dict with profile settings (compiler, arch, build_type).
-    TEST 3  Dict with fmt package versions from conancenter.
-
-How to run with conan installed (the creds-branch run):
-
-  Two paths.
-
-  Path A -- pip install conan into the same Python env:
-
-      pip install conan
-      conan profile detect --force        # creates a default profile
-      python3 -m conan_mcp.main           # in Terminal 1, leaves running
-      python3 client-test-macaw.py conan-mcp conan-client   # Terminal 2
-
-  Path B -- use uv (project already pulls conan as a dep via pyproject):
-
-      uv sync                              # installs conan + mcp deps
-      uv run conan profile detect --force  # creates default profile
-      uv run conan-mcp                     # Terminal 1, server up
-      uv run python client-test-macaw.py conan-mcp conan-client  # Terminal 2
-
-  After Path A or Path B, the three tests should flip from
-  "Command not found" to real data branches.
-
-If TEST 1 returns profiles but TEST 3 fails with "remote" or
-"connection" in the error, conan is installed but cannot reach
-conancenter. That is a network issue, not the port.
-""")
 
 
 if __name__ == "__main__":

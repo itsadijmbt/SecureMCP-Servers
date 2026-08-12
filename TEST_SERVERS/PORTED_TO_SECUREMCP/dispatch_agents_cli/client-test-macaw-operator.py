@@ -71,7 +71,7 @@ async def main():
     tools = await client.list_tools(server_name=name)
     seen = {}
     for t in tools:
-        seen[t["name"]] = t  # dedupe; keep last occurrence's schema
+        seen[t["name"]] = t
     tool_names = sorted(seen.keys())
 
     print("Tools advertised by server:")
@@ -83,16 +83,6 @@ async def main():
     print("DISPATCH OPERATOR MCP TESTS")
     print("=" * 60)
 
-    # --------------------------------------------------------------
-    # TEST 1 -- server registered, expected tools present
-    #
-    # Pure port-correctness check. If list_tools came back populated,
-    # we know:
-    #   - SecureMCP boot succeeded (mcp.run() reached the mesh)
-    #   - create_operator_mcp ran every @mcp.tool() registration
-    #   - MACAWClient.register() succeeded
-    # No upstream dispatch backend call yet.
-    # --------------------------------------------------------------
     print("\n[TEST 1] tool list -- port-correctness")
     expected = {
         "list_namespaces", "list_agents", "create_agent",
@@ -117,17 +107,6 @@ async def main():
     if extra:
         print(f"  Note -- additional tools not in this checklist: {sorted(extra)}")
 
-    # --------------------------------------------------------------
-    # TEST 2 -- input schemas show flat kwargs, NOT a `request` param
-    #
-    # This is THE test for the pydantic-model-as-input rewrite. Before
-    # the port, every tool had a single `request: SomeRequest` param.
-    # SecureMCP cannot introspect pydantic models, so the port flattened
-    # each tool to typed kwargs.
-    #
-    # Expectation: list_agents shows `namespace` and `limit` parameters
-    # (not a single `request`).
-    # --------------------------------------------------------------
     print("\n[TEST 2] schema flattening -- list_agents parameters")
     if "list_agents" in seen:
         schema = seen["list_agents"].get("inputSchema") or seen["list_agents"].get("input_schema") or {}
@@ -145,10 +124,7 @@ async def main():
     else:
         print("  SKIPPED -- list_agents not in tool list.")
 
-    # --------------------------------------------------------------
-    # TEST 3 -- list_namespaces (no-args read tool)
 
-    # --------------------------------------------------------------
     print("\n[TEST 3] list_namespaces -- handler reachability")
     try:
         result = await client.call_tool("list_namespaces", {})
@@ -170,11 +146,7 @@ async def main():
                   "error. Came from upstream dispatch backend, which means the "
                   "MACAW + SecureMCP layer did its job.")
 
-    # --------------------------------------------------------------
-    # TEST 4 -- list_agents with namespace kwarg (flattened-arg plumbing)
-    #
 
-    # --------------------------------------------------------------
     print("\n[TEST 4] list_agents(namespace='default') -- argument plumbing")
     try:
         result = await client.call_tool(
@@ -198,28 +170,6 @@ async def main():
             print("  PASS (no-creds branch) -- exception was NOT a schema/arg "
                   "error. Args reached the handler; failure is downstream.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like across the four tests (no real dispatch backend needed):
-
-  TEST 1 PASS  Server registered on the mesh; ~31 tools advertised.
-               Proves: framework swap + every @mcp.tool() registration ran.
-
-  TEST 2 PASS  list_agents schema shows `namespace` and `limit` (flat),
-               not a single `request` param. Proves: the pydantic-model
-               flattening worked end-to-end through MACAW's tool list.
-
-  TEST 3 PASS  list_namespaces either succeeded or failed at the dispatch
-               backend without TypeError. Proves: handler reachable, no-arg
-               tool path works.
-
-  TEST 4 PASS  list_agents(namespace=..., limit=5) either succeeded or
-               failed at the dispatch backend without TypeError. Proves:
-               flattened kwargs reach the function body intact.
-
-""")
 
 
 if __name__ == "__main__":

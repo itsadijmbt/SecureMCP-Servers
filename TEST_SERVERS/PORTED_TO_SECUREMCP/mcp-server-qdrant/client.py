@@ -43,9 +43,6 @@ async def main():
             unique_tools.append(t)
             print(f" - {t['name']}")
  
-      # ============================================================         
-      # TEST 1: qdrant-store — write an entry                                                                                                                                                 
-      # ============================================================                                                                                                                          
       print("\n" + "=" * 60)                                                                                                                                                                  
       print("TEST 1: qdrant-store")                                                                                                                                                           
       print("=" * 60)                                                                                                                                                                         
@@ -58,9 +55,6 @@ async def main():
       )                                                                                                                                                                                       
       print("store result:", r1)                                                                                                                                                              
                   
-      # ============================================================
-      # TEST 2: qdrant-store — second entry, different topic
-      # ============================================================                                                                                                                          
       print("\n" + "=" * 60)
       print("TEST 2: qdrant-store (second entry)")                                                                                                                                            
       print("=" * 60)
@@ -73,9 +67,6 @@ async def main():
       )
       print("store result:", r2)
 
-      # ============================================================
-      # TEST 3: qdrant-find — semantic search should return entry 1
-      # ============================================================
       print("\n" + "=" * 60)
       print("TEST 3: qdrant-find (semantic match for physics)")
       print("=" * 60)
@@ -88,9 +79,6 @@ async def main():
           "FAIL: stored entry not retrievable by semantic query"
       print("PASS: semantic roundtrip works")
 
-      # ============================================================
-      # TEST 4: qdrant-find — different query, should return entry 2
-      # ============================================================
       print("\n" + "=" * 60)
       print("TEST 4: qdrant-find (semantic match for database)")
       print("=" * 60)
@@ -100,9 +88,6 @@ async def main():
       )                                                                                                                                                                                       
       print("find result:", r4)
                                                                                                                                                                                               
-      # ============================================================
-      # TEST 5: qdrant-find — query unrelated to anything stored
-      # ============================================================
       print("\n" + "=" * 60)
       print("TEST 5: qdrant-find (no match expected)")
       print("=" * 60)                                                                                                                                                                         

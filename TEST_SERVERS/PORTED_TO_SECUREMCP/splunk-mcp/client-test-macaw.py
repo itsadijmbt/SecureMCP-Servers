@@ -42,7 +42,6 @@ async def main():
     client.set_default_server(server_id)
     print(f"Connected to: {server_id}")
 
-    # TEST 1 -- mesh-native tool discovery
     print("\n" + "=" * 60)
     print("TEST 1: list_tools (mesh-native, replaces /openapi.json)")
     print("=" * 60)
@@ -56,7 +55,6 @@ async def main():
     assert len(seen) >= 1, "FAIL: no tools advertised"
     print("  PASS")
 
-    # TEST 2 -- ping (no Splunk network needed)
     print("\n" + "=" * 60)
     print("TEST 2: ping  (no Splunk network)")
     print("=" * 60)
@@ -68,7 +66,6 @@ async def main():
     else:
         print("  Inspect: ping returned unexpected shape")
 
-    # TEST 3 -- health_check (tries Splunk; degrades gracefully on fake creds)
     print("\n" + "=" * 60)
     print("TEST 3: health_check  (exercises Splunk lazy connect)")
     print("=" * 60)

@@ -19,9 +19,9 @@ from macaw_adapters.mcp import Client
 
 
 EXPECTED_TOOLS = {
-    "list_tables",   # NEW under the port; replaces resources/list
-    "read_table",    # NEW under the port; replaces resources/read
-    "execute_sql",   # EXISTING; only the decorator changed
+    "list_tables",
+    "read_table",
+    "execute_sql",
 }
 
 
@@ -125,30 +125,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  All 3 tools advertised: list_tables, read_table, execute_sql.
-            Proves: import swap held; resources/list -> list_tables and
-            resources/read -> read_table conversions registered cleanly;
-            execute_sql still works after the @app.call_tool ->
-            @app.tool change.
-
-  TEST 2 ✓  list_tables returned (real list or 'Error: ...').
-            Proves: the NEW tool replacing resources/list is reachable
-            and runs the same SHOW TABLES code path.
-
-  TEST 3 ✓  read_table(table='dummy') returned (CSV or 'Error: ...').
-            Proves: the NEW tool replacing resources/read is reachable
-            and runs the same SELECT * FROM X LIMIT 100 code path.
-
-  TEST 4 ✓  execute_sql returned (result row or 'Error: ...').
-            Proves: the existing tool survived the decorator change.
-
-""")
 
 
 if __name__ == "__main__":

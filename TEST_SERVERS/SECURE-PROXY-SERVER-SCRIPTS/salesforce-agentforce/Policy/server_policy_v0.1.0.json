@@ -9,7 +9,6 @@
     "denied_parameters": {
       "tool:salesforce-agentforce-proxy/agentforce_chat": {
         "message": [
-          "*DENYME*",
           "*ignore previous*",
           "*ignore all previous*",
           "*disregard your instructions*",
@@ -23,8 +22,14 @@
     },
     "parameters": {
       "tool:salesforce-agentforce-proxy/agentforce_chat": {
-        "message": {"type": "string", "min_length": 1, "max_length": 2000},
-        "context": {"type": "object"}
+        "message": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 2000
+        },
+        "context": {
+          "type": "object"
+        }
       }
     }
   },

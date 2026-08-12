@@ -92,13 +92,6 @@ async def main():
     print("server_policy_v0.1 — TEST SUITE (12 tests across 4 areas)")
     print("=" * 60)
 
-    # =====================================================
-    # AREA A — Resource allowlist + denied_resources
-    # Policy:
-    #   resources = ["tool:**"]
-    #   denied_resources = ["tool:scan_keys", "tool:scan_all_keys",
-    #                       "tool:json_del"]
-    # =====================================================
     print("\n--- Area A: Resource allowlist + denied_resources ---")
     await run_test(
         client, "TEST A1 [allow:info]", "info", {}, "allow",
@@ -115,11 +108,6 @@ async def main():
         note="'json_del' is in denied_resources; MAPL should reject"
     )
 
-    # =====================================================
-    # AREA B — Parameter pattern constraint (read tools)
-    # Policy:
-    #   tool:get -> key matches ^[A-Za-z][A-Za-z0-9:_-]*$, max_length 100
-    # =====================================================
     print("\n--- Area B: get.key pattern + max_length ---")
     await run_test(
         client, "TEST B1 [allow:valid_key]", "get",
@@ -138,12 +126,6 @@ async def main():
         note=f"key length {len(long_key)} > max_length 100"
     )
 
-    # =====================================================
-    # AREA C — Parameter constraints on write tools
-    # Policy:
-    #   tool:set -> key pattern + max_length 100
-    #   tool:expire -> name pattern + expire_seconds min 1
-    # =====================================================
     print("\n--- Area C: set.key pattern + expire.expire_seconds min ---")
     await run_test(
         client, "TEST C1 [allow:set_valid]", "set",
@@ -161,13 +143,6 @@ async def main():
         note="expire_seconds = 0 < min 1; constraint should reject"
     )
 
-    # =====================================================
-    # AREA D — denied_resources destructive group (Theorem 2: deny wins)
-    # Policy denied_resources includes the destructive tools:
-    #   tool:delete, tool:rename, tool:lrem, tool:srem,
-    #   tool:zrem, tool:hdel, tool:json_del
-    # Each must be rejected even though tool:** allows everything.
-    # =====================================================
     print("\n--- Area D: denied_resources destructive denials ---")
     await run_test(
         client, "TEST D1 [deny:delete]", "delete",

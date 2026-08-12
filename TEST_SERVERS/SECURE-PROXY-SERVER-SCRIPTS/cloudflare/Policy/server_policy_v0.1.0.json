@@ -20,46 +20,106 @@
     "tool:cloudflare-proxy/workers_get_worker_code"
   ],
   "constraints": {
-    "denied_parameters": {
-      "tool:cloudflare-proxy/search_cloudflare_documentation": {
-        "query": ["*DENYME*"]
-      },
-      "tool:cloudflare-proxy/r2_buckets_list": {
-        "name_contains": ["*DENYME*"]
-      }
-    },
     "parameters": {
       "tool:cloudflare-proxy/d1_database_get": {
-        "database_id": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9-]+$"}
+        "database_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9-]+$"
+        }
       },
       "tool:cloudflare-proxy/d1_databases_list": {
-        "name": {"type": "string", "max_length": 128},
-        "page": {"type": "number", "min": 1, "max": 1000},
-        "per_page": {"type": "number", "min": 1, "max": 100}
+        "name": {
+          "type": "string",
+          "max_length": 128
+        },
+        "page": {
+          "type": "number",
+          "min": 1,
+          "max": 1000
+        },
+        "per_page": {
+          "type": "number",
+          "min": 1,
+          "max": 100
+        }
       },
       "tool:cloudflare-proxy/hyperdrive_configs_list": {
-        "page": {"type": "number", "min": 1, "max": 1000},
-        "per_page": {"type": "number", "min": 1, "max": 100},
-        "direction": {"type": "string", "allowed_values": ["asc", "desc"]}
+        "page": {
+          "type": "number",
+          "min": 1,
+          "max": 1000
+        },
+        "per_page": {
+          "type": "number",
+          "min": 1,
+          "max": 100
+        },
+        "direction": {
+          "type": "string",
+          "allowed_values": [
+            "asc",
+            "desc"
+          ]
+        }
       },
       "tool:cloudflare-proxy/kv_namespace_get": {
-        "namespace_id": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9]+$"}
+        "namespace_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9]+$"
+        }
       },
       "tool:cloudflare-proxy/r2_bucket_get": {
-        "name": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[a-z0-9][a-z0-9-]*$"}
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        }
       },
       "tool:cloudflare-proxy/r2_buckets_list": {
-        "name_contains": {"type": "string", "max_length": 64},
-        "cursor": {"type": "string", "max_length": 256},
-        "direction": {"type": "string", "allowed_values": ["asc", "desc"]},
-        "per_page": {"type": "number", "min": 1, "max": 100},
-        "start_after": {"type": "string", "max_length": 64}
+        "name_contains": {
+          "type": "string",
+          "max_length": 64
+        },
+        "cursor": {
+          "type": "string",
+          "max_length": 256
+        },
+        "direction": {
+          "type": "string",
+          "allowed_values": [
+            "asc",
+            "desc"
+          ]
+        },
+        "per_page": {
+          "type": "number",
+          "min": 1,
+          "max": 100
+        },
+        "start_after": {
+          "type": "string",
+          "max_length": 64
+        }
       },
       "tool:cloudflare-proxy/search_cloudflare_documentation": {
-        "query": {"type": "string", "min_length": 1, "max_length": 512}
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 512
+        }
       },
       "tool:cloudflare-proxy/workers_get_worker": {
-        "scriptName": {"type": "string", "min_length": 1, "max_length": 64, "pattern": "^[A-Za-z0-9_-]+$"}
+        "scriptName": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       }
     }
   },

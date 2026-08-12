@@ -43,7 +43,6 @@ async def main():
 
     client.set_default_server(server_id)
 
-    # List all tools the server registered.
     tools = await client.list_tools(server_name=name)
     seen = set()
     print("Tools advertised by server:")
@@ -52,7 +51,6 @@ async def main():
             seen.add(t["name"])
             print(f" - {t['name']}")
 
-    # Detect dialect by tool names.
     is_table_dialect = "list_tables" in seen
     is_tree_dialect = "metadata_query" in seen
 
@@ -73,18 +71,9 @@ async def main():
     print("\nAll tests done.")
 
 
-# ----------------------------------------------------------------
-# TABLE DIALECT TESTS
-# Triggered when sql_dialect=table.
-# Tools available: read_query, list_tables, describe_table,
-#                  export_table_query
-# ----------------------------------------------------------------
 async def run_table_dialect_tests(client):
     print("\n[Table dialect detected]")
 
-    # TEST 1 — list_tables (zero args).
-    # If IoTDB is reachable, returns a CSV string of tables.
-    # If not, the handler raises and you'll see the connection error.
     print("\n[TEST 1] list_tables — list every table in the IoTDB database")
     try:
         result = await client.call_tool("list_tables", {})
@@ -93,8 +82,6 @@ async def run_table_dialect_tests(client):
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # TEST 2 — read_query with SELECT 1.
-    # Simplest valid SELECT.  Doesn't depend on any specific table.
     print("\n[TEST 2] read_query — SELECT 1 (smoke test, no table required)")
     try:
         result = await client.call_tool("read_query", {"query_sql": "SELECT 1"})
@@ -102,8 +89,6 @@ async def run_table_dialect_tests(client):
     except Exception as e:
         print(f"  Failed: {e}")
 
-    # TEST 3 — read_query with SHOW.
-    # SHOW is in the allowlist (handler accepts SELECT/DESCRIBE/SHOW).
     print("\n[TEST 3] read_query — SHOW TABLES (allowlisted)")
     try:
         result = await client.call_tool("read_query", {"query_sql": "SHOW TABLES"})

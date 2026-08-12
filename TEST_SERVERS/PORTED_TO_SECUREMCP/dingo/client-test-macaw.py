@@ -78,11 +78,7 @@ async def main():
             print(f"  Got {len(seen)} tools; expected at least 6.")
         return
 
-    # --------------------------------------------------------------
-    # TEST 2 -- run_dingo_evaluation with an obviously bad path
-    #
 
-    # --------------------------------------------------------------
     print("\n[TEST 2] run_dingo_evaluation -- typed-kwarg path")
     try:
         result = await client.call_tool(
@@ -105,21 +101,6 @@ async def main():
         print(f"  Got error: {msg[:240]}")
         print("  PASS-ish -- exception surfaced via mesh; handler was reached.")
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print("""
-What success looks like:
-
-  TEST 1 ✓  6 tools advertised on the mesh.
-            Proves: import swap held; the 6 @mcp.tool decorators
-            registered cleanly under SecureMCP.
-
-  TEST 2 ✓  run_dingo_evaluation returned.
-            Proves: typed kwargs (input_path, evaluation_type,
-            eval_group_name, kwargs dict) arrive at the handler
-            via SecureMCP's parameter introspection.
-""")
 
 
 if __name__ == "__main__":
