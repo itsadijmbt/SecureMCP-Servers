@@ -3,7 +3,7 @@ MACAW client smoke test for ydp-mcp
 (post FastMCP -> SecureMCP port).
 
 Usage:
-    python3.11 client-test-macaw.py "YDB MCP Server"  ydb-client
+    python3.11 client-test-macaw.py "ydb-mcp"  ydb-client
 
 Args:
     1. server filter substring (matches against agent_id)

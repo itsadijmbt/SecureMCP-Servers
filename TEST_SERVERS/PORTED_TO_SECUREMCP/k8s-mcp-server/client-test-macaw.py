@@ -3,7 +3,7 @@ MACAW client smoke test for k8s-mcp-server
 (post FastMCP -> SecureMCP port).
 
 Usage:
-    python3 client-test-macaw.py "K8s MCP Server" k8s-test-client
+    python3 client-test-macaw.py "k8s-mcp-server" k8s-test-client
 
 Args:
     1. server filter substring (matches against agent_id)

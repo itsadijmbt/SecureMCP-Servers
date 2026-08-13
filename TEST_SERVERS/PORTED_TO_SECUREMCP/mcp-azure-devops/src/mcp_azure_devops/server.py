@@ -12,7 +12,7 @@ from mcp_azure_devops.features import register_all
 from mcp_azure_devops.utils import register_all_prompts
 
 # PORT: was `mcp = FastMCP("Azure DevOps")`
-mcp = SecureMCP("Azure DevOps")
+mcp = SecureMCP("azure-devops")
 
 # Register all features
 register_all(mcp)

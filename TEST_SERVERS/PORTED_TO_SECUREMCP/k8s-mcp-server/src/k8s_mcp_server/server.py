@@ -109,7 +109,7 @@ cli_status = run_startup_checks()
 #     verified by grep). MACAW exposes identity via agent_id; the
 #     version is still in __version__ for any consumer who imports
 #     the package directly.
-mcp = SecureMCP(name="K8s MCP Server")
+mcp = SecureMCP(name="k8s-mcp-server")
 # mcp._mcp_server.version = __version__    # PORT: removed -- see note above
 
 # Register prompt templates

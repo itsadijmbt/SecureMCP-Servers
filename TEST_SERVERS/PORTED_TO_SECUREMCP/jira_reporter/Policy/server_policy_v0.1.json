@@ -2,12 +2,10 @@
   "policy_id": "app:securemcp-jira-reporter",
   "version": "0.1",
   "description": "Jira Reporter MCP (owned SecureMCP) -- read-only reporting; JQL/project_key recon bounded.",
-
   "resources": [
     "tool:generate_jira_report",
     "tool:find_delayed_issues"
   ],
-
   "constraints": {
     "parameters": {
       "tool:generate_jira_report": {
