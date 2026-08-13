@@ -1,0 +1,155 @@
+{
+  "policy_id": "app:securemcp-couchbase",
+  "version": "0.1",
+  "description": "Couchbase MCP (owned SecureMCP) -- reads + guarded SQL++ allowed; KV write/delete denied; SQL++ DML/DDL blocked.",
+  "resources": [
+    "tool:get_server_configuration_status",
+    "tool:test_cluster_connection",
+    "tool:get_buckets_in_cluster",
+    "tool:get_scopes_and_collections_in_bucket",
+    "tool:get_scopes_in_bucket",
+    "tool:get_collections_in_scope",
+    "tool:get_cluster_health_and_services",
+    "tool:get_document_by_id",
+    "tool:get_schema_for_collection",
+    "tool:explain_sql_plus_plus_query",
+    "tool:get_index_advisor_recommendations",
+    "tool:list_indexes",
+    "tool:get_longest_running_queries",
+    "tool:get_most_frequent_queries",
+    "tool:get_queries_with_largest_response_sizes",
+    "tool:get_queries_with_large_result_count",
+    "tool:get_queries_using_primary_index",
+    "tool:get_queries_not_using_covering_index",
+    "tool:get_queries_not_selective",
+    "tool:run_sql_plus_plus_query"
+  ],
+  "denied_resources": [
+    "tool:upsert_document_by_id",
+    "tool:insert_document_by_id",
+    "tool:replace_document_by_id",
+    "tool:delete_document_by_id"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:run_sql_plus_plus_query": {
+        "bucket_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "scope_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "query": {
+          "type": "string",
+          "max_length": 10000,
+          "pattern": "(?i)^(?![\\s\\S]*\\b(INSERT|UPDATE|DELETE|UPSERT|MERGE|CREATE|DROP|ALTER|BUILD|GRANT|REVOKE)\\b)[\\s\\S]*$"
+        }
+      },
+      "tool:get_index_advisor_recommendations": {
+        "bucket_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "scope_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "query": {
+          "type": "string",
+          "max_length": 10000,
+          "pattern": "(?i)^(?![\\s\\S]*\\b(INSERT|UPDATE|DELETE|UPSERT|MERGE|CREATE|DROP|ALTER|BUILD|GRANT|REVOKE)\\b)[\\s\\S]*$"
+        }
+      },
+      "tool:explain_sql_plus_plus_query": {
+        "bucket_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "scope_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "query": {
+          "type": "string",
+          "max_length": 10000,
+          "pattern": "(?i)^(?![\\s\\S]*\\b(INSERT|UPDATE|DELETE|UPSERT|MERGE|CREATE|DROP|ALTER|BUILD|GRANT|REVOKE)\\b)[\\s\\S]*$"
+        }
+      },
+      "tool:get_schema_for_collection": {
+        "bucket_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "scope_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "collection_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        }
+      },
+      "tool:get_document_by_id": {
+        "bucket_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        },
+        "scope_name": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.%\\-]+$"
+        }
+      },
+      "tool:get_longest_running_queries": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:get_most_frequent_queries": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:get_queries_with_largest_response_sizes": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:get_queries_with_large_result_count": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:get_queries_using_primary_index": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:get_queries_not_using_covering_index": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:get_queries_not_selective": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      }
+    }
+  }
+}

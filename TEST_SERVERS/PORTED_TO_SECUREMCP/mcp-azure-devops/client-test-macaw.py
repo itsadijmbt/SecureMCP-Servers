@@ -3,7 +3,7 @@ MACAW client smoke test for mcp-azure-devops
 (post FastMCP -> SecureMCP port).
 
 Usage:
-    python3 client-test-macaw.py "Azure DevOps" devops-test-client
+    python3 client-test-macaw.py "azure-devops" devops-test-client
 
 Args:
     1. server filter substring (matches against agent_id)
@@ -45,7 +45,7 @@ def get_server(name, client):
 async def main():
     if len(sys.argv) < 3:
         print('Usage: python3 client-test-macaw.py "<server filter>" <client name>')
-        print('Example: python3 client-test-macaw.py "Azure DevOps" devops-test-client')
+        print('Example: python3 client-test-macaw.py "azure-devops" devops-test-client')
         sys.exit(1)
 
     name = sys.argv[1]

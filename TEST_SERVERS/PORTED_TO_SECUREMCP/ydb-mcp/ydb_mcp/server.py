@@ -88,7 +88,7 @@ class YDBMCPServer():
         **kwargs: Any,
     ) -> None:
         
-        self.mcp = SecureMCP("YDB MCP Server")
+        self.mcp = SecureMCP("ydb-mcp")
         # super().__init__("YDB MCP Server", **kwargs)
 
         if auth_mode not in _AUTH_MODES:

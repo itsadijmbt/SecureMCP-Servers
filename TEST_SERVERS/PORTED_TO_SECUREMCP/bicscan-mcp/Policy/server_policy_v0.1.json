@@ -1,0 +1,21 @@
+{
+    "policy_id": "app:securemcp-BICScan",
+    "version": "0.1",
+    "description": "BICScan crypto/domain risk MCP (owned SecureMCP) -- public default: allow both read-only lookups, length-cap the free-form address param.",
+
+    "resources": [
+        "tool:get_risk_score",
+        "tool:get_assets"
+    ],
+
+    "constraints": {
+        "parameters": {
+            "tool:get_risk_score": {
+                "address": { "type": "string", "min_length": 1, "max_length": 512 }
+            },
+            "tool:get_assets": {
+                "address": { "type": "string", "min_length": 1, "max_length": 512 }
+            }
+        }
+    }
+}

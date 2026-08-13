@@ -1,0 +1,152 @@
+{
+  "policy_id": "app:securemcp-securemcp-falcon-mcp",
+  "version": "0.1.0",
+  "description": "falcon-mcp (CrowdStrike Falcon EDR) via SecureMCP -- read-only SOC console; the 11 mutating tools are denied.",
+
+  "resources": [
+    "tool:falcon_check_connectivity",
+    "tool:falcon_list_enabled_modules",
+    "tool:falcon_list_modules",
+
+    "tool:falcon_search_detections",
+    "tool:falcon_get_detection_details",
+
+    "tool:falcon_search_hosts",
+    "tool:falcon_get_host_details",
+
+    "tool:falcon_show_crowd_score",
+    "tool:falcon_search_incidents",
+    "tool:falcon_get_incident_details",
+    "tool:falcon_search_behaviors",
+    "tool:falcon_get_behavior_details",
+
+    "tool:falcon_search_iocs",
+
+    "tool:falcon_search_ioa_rule_groups",
+    "tool:falcon_get_ioa_platforms",
+    "tool:falcon_get_ioa_rule_types",
+
+    "tool:falcon_search_firewall_rules",
+    "tool:falcon_search_firewall_rule_groups",
+    "tool:falcon_search_firewall_policy_rules",
+
+    "tool:falcon_search_scheduled_reports",
+    "tool:falcon_search_report_executions",
+    "tool:falcon_download_report_execution",
+
+    "tool:falcon_search_kubernetes_containers",
+    "tool:falcon_count_kubernetes_containers",
+    "tool:falcon_search_images_vulnerabilities",
+    "tool:falcon_search_cspm_assets",
+
+    "tool:falcon_search_actors",
+    "tool:falcon_search_indicators",
+    "tool:falcon_search_reports",
+    "tool:falcon_get_mitre_report",
+
+    "tool:falcon_search_vulnerabilities",
+
+    "tool:falcon_search_applications",
+    "tool:falcon_search_unmanaged_assets",
+
+    "tool:falcon_search_serverless_vulnerabilities",
+
+    "tool:falcon_search_sensor_usage",
+
+    "tool:falcon_search_ngsiem",
+
+    "tool:falcon_idp_investigate_entity"
+  ],
+
+  "denied_resources": [
+    "tool:falcon_add_ioc",
+    "tool:falcon_remove_iocs",
+    "tool:falcon_create_ioa_rule_group",
+    "tool:falcon_update_ioa_rule_group",
+    "tool:falcon_delete_ioa_rule_groups",
+    "tool:falcon_create_ioa_rule",
+    "tool:falcon_update_ioa_rule",
+    "tool:falcon_delete_ioa_rules",
+    "tool:falcon_create_firewall_rule_group",
+    "tool:falcon_delete_firewall_rule_groups",
+    "tool:falcon_launch_scheduled_report"
+  ],
+
+  "constraints": {
+    "parameters": {
+      "tool:falcon_search_detections": {
+        "limit": {"type": "integer", "min": 1, "max": 9999}
+      },
+      "tool:falcon_search_hosts": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_show_crowd_score": {
+        "limit": {"type": "integer", "min": 1, "max": 2500}
+      },
+      "tool:falcon_search_incidents": {
+        "limit": {"type": "integer", "min": 1, "max": 500}
+      },
+      "tool:falcon_search_behaviors": {
+        "limit": {"type": "integer", "min": 1, "max": 500}
+      },
+      "tool:falcon_search_iocs": {
+        "limit": {"type": "integer", "min": 1, "max": 500}
+      },
+      "tool:falcon_search_ioa_rule_groups": {
+        "limit": {"type": "integer", "min": 1, "max": 500}
+      },
+      "tool:falcon_get_ioa_rule_types": {
+        "limit": {"type": "integer", "min": 1, "max": 500}
+      },
+      "tool:falcon_search_firewall_rules": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_firewall_rule_groups": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_firewall_policy_rules": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_scheduled_reports": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_report_executions": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_kubernetes_containers": {
+        "limit": {"type": "integer", "min": 1, "max": 9999}
+      },
+      "tool:falcon_search_images_vulnerabilities": {
+        "limit": {"type": "integer", "min": 1, "max": 9999}
+      },
+      "tool:falcon_search_cspm_assets": {
+        "limit": {"type": "integer", "min": 1, "max": 1000}
+      },
+      "tool:falcon_search_actors": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_indicators": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_reports": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_vulnerabilities": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_applications": {
+        "limit": {"type": "integer", "min": 1, "max": 1000}
+      },
+      "tool:falcon_search_unmanaged_assets": {
+        "limit": {"type": "integer", "min": 1, "max": 5000}
+      },
+      "tool:falcon_search_serverless_vulnerabilities": {
+        "limit": {"type": "integer", "min": 1, "max": 1000}
+      },
+      "tool:falcon_idp_investigate_entity": {
+        "limit": {"type": "integer", "min": 1, "max": 200},
+        "relationship_depth": {"type": "integer", "min": 1, "max": 3}
+      }
+    }
+  }
+}

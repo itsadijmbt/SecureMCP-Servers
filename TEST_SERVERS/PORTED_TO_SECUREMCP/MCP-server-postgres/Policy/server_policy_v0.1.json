@@ -1,0 +1,22 @@
+{
+  "policy_id": "app:securemcp-securemcp-postgreSql",
+  "version": "0.1",
+  "description": "PostgreSQL MCP (owned SecureMCP) -- reads allowed; execute_query hard-guarded read-only (SELECT/WITH/SHOW only, no ';' / DML / DDL / credential-catalog).",
+  "resources": [
+    "tool:list_tables",
+    "tool:get_table_schema",
+    "tool:get_table_stats",
+    "tool:execute_query"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:execute_query": {
+        "query": {
+          "type": "string",
+          "pattern": "(?i)^(?![\\s\\S]*(;|\\b(INSERT|UPDATE|DELETE|MERGE|DROP|ALTER|CREATE|TRUNCATE|GRANT|REVOKE|COPY|VACUUM|REINDEX|CLUSTER|LOCK|REFRESH|CALL|INTO)\\b|\\b(pg_authid|pg_shadow|pg_read_file|pg_read_binary_file|pg_ls_dir|pg_stat_file|lo_export|lo_import|dblink)\\b))\\s*(SELECT|WITH|SHOW)\\b[\\s\\S]*$",
+          "max_length": 10000
+        }
+      }
+    }
+  }
+}

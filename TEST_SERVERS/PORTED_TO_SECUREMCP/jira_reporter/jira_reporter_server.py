@@ -21,7 +21,7 @@ JIRA_USERNAME = os.environ.get("JIRA_USERNAME")
 JIRA_API_TOKEN = os.environ.get("JIRA_API_TOKEN")
 
 # --- MCP Server Setup ---
-mcp = SecureMCP("securemcp-jira-reporter")
+mcp = SecureMCP("jira-reporter")
 # Helper function to connect to Jira (synchronous)
 
 

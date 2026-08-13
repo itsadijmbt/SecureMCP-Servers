@@ -1,0 +1,22 @@
+{
+  "policy_id": "app:securemcp-securemcp-server-qdrant",
+  "version": "0.1",
+  "description": "Qdrant vector-store MCP (owned SecureMCP) -- read-only find allowed; store (shared-store poisoning + nested metadata) denied.",
+
+  "resources": [
+    "tool:qdrant-find"
+  ],
+
+  "denied_resources": [
+    "tool:qdrant-store"
+  ],
+
+  "constraints": {
+    "parameters": {
+      "tool:qdrant-find": {
+        "collection_name": {"type": "string", "pattern": "^[A-Za-z0-9_\\-]+$"},
+        "query": {"type": "string", "max_length": 2000}
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "policy_id": "app:securemcp-Optuna",
+  "version": "0.1",
+  "description": "Optuna HPO MCP (owned SecureMCP) -- study/trial read+write allowed; out-of-band dashboard launch denied.",
+  "resources": [
+    "tool:get_all_study_names",
+    "tool:get_trial_user_attrs",
+    "tool:get_metric_names",
+    "tool:get_directions",
+    "tool:get_trials",
+    "tool:best_trial",
+    "tool:best_trials",
+    "tool:plot_optimization_history",
+    "tool:plot_hypervolume_history",
+    "tool:plot_pareto_front",
+    "tool:plot_contour",
+    "tool:plot_parallel_coordinate",
+    "tool:plot_slice",
+    "tool:plot_param_importances",
+    "tool:plot_edf",
+    "tool:plot_timeline",
+    "tool:plot_rank",
+    "tool:create_study",
+    "tool:ask",
+    "tool:tell",
+    "tool:set_sampler",
+    "tool:set_trial_user_attr",
+    "tool:set_metric_names",
+    "tool:add_trial",
+    "tool:add_trials"
+  ],
+  "denied_resources": [
+    "tool:launch_optuna_dashboard"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:set_sampler": {
+        "name": {
+          "type": "string",
+          "allowed_values": ["TPESampler", "NSGAIISampler", "RandomSampler", "GPSampler"]
+        }
+      },
+      "tool:add_trials": {
+        "trials": {
+          "type": "array",
+          "max_items": 1000
+        }
+      },
+      "tool:create_study": {
+        "study_name": {
+          "type": "string",
+          "max_length": 256
+        }
+      },
+      "tool:tell": {
+        "trial_number": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:set_trial_user_attr": {
+        "trial_number": {
+          "type": "integer",
+          "min": 0
+        }
+      }
+    }
+  }
+}

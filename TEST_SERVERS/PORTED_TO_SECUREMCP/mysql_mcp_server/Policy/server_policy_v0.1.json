@@ -1,0 +1,27 @@
+{
+  "policy_id": "app:securemcp-mysql_mcp_server",
+  "version": "0.1",
+  "description": "MySQL MCP (owned SecureMCP) ",
+  "resources": [
+    "tool:list_tables",
+    "tool:read_table",
+    "tool:execute_sql"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:read_table": {
+        "table": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_]+$"
+        }
+      },
+      "tool:execute_sql": {
+        "query": {
+          "type": "string",
+          "pattern": "(?i)^(?![\\s\\S]*(;|\\b(INSERT|UPDATE|DELETE|REPLACE|MERGE|DROP|ALTER|CREATE|TRUNCATE|RENAME|GRANT|REVOKE|CALL)\\b|\\b(outfile|dumpfile|load_file)\\b|\\bload\\s+data\\b|\\b(sys_exec|sys_eval)\\b|mysql\\.user))\\s*(SELECT|SHOW|DESCRIBE|DESC|EXPLAIN|WITH)\\b[\\s\\S]*$",
+          "max_length": 10000
+        }
+      }
+    }
+  }
+}

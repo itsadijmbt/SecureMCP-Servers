@@ -1,0 +1,57 @@
+{
+  "policy_id": "app:securemcp-ydb-mcp",
+  "version": "0.1",
+  "description": "YDB MCP (owned SecureMCP) -- reads + scheme/explain allowed; ydb_query guarded read-only YQL (DML/DDL blocked); path-injection blocked.",
+  "resources": [
+    "tool:ydb_query",
+    "tool:ydb_query_with_params",
+    "tool:ydb_explain_query",
+    "tool:ydb_explain_query_with_params",
+    "tool:ydb_status",
+    "tool:ydb_list_directory",
+    "tool:ydb_describe_path"
+  ],
+  "denied_resources": [],
+  "constraints": {
+    "parameters": {
+      "tool:ydb_query": {
+        "sql": {
+          "type": "string",
+          "pattern": "(?i)^(?![\\s\\S]*\\b(INSERT|UPSERT|REPLACE|UPDATE|DELETE|CREATE|DROP|ALTER|GRANT|REVOKE|TRUNCATE)\\b)[\\s\\S]*$",
+          "max_length": 10000
+        }
+      },
+      "tool:ydb_query_with_params": {
+        "sql": {
+          "type": "string",
+          "pattern": "(?i)^(?![\\s\\S]*\\b(INSERT|UPSERT|REPLACE|UPDATE|DELETE|CREATE|DROP|ALTER|GRANT|REVOKE|TRUNCATE)\\b)[\\s\\S]*$",
+          "max_length": 10000
+        }
+      },
+      "tool:ydb_explain_query": {
+        "sql": {
+          "type": "string",
+          "max_length": 10000
+        }
+      },
+      "tool:ydb_explain_query_with_params": {
+        "sql": {
+          "type": "string",
+          "max_length": 10000
+        }
+      },
+      "tool:ydb_list_directory": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_./%\\-]+$"
+        }
+      },
+      "tool:ydb_describe_path": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_./%\\-]+$"
+        }
+      }
+    }
+  }
+}

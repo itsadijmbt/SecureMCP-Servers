@@ -1,0 +1,46 @@
+{
+  "policy_id": "app:securemcp-snowflake-mcp",
+  "version": "0.1",
+  "description": "Snowflake MCP (owned SecureMCP) -- reads + guarded read-only SQL allowed; object create/alter/drop + cortex NL-SQL/agent denied.",
+  "resources": [
+    "tool:run_snowflake_query",
+    "tool:describe_object",
+    "tool:list_objects",
+    "tool:list_semantic_views",
+    "tool:describe_semantic_view",
+    "tool:show_semantic_dimensions",
+    "tool:show_semantic_metrics",
+    "tool:get_semantic_view_ddl",
+    "tool:write_semantic_view_query_tool",
+    "tool:query_semantic_view",
+    "tool:cortex_search"
+  ],
+  "denied_resources": [
+    "tool:create_object",
+    "tool:create_or_alter_object",
+    "tool:drop_object",
+    "tool:cortex_analyst",
+    "tool:cortex_agent"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:run_snowflake_query": {
+        "statement": {
+          "type": "string",
+          "pattern": "(?i)^(?![\\s\\S]*(;|\\b(INSERT|UPDATE|DELETE|MERGE|CREATE|DROP|ALTER|TRUNCATE|GRANT|REVOKE|CALL|COPY|PUT|GET|REMOVE|UNDROP|EXECUTE|USE|SET|UNSET|COMMENT|RENAME)\\b))\\s*(SELECT|WITH|SHOW|DESCRIBE|DESC|EXPLAIN)\\b[\\s\\S]*$",
+          "max_length": 10000
+        }
+      },
+      "tool:query_semantic_view": {
+        "where_clause": {
+          "type": "string",
+          "pattern": "(?i)^(?![\\s\\S]*(;|--|/\\*|\\bUNION\\b|\\b(INSERT|UPDATE|DELETE|MERGE|DROP|CREATE|ALTER|GRANT|REVOKE)\\b))[\\s\\S]*$"
+        },
+        "order_by": {
+          "type": "string",
+          "pattern": "(?i)^(?![\\s\\S]*(;|--|/\\*|\\bUNION\\b|\\b(INSERT|UPDATE|DELETE|MERGE|DROP|CREATE|ALTER|GRANT|REVOKE)\\b))[\\s\\S]*$"
+        }
+      }
+    }
+  }
+}

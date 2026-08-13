@@ -1,0 +1,84 @@
+{
+  "policy_id": "app:securemcp-arxiv-mcp-server",
+  "version": "0.1",
+  "description": "arXiv research MCP (arxiv-mcp-server) via owned SecureMCP -- generic public default: allow all 10 tools, guard paper_id path-traversal and cap fan-out params.",
+  "resources": [
+    "tool:search_papers",
+    "tool:download_paper",
+    "tool:list_papers",
+    "tool:read_paper",
+    "tool:get_abstract",
+    "tool:semantic_search",
+    "tool:reindex",
+    "tool:citation_graph",
+    "tool:watch_topic",
+    "tool:check_alerts"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:search_papers": {
+        "max_results": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        },
+        "sort_by": {
+          "type": "string",
+          "allowed_values": [
+            "relevance",
+            "date"
+          ]
+        }
+      },
+      "tool:download_paper": {
+        "paper_id": {
+          "type": "string",
+          "pattern": "^(\\d{4}\\.\\d{4,5}(v\\d+)?|[a-z\\-]+(/[a-z\\-]+)?/\\d{7}(v\\d+)?)$"
+        }
+      },
+      "tool:read_paper": {
+        "paper_id": {
+          "type": "string",
+          "pattern": "^(\\d{4}\\.\\d{4,5}(v\\d+)?|[a-z\\-]+(/[a-z\\-]+)?/\\d{7}(v\\d+)?)$"
+        }
+      },
+      "tool:get_abstract": {
+        "paper_id": {
+          "type": "string",
+          "pattern": "^(\\d{4}\\.\\d{4,5}(v\\d+)?|[a-z\\-]+(/[a-z\\-]+)?/\\d{7}(v\\d+)?)$"
+        }
+      },
+      "tool:semantic_search": {
+        "paper_id": {
+          "type": "string",
+          "pattern": "^(\\d{4}\\.\\d{4,5}(v\\d+)?|[a-z\\-]+(/[a-z\\-]+)?/\\d{7}(v\\d+)?)$"
+        },
+        "max_results": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:citation_graph": {
+        "paper_id": {
+          "type": "string",
+          "pattern": "^(\\d{4}\\.\\d{4,5}(v\\d+)?|[a-z\\-]+(/[a-z\\-]+)?/\\d{7}(v\\d+)?)$"
+        }
+      },
+      "tool:watch_topic": {
+        "max_results": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:download_paper": {
+        "paper_id": [
+          "*..*"
+        ]
+      }
+    }
+  }
+}

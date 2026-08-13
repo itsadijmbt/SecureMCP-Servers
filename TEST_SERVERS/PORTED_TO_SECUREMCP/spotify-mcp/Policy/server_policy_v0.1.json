@@ -1,0 +1,54 @@
+{
+  "policy_id": "app:securemcp-spotify-mcp",
+  "version": "0.1",
+  "description": "Spotify MCP (owned SecureMCP, shared account) -- reads + transient playback/queue control allowed; playlist mutations denied via action allowlist.",
+
+  "resources": [
+    "tool:SpotifyPlayback",
+    "tool:SpotifySearch",
+    "tool:SpotifyQueue",
+    "tool:SpotifyGetInfo",
+    "tool:SpotifyPlaylist"
+  ],
+
+  "denied_resources": [],
+
+  "constraints": {
+    "parameters": {
+      "tool:SpotifyPlayback": {
+        "action": {
+          "type": "string",
+          "allowed_values": ["get", "start", "pause", "skip"]
+        },
+        "num_skips": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:SpotifySearch": {
+        "query": {
+          "type": "string",
+          "max_length": 1000
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:SpotifyQueue": {
+        "action": {
+          "type": "string",
+          "allowed_values": ["get", "add"]
+        }
+      },
+      "tool:SpotifyPlaylist": {
+        "action": {
+          "type": "string",
+          "allowed_values": ["get", "get_tracks"]
+        }
+      }
+    }
+  }
+}

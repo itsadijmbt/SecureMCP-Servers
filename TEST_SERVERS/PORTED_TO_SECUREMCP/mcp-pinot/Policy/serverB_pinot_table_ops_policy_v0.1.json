@@ -1,0 +1,56 @@
+{
+  "policy_id": "app:securemcp-pinot_mcp_table_ops_claude",
+  "version": "0.1",
+  "description": "Apache Pinot table-ops MCP (owned SecureMCP) -- read-only; all ingestion/segment/config mutations denied.",
+  "resources": [
+    "tool:list-tables",
+    "tool:table-details",
+    "tool:segment-list",
+    "tool:index-column-details",
+    "tool:segment-metadata-details",
+    "tool:tableconfig-schema-details",
+    "tool:get_pause_status",
+    "tool:get_consuming_segments_info",
+    "tool:list-supported-indices"
+  ],
+  "denied_resources": [
+    "tool:pause_consumption",
+    "tool:force_commit",
+    "tool:reload-table-segments",
+    "tool:rebalance-table",
+    "tool:reset-table-segments",
+    "tool:resume_consumption",
+    "tool:create-schema",
+    "tool:update-schema",
+    "tool:create-table-config",
+    "tool:update-table-config",
+    "tool:add-index",
+    "tool:add-startree-index"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:table-details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:segment-list": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:index-column-details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"},
+        "segmentName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:segment-metadata-details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:tableconfig-schema-details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:get_pause_status": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:get_consuming_segments_info": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      }
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "policy_id": "app:securemcp-iotdb_mcp_server",
+  "version": "0.1",
+  "description": "IoTDB MCP via SecureMCP -- read-only query path, params hardened.",
+  "resources": [
+    "tool:metadata_query",
+    "tool:select_query",
+    "tool:export_query",
+    "tool:read_query",
+    "tool:list_tables",
+    "tool:describe_table",
+    "tool:export_table_query"
+  ],
+  "denied_resources": [],
+  "constraints": {
+    "parameters": {
+      "tool:metadata_query": {
+        "query_sql": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000,
+          "pattern": "(?i)^\\s*(SELECT|SHOW|DESCRIBE|DESC|COUNT)\\b[\\s\\S]*$"
+        }
+      },
+      "tool:select_query": {
+        "query_sql": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000,
+          "pattern": "(?i)^\\s*(SELECT|SHOW|DESCRIBE|DESC|COUNT)\\b[\\s\\S]*$"
+        }
+      },
+      "tool:export_query": {
+        "query_sql": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000,
+          "pattern": "(?i)^\\s*(SELECT|SHOW|DESCRIBE|DESC|COUNT)\\b[\\s\\S]*$"
+        },
+        "format": {
+          "type": "string",
+          "allowed_values": ["csv", "excel"]
+        },
+        "filename": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": "^[A-Za-z0-9_.\\-]+$"
+        }
+      },
+      "tool:read_query": {
+        "query_sql": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000,
+          "pattern": "(?i)^\\s*(SELECT|SHOW|DESCRIBE|DESC|COUNT)\\b[\\s\\S]*$"
+        }
+      },
+      "tool:describe_table": {
+        "table_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256,
+          "pattern": "^[A-Za-z0-9_.]+$"
+        }
+      },
+      "tool:export_table_query": {
+        "query_sql": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000,
+          "pattern": "(?i)^\\s*(SELECT|SHOW|DESCRIBE|DESC|COUNT)\\b[\\s\\S]*$"
+        },
+        "format": {
+          "type": "string",
+          "allowed_values": ["csv", "excel"]
+        },
+        "filename": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": "^[A-Za-z0-9_.\\-]+$"
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:metadata_query": {
+        "query_sql": ["*INSERT *", "*insert *", "*DELETE *", "*delete *", "*DROP *", "*drop *", "*CREATE *", "*create *", "*SET *", "*set *", "*ALTER *", "*alter *", "*UPDATE *", "*update *", "*GRANT *", "*grant *", "*;*"]
+      },
+      "tool:select_query": {
+        "query_sql": ["*INSERT *", "*insert *", "*DELETE *", "*delete *", "*DROP *", "*drop *", "*CREATE *", "*create *", "*SET *", "*set *", "*ALTER *", "*alter *", "*UPDATE *", "*update *", "*GRANT *", "*grant *", "*;*"]
+      },
+      "tool:export_query": {
+        "query_sql": ["*INSERT *", "*insert *", "*DELETE *", "*delete *", "*DROP *", "*drop *", "*CREATE *", "*create *", "*SET *", "*set *", "*ALTER *", "*alter *", "*UPDATE *", "*update *", "*GRANT *", "*grant *", "*;*"]
+      },
+      "tool:read_query": {
+        "query_sql": ["*INSERT *", "*insert *", "*DELETE *", "*delete *", "*DROP *", "*drop *", "*CREATE *", "*create *", "*SET *", "*set *", "*ALTER *", "*alter *", "*UPDATE *", "*update *", "*GRANT *", "*grant *", "*;*"]
+      },
+      "tool:export_table_query": {
+        "query_sql": ["*INSERT *", "*insert *", "*DELETE *", "*delete *", "*DROP *", "*drop *", "*CREATE *", "*create *", "*SET *", "*set *", "*ALTER *", "*alter *", "*UPDATE *", "*update *", "*GRANT *", "*grant *", "*;*"]
+      }
+    }
+  }
+}

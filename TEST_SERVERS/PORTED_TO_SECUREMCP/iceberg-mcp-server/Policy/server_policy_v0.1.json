@@ -1,0 +1,45 @@
+{
+  "policy_id": "app:securemcp-Cloudera-Iceberg-MCP-Server-via-Impala",
+  "version": "0.1",
+  "description": "Cloudera Iceberg Impala MCP (owned SecureMCP) -- allow both tools; harden execute_query to read-only first-token SQL, deny write/DDL/stacking.",
+
+  "resources": [
+    "tool:get_schema",
+    "tool:execute_query"
+  ],
+
+  "denied_resources": [],
+
+  "constraints": {
+    "parameters": {
+      "tool:execute_query": {
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000,
+          "pattern": "(?i)^\\s*(SELECT|SHOW|DESCRIBE|WITH)\\b[\\s\\S]*$"
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:execute_query": {
+        "query": [
+          "*DROP *", "*drop *",
+          "*DELETE *", "*delete *",
+          "*INSERT *", "*insert *",
+          "*UPDATE *", "*update *",
+          "*ALTER *", "*alter *",
+          "*TRUNCATE *", "*truncate *",
+          "*CREATE *", "*create *",
+          "*MERGE *", "*merge *",
+          "*GRANT *", "*grant *",
+          "*REVOKE *", "*revoke *",
+          "*COMPUTE *", "*compute *",
+          "*INVALIDATE *", "*invalidate *",
+          "*REFRESH *", "*refresh *",
+          "*;*"
+        ]
+      }
+    }
+  }
+}
