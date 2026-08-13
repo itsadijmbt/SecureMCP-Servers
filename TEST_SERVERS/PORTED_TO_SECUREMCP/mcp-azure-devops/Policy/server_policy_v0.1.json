@@ -1,0 +1,56 @@
+{
+  "policy_id": "app:securemcp-azure-devops",
+  "version": "0.1",
+  "description": "Azure DevOps MCP (owned SecureMCP) -- reads + comment/link writes allowed; arbitrary-field work-item create/update denied.",
+  "resources": [
+    "tool:query_work_items",
+    "tool:get_work_item",
+    "tool:get_work_item_comments",
+    "tool:get_project_process_id",
+    "tool:get_process_details",
+    "tool:list_processes",
+    "tool:get_work_item_templates",
+    "tool:get_work_item_template",
+    "tool:get_work_item_types",
+    "tool:get_work_item_type",
+    "tool:get_work_item_type_fields",
+    "tool:get_work_item_type_field",
+    "tool:get_projects",
+    "tool:get_all_teams",
+    "tool:get_team_members",
+    "tool:get_team_area_paths",
+    "tool:get_team_iterations",
+    "tool:add_parent_child_link",
+    "tool:add_work_item_comment"
+  ],
+  "denied_resources": [
+    "tool:create_work_item",
+    "tool:update_work_item"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:query_work_items": {
+        "query": {"type": "string", "max_length": 4000},
+        "top": {"type": "integer", "min": 1, "max": 200}
+      },
+      "tool:get_projects": {
+        "top": {"type": "integer", "min": 1, "max": 200}
+      },
+      "tool:get_all_teams": {
+        "top": {"type": "integer", "min": 1, "max": 200},
+        "skip": {"type": "integer", "min": 0}
+      },
+      "tool:get_team_members": {
+        "top": {"type": "integer", "min": 1, "max": 200},
+        "skip": {"type": "integer", "min": 0}
+      },
+      "tool:add_work_item_comment": {
+        "text": {"type": "string", "max_length": 5000}
+      },
+      "tool:add_parent_child_link": {
+        "parent_id": {"type": "integer", "min": 1},
+        "child_id": {"type": "integer", "min": 1}
+      }
+    }
+  }
+}

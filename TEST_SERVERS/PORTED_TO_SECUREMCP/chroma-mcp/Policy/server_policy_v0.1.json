@@ -1,0 +1,56 @@
+{
+    "policy_id": "app:securemcp-chroma-mcp",
+    "version": "0.1",
+    "description": "Chroma vector-DB MCP (owned SecureMCP) -- public default: deny the 2 destructive tools, cap uncapped fan-out/bulk params.",
+
+    "resources": [
+        "tool:chroma_list_collections",
+        "tool:chroma_create_collection",
+        "tool:chroma_peek_collection",
+        "tool:chroma_get_collection_info",
+        "tool:chroma_get_collection_count",
+        "tool:chroma_modify_collection",
+        "tool:chroma_fork_collection",
+        "tool:chroma_add_documents",
+        "tool:chroma_query_documents",
+        "tool:chroma_get_documents",
+        "tool:chroma_update_documents"
+    ],
+
+    "denied_resources": [
+        "tool:chroma_delete_collection",
+        "tool:chroma_delete_documents"
+    ],
+
+    "constraints": {
+        "parameters": {
+            "tool:chroma_query_documents": {
+                "n_results": { "type": "integer", "min": 1, "max": 100 }
+            },
+            "tool:chroma_peek_collection": {
+                "limit": { "type": "integer", "min": 1, "max": 100 }
+            },
+            "tool:chroma_list_collections": {
+                "limit": { "type": "integer", "min": 1, "max": 1000 },
+                "offset": { "type": "integer", "min": 0 }
+            },
+            "tool:chroma_get_documents": {
+                "limit": { "type": "integer", "min": 1, "max": 1000 },
+                "offset": { "type": "integer", "min": 0 }
+            },
+            "tool:chroma_create_collection": {
+                "embedding_function_name": {
+                    "type": "string",
+                    "allowed_values": ["default", "cohere", "openai", "jina", "voyageai", "roboflow"]
+                }
+            },
+            "tool:chroma_add_documents": {
+                "documents": { "type": "array", "min_items": 1, "max_items": 1000 },
+                "ids": { "type": "array", "min_items": 1, "max_items": 1000 }
+            },
+            "tool:chroma_update_documents": {
+                "ids": { "type": "array", "min_items": 1, "max_items": 1000 }
+            }
+        }
+    }
+}

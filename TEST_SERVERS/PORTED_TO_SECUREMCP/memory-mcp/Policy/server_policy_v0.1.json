@@ -1,0 +1,43 @@
+{
+  "policy_id": "app:securemcp-MongoDB-Memory-MCP-Server",
+  "version": "0.1",
+  "description": "MongoDB memory MCP (owned SecureMCP) -- reads allowed, hybrid_search DB-target locked to env; poisoning writes (store/cache) denied.",
+  "resources": [
+    "tool:retrieve_memory",
+    "tool:hybrid_search",
+    "tool:search_web",
+    "tool:check_semantic_cache"
+  ],
+  "denied_resources": [
+    "tool:store_memory",
+    "tool:semantic_cache_response"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:hybrid_search": {
+        "query": {"type": "string", "max_length": 2000},
+        "limit": {"type": "integer", "min": 1, "max": 100},
+        "weight": {"type": "number", "min": 0, "max": 1}
+      },
+      "tool:retrieve_memory": {
+        "text": {"type": "string", "max_length": 2000}
+      },
+      "tool:check_semantic_cache": {
+        "query": {"type": "string", "max_length": 2000}
+      },
+      "tool:search_web": {
+        "query": {"type": "string", "max_length": 2000}
+      }
+    },
+    "denied_parameters": {
+      "tool:hybrid_search": {
+        "connection_string": ["*"],
+        "database_name": ["*"],
+        "collection_name": ["*"],
+        "fulltext_search_field": ["*"],
+        "vector_search_index_name": ["*"],
+        "vector_search_field": ["*"]
+      }
+    }
+  }
+}

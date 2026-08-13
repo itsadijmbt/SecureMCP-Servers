@@ -1,0 +1,86 @@
+{
+  "policy_id": "app:securemcp-mcp-obsidian",
+  "version": "0.1",
+  "description": "Obsidian MCP (owned SecureMCP) -- reads + additive note writes allowed; delete/overwrite denied; path traversal blocked.",
+
+  "resources": [
+    "tool:obsidian_list_files_in_vault",
+    "tool:obsidian_list_files_in_dir",
+    "tool:obsidian_get_file_contents",
+    "tool:obsidian_simple_search",
+    "tool:obsidian_complex_search",
+    "tool:obsidian_batch_get_file_contents",
+    "tool:obsidian_get_periodic_note",
+    "tool:obsidian_get_recent_periodic_notes",
+    "tool:obsidian_get_recent_changes",
+    "tool:obsidian_append_content",
+    "tool:obsidian_patch_content"
+  ],
+
+  "denied_resources": [
+    "tool:obsidian_delete_file",
+    "tool:obsidian_put_content"
+  ],
+
+  "constraints": {
+    "parameters": {
+      "tool:obsidian_patch_content": {
+        "operation": {
+          "type": "string",
+          "allowed_values": ["append", "prepend", "replace"]
+        },
+        "target_type": {
+          "type": "string",
+          "allowed_values": ["heading", "block", "frontmatter"]
+        }
+      },
+      "tool:obsidian_batch_get_file_contents": {
+        "filepaths": {
+          "type": "array",
+          "max_items": 50
+        }
+      },
+      "tool:obsidian_simple_search": {
+        "context_length": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:obsidian_get_recent_periodic_notes": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:obsidian_get_recent_changes": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        },
+        "days": {
+          "type": "integer",
+          "min": 1,
+          "max": 365
+        }
+      }
+    },
+
+    "denied_parameters": {
+      "tool:obsidian_list_files_in_dir": {
+        "dirpath": ["*..*"]
+      },
+      "tool:obsidian_get_file_contents": {
+        "filepath": ["*..*"]
+      },
+      "tool:obsidian_append_content": {
+        "filepath": ["*..*"]
+      },
+      "tool:obsidian_patch_content": {
+        "filepath": ["*..*"]
+      }
+    }
+  }
+}

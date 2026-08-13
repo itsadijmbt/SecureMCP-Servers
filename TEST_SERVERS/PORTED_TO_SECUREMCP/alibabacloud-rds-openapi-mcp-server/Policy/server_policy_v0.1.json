@@ -1,0 +1,109 @@
+{
+  "policy_id": "app:securemcp-Alibaba Cloud RDS OPENAPI",
+  "version": "0.1.0",
+  "description": "Alibaba Cloud RDS OpenAPI MCP (owned SecureMCP) -- public default: read-only allow-list + deterministic deny of destructive/billing/network/firewall/credential/raw-SQL tools; fan-out params capped.",
+  "resources": [
+    "tool:describe_db_instances",
+    "tool:describe_db_instance_attribute",
+    "tool:describe_db_instance_performance",
+    "tool:describe_available_classes",
+    "tool:describe_available_zones",
+    "tool:describe_vpcs",
+    "tool:describe_vswitches",
+    "tool:describe_slow_log_records",
+    "tool:describe_error_logs",
+    "tool:describe_db_instance_net_info",
+    "tool:describe_db_instance_ip_allowlist",
+    "tool:describe_db_instance_databases",
+    "tool:describe_db_instance_accounts",
+    "tool:describe_db_instance_parameters",
+    "tool:describe_all_whitelist_template",
+    "tool:describe_instance_linked_whitelist_template",
+    "tool:describe_monitor_metrics",
+    "tool:describe_sql_insight_statistic",
+    "tool:show_engine_innodb_status",
+    "tool:show_largest_table",
+    "tool:show_largest_table_fragment",
+    "tool:get_current_time",
+    "tool:add_tags_to_db_instance",
+    "tool:modify_db_instance_description",
+    "tool:describe_rc_instances",
+    "tool:describe_rc_instance_attribute",
+    "tool:describe_rc_instance_vnc_url",
+    "tool:describe_rc_instance_ip_address",
+    "tool:describe_rc_image_list",
+    "tool:describe_rc_snapshots",
+    "tool:describe_rc_metric_list",
+    "tool:describe_rc_disks",
+    "tool:describe_rc_instance_ddos_count"
+  ],
+  "denied_resources": [
+    "tool:restart_db_instance",
+    "tool:reboot_rc_instance",
+    "tool:stop_rc_instances",
+    "tool:create_db_instance",
+    "tool:run_rc_instances",
+    "tool:modify_db_instance_spec",
+    "tool:resize_rc_instance_disk",
+    "tool:create_rc_snapshot",
+    "tool:allocate_instance_public_connection",
+    "tool:associate_eip_address_with_rc_instance",
+    "tool:unassociate_eip_address_with_rc_instance",
+    "tool:modify_security_ips",
+    "tool:attach_whitelist_template_to_instance",
+    "tool:sync_rc_security_group",
+    "tool:create_db_instance_account",
+    "tool:modify_rc_instance_attribute",
+    "tool:modify_parameter",
+    "tool:describe_bills",
+    "tool:query_sql",
+    "tool:explain_sql",
+    "tool:show_create_table"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:describe_vpcs": {
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:describe_vswitches": {
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:describe_slow_log_records": {
+        "page_size": {
+          "type": "integer",
+          "min": 30,
+          "max": 100
+        }
+      },
+      "tool:describe_error_logs": {
+        "page_size": {
+          "type": "integer",
+          "min": 30,
+          "max": 100
+        }
+      },
+      "tool:show_largest_table": {
+        "topK": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:show_largest_table_fragment": {
+        "topK": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      }
+    }
+  }
+}

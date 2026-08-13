@@ -1,0 +1,36 @@
+{
+    "policy_id": "app:securemcp-conan-mcp",
+    "version": "0.1",
+    "description": "Conan C/C++ dependency MCP ",
+
+    "resources": [
+        "tool:list_conan_packages",
+        "tool:get_conan_profile",
+        "tool:list_conan_profiles"
+    ],
+
+    "denied_resources": [
+        "tool:install_conan_packages",
+        "tool:create_conan_project",
+        "tool:get_conan_licenses",
+        "tool:scan_conan_dependencies"
+    ],
+
+    "constraints": {
+        "parameters": {
+            "tool:list_conan_packages": {
+                "name": {
+                    "type": "string",
+                    "min_length": 1,
+                    "pattern": "^[A-Za-z0-9_*][A-Za-z0-9_*.+-]*$"
+                }
+            },
+            "tool:get_conan_profile": {
+                "profile": {
+                    "type": "string",
+                    "min_length": 1
+                }
+            }
+        }
+    }
+}

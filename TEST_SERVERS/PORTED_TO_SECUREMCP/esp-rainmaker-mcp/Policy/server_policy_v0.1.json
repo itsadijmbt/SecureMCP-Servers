@@ -1,0 +1,53 @@
+{
+  "policy_id": "app:securemcp-ESP-RainMaker-MCP",
+  "version": "0.1",
+  "description": "ESP RainMaker MCP (owned SecureMCP)",
+
+  "resources": [
+    "tool:login_instructions",
+    "tool:check_login_status",
+    "tool:get_nodes",
+    "tool:get_node_status",
+    "tool:get_params",
+    "tool:get_node_details",
+    "tool:get_schedules",
+    "tool:get_group_details",
+    "tool:create_group",
+    "tool:add_device_to_room",
+    "tool:update_group"
+  ],
+
+  "denied_resources": [
+    "tool:set_params",
+    "tool:set_schedule"
+  ],
+
+  "constraints": {
+    "parameters": {
+      "tool:get_group_details": {
+        "include_nodes": {"type": "boolean"},
+        "fields": {"type": "array", "max_items": 50},
+        "node_fields": {"type": "array", "max_items": 50}
+      },
+      "tool:get_node_status": {
+        "node_id": {"type": "string", "min_length": 1}
+      },
+      "tool:get_params": {
+        "node_id": {"type": "string", "min_length": 1}
+      },
+      "tool:get_schedules": {
+        "node_id": {"type": "string", "min_length": 1}
+      },
+      "tool:create_group": {
+        "name": {"type": "string", "min_length": 1}
+      },
+      "tool:add_device_to_room": {
+        "device_node_id": {"type": "string", "min_length": 1},
+        "room_group_id": {"type": "string", "min_length": 1}
+      },
+      "tool:update_group": {
+        "group_id": {"type": "string", "min_length": 1}
+      }
+    }
+  }
+}

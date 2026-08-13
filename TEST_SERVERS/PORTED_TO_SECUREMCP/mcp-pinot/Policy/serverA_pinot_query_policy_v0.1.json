@@ -1,0 +1,58 @@
+{
+  "policy_id": "app:securemcp-Pinot-MCP-Server",
+  "version": "0.1",
+  "description": "Apache Pinot query MCP (owned SecureMCP) -- SELECT reads + metadata allowed; schema/table-config writes + filter-reload denied.",
+  "resources": [
+    "tool:test_connection",
+    "tool:list_tables",
+    "tool:table_details",
+    "tool:segment_list",
+    "tool:index_column_details",
+    "tool:segment_metadata_details",
+    "tool:tableconfig_schema_details",
+    "tool:get_schema",
+    "tool:get_table_config",
+    "tool:read_query"
+  ],
+  "denied_resources": [
+    "tool:create_schema",
+    "tool:update_schema",
+    "tool:create_table_config",
+    "tool:update_table_config",
+    "tool:reload_table_filters"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:read_query": {
+        "query": {
+          "type": "string",
+          "pattern": "(?i)^\\s*SELECT\\b[\\s\\S]*$",
+          "max_length": 10000
+        }
+      },
+      "tool:table_details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:segment_list": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:index_column_details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"},
+        "segmentName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:segment_metadata_details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:tableconfig_schema_details": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:get_schema": {
+        "schemaName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"}
+      },
+      "tool:get_table_config": {
+        "tableName": {"type": "string", "pattern": "^(?!.*\\.\\.)[A-Za-z0-9_.\\-]+$"},
+        "tableType": {"type": "string", "allowed_values": ["OFFLINE", "REALTIME"]}
+      }
+    }
+  }
+}

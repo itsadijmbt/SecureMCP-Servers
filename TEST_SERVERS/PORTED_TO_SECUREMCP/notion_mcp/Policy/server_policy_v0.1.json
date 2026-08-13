@@ -1,0 +1,31 @@
+{
+  "policy_id": "app:securemcp-notion-todo",
+  "version": "0.1",
+  "description": "Notion todo MCP (owned SecureMCP) ",
+  "resources": [
+    "tool:show_all_todos",
+    "tool:show_today_todos",
+    "tool:add_todo",
+    "tool:complete_todo"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:add_todo": {
+        "task": {
+          "type": "string",
+          "max_length": 2000
+        },
+        "when": {
+          "type": "string",
+          "allowed_values": ["today", "later"]
+        }
+      },
+      "tool:complete_todo": {
+        "task_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        }
+      }
+    }
+  }
+}

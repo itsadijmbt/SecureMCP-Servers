@@ -1,0 +1,64 @@
+{
+    "policy_id": "app:securemcp-Dingo Evaluator",
+    "version": "0.1",
+    "description": "Dingo data-quality evaluator MCP (owned SecureMCP) .",
+
+    "resources": [
+        "tool:list_dingo_components",
+        "tool:get_rule_details",
+        "tool:get_llm_details",
+        "tool:get_prompt_details",
+        "tool:run_quick_evaluation"
+    ],
+
+    "denied_resources": [
+        "tool:run_dingo_evaluation"
+    ],
+
+    "constraints": {
+        "parameters": {
+            "tool:list_dingo_components": {
+                "component_type": {
+                    "type": "string",
+                    "allowed_values": ["rule_groups", "llm_models", "prompts", "all"]
+                },
+                "include_details": {
+                    "type": "boolean"
+                }
+            },
+            "tool:run_quick_evaluation": {
+                "input_path": {
+                    "type": "string",
+                    "min_length": 1
+                },
+                "evaluation_goal": {
+                    "type": "string",
+                    "min_length": 1
+                }
+            },
+            "tool:get_rule_details": {
+                "rule_name": {
+                    "type": "string",
+                    "min_length": 1
+                }
+            },
+            "tool:get_llm_details": {
+                "llm_name": {
+                    "type": "string",
+                    "min_length": 1
+                }
+            },
+            "tool:get_prompt_details": {
+                "llm_name": {
+                    "type": "string",
+                    "min_length": 1
+                }
+            }
+        },
+        "denied_parameters": {
+            "tool:run_quick_evaluation": {
+                "input_path": ["*..*"]
+            }
+        }
+    }
+}

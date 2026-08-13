@@ -1,0 +1,401 @@
+{
+  "policy_id": "app:securemcp-excel-mcp",
+  "version": "0.1",
+  "description": "excel-mcp SecureMCP (owned) -- allow all 25 tools; guard filepath (.xlsx-only + no traversal), formula injection, and row/col DoS caps.",
+  "resources": [
+    "tool:read_data_from_excel",
+    "tool:get_workbook_metadata",
+    "tool:get_merged_cells",
+    "tool:get_data_validation_info",
+    "tool:validate_excel_range",
+    "tool:validate_formula_syntax",
+    "tool:format_range",
+    "tool:create_workbook",
+    "tool:create_worksheet",
+    "tool:create_chart",
+    "tool:create_pivot_table",
+    "tool:create_table",
+    "tool:copy_worksheet",
+    "tool:delete_worksheet",
+    "tool:rename_worksheet",
+    "tool:merge_cells",
+    "tool:unmerge_cells",
+    "tool:copy_range",
+    "tool:delete_range",
+    "tool:insert_rows",
+    "tool:insert_columns",
+    "tool:delete_sheet_rows",
+    "tool:delete_sheet_columns",
+    "tool:apply_formula",
+    "tool:write_data_to_excel"
+  ],
+  "denied_resources": [],
+  "constraints": {
+    "parameters": {
+      "tool:read_data_from_excel": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:get_workbook_metadata": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:get_merged_cells": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:get_data_validation_info": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:validate_excel_range": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:validate_formula_syntax": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:format_range": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:create_workbook": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:create_worksheet": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:create_chart": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:create_pivot_table": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:create_table": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:copy_worksheet": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:delete_worksheet": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:rename_worksheet": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:merge_cells": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:unmerge_cells": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:copy_range": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:delete_range": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:insert_rows": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        },
+        "count": {
+          "type": "integer",
+          "min": 1,
+          "max": 1048576
+        }
+      },
+      "tool:insert_columns": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        },
+        "count": {
+          "type": "integer",
+          "min": 1,
+          "max": 16384
+        }
+      },
+      "tool:delete_sheet_rows": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        },
+        "count": {
+          "type": "integer",
+          "min": 1,
+          "max": 1048576
+        }
+      },
+      "tool:delete_sheet_columns": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        },
+        "count": {
+          "type": "integer",
+          "min": 1,
+          "max": 16384
+        }
+      },
+      "tool:apply_formula": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      },
+      "tool:write_data_to_excel": {
+        "filepath": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 255,
+          "pattern": ".*\\.[xX][lL][sS][xX]$"
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:read_data_from_excel": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:get_workbook_metadata": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:get_merged_cells": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:get_data_validation_info": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:validate_excel_range": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:validate_formula_syntax": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:format_range": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:create_workbook": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:create_worksheet": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:create_chart": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:create_pivot_table": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:create_table": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:copy_worksheet": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:delete_worksheet": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:rename_worksheet": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:merge_cells": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:unmerge_cells": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:copy_range": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:delete_range": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:insert_rows": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:insert_columns": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:delete_sheet_rows": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:delete_sheet_columns": {
+        "filepath": [
+          "*..*"
+        ]
+      },
+      "tool:apply_formula": {
+        "filepath": [
+          "*..*"
+        ],
+        "formula": [
+          "*WEBSERVICE*",
+          "*webservice*",
+          "*INDIRECT*",
+          "*indirect*",
+          "*HYPERLINK*",
+          "*hyperlink*",
+          "*RTD*",
+          "*rtd*",
+          "*DGET*",
+          "*dget*",
+          "*CALL*",
+          "*call*",
+          "*cmd|*",
+          "*CMD|*",
+          "*|'/c*"
+        ]
+      },
+      "tool:write_data_to_excel": {
+        "filepath": [
+          "*..*"
+        ]
+      }
+    }
+  }
+}

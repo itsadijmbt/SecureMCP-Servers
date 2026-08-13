@@ -1,0 +1,179 @@
+{
+  "policy_id": "app:securemcp-telegram",
+  "version": "0.1",
+  "description": "Telegram user-account MCP (owned SecureMCP) -- read-only: all reads allowed; every send/edit/delete/admin/file-write mutation denied (acts AS a real user).",
+  "resources": [
+    "tool:list_accounts",
+    "tool:get_chats",
+    "tool:get_messages",
+    "tool:get_scheduled_messages",
+    "tool:list_inline_buttons",
+    "tool:list_contacts",
+    "tool:search_contacts",
+    "tool:get_contact_ids",
+    "tool:list_messages",
+    "tool:list_topics",
+    "tool:list_chats",
+    "tool:get_chat",
+    "tool:get_direct_chat_by_contact",
+    "tool:get_contact_chats",
+    "tool:get_last_interaction",
+    "tool:get_message_context",
+    "tool:get_me",
+    "tool:get_participants",
+    "tool:get_privacy_settings",
+    "tool:export_contacts",
+    "tool:get_blocked_users",
+    "tool:get_admins",
+    "tool:get_banned_users",
+    "tool:get_media_info",
+    "tool:search_public_chats",
+    "tool:search_messages",
+    "tool:search_global",
+    "tool:resolve_username",
+    "tool:get_full_user",
+    "tool:get_full_chat",
+    "tool:get_sticker_sets",
+    "tool:get_gif_search",
+    "tool:get_bot_info",
+    "tool:get_history",
+    "tool:get_user_photos",
+    "tool:get_user_status",
+    "tool:get_recent_actions",
+    "tool:get_pinned_messages",
+    "tool:get_message_reactions",
+    "tool:get_drafts",
+    "tool:list_folders",
+    "tool:get_folder",
+    "tool:get_common_chats",
+    "tool:get_message_read_by",
+    "tool:get_message_link"
+  ],
+  "denied_resources": [
+    "tool:send_message",
+    "tool:reply_to_message",
+    "tool:send_file",
+    "tool:upload_file",
+    "tool:send_voice",
+    "tool:send_sticker",
+    "tool:send_gif",
+    "tool:send_contact",
+    "tool:forward_message",
+    "tool:edit_message",
+    "tool:send_scheduled_message",
+    "tool:delete_scheduled_message",
+    "tool:save_draft",
+    "tool:clear_draft",
+    "tool:create_poll",
+    "tool:send_reaction",
+    "tool:remove_reaction",
+    "tool:press_inline_button",
+    "tool:subscribe_public_channel",
+    "tool:add_contact",
+    "tool:import_contacts",
+    "tool:delete_contact",
+    "tool:block_user",
+    "tool:unblock_user",
+    "tool:create_group",
+    "tool:create_channel",
+    "tool:invite_to_group",
+    "tool:leave_chat",
+    "tool:join_chat_by_link",
+    "tool:import_chat_invite",
+    "tool:update_profile",
+    "tool:set_profile_photo",
+    "tool:delete_profile_photo",
+    "tool:set_privacy_settings",
+    "tool:edit_chat_title",
+    "tool:edit_chat_photo",
+    "tool:edit_chat_about",
+    "tool:delete_chat_photo",
+    "tool:promote_admin",
+    "tool:demote_admin",
+    "tool:edit_admin_rights",
+    "tool:ban_user",
+    "tool:unban_user",
+    "tool:set_default_chat_permissions",
+    "tool:toggle_slow_mode",
+    "tool:delete_message",
+    "tool:delete_chat_history",
+    "tool:delete_messages_bulk",
+    "tool:pin_message",
+    "tool:unpin_message",
+    "tool:unpin_all_messages",
+    "tool:mark_as_read",
+    "tool:mute_chat",
+    "tool:unmute_chat",
+    "tool:archive_chat",
+    "tool:unarchive_chat",
+    "tool:set_bot_commands",
+    "tool:create_folder",
+    "tool:add_chat_to_folder",
+    "tool:remove_chat_from_folder",
+    "tool:delete_folder",
+    "tool:reorder_folders",
+    "tool:download_media",
+    "tool:get_invite_link",
+    "tool:export_chat_invite"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:get_history": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:list_messages": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:search_global": {
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:search_messages": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:search_public_chats": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:get_chats": {
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:get_messages": {
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:list_topics": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 200
+        }
+      }
+    }
+  }
+}

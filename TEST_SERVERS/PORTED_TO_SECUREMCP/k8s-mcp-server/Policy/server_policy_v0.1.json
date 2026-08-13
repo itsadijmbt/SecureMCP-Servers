@@ -1,0 +1,51 @@
+{
+  "policy_id": "app:securemcp-k8s-mcp-server",
+  "version": "0.1",
+  "description": "Kubernetes MCP (owned SecureMCP) -- read-only describe/help allowed; all raw execute_* (cluster/host RCE) denied. Free-form command = arbitrary cluster+host RCE, secret exfil, privileged apply; in-source deny-list guard is bypassable and not soundly constrainable by MAPL, so execute_* is denied by name.",
+
+  "resources": [
+    "tool:describe_kubectl",
+    "tool:describe_helm",
+    "tool:describe_istioctl",
+    "tool:describe_argocd"
+  ],
+
+  "denied_resources": [
+    "tool:execute_kubectl",
+    "tool:execute_helm",
+    "tool:execute_istioctl",
+    "tool:execute_argocd"
+  ],
+
+  "constraints": {
+    "parameters": {
+      "tool:describe_kubectl": {
+        "command": {"type": "string", "max_length": 256}
+      },
+      "tool:describe_helm": {
+        "command": {"type": "string", "max_length": 256}
+      },
+      "tool:describe_istioctl": {
+        "command": {"type": "string", "max_length": 256}
+      },
+      "tool:describe_argocd": {
+        "command": {"type": "string", "max_length": 256}
+      }
+    },
+
+    "denied_parameters": {
+      "tool:describe_kubectl": {
+        "command": ["*|*", "*;*", "*&*", "*$(*", "*`*", "*>*", "*<*"]
+      },
+      "tool:describe_helm": {
+        "command": ["*|*", "*;*", "*&*", "*$(*", "*`*", "*>*", "*<*"]
+      },
+      "tool:describe_istioctl": {
+        "command": ["*|*", "*;*", "*&*", "*$(*", "*`*", "*>*", "*<*"]
+      },
+      "tool:describe_argocd": {
+        "command": ["*|*", "*;*", "*&*", "*$(*", "*`*", "*>*", "*<*"]
+      }
+    }
+  }
+}
