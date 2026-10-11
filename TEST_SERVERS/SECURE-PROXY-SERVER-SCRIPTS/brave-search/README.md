@@ -9,7 +9,7 @@ Wraps `npx -y @brave/brave-search-mcp-server --transport stdio`. MACAW policy is
 
 Environment variables:
 
-- `BRAVE_API_KEY`
+- `BRAVE_API_KEY`  — required.
 
 ## Setup
 
@@ -17,8 +17,7 @@ Environment variables:
 export BRAVE_API_KEY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_brave_search.py            # stdio
-python proxy_brave_search.py http 8080  # http
+python proxy_brave_search.py
 ```
 
 Register with Claude Code:

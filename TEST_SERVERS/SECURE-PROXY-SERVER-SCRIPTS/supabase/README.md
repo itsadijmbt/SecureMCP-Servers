@@ -17,8 +17,7 @@ Environment variables:
 export SUPABASE_PROJECT_REF="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_supabase.py            # stdio
-python proxy_supabase.py http 8080  # http
+python proxy_supabase.py
 ```
 
 Register with Claude Code:

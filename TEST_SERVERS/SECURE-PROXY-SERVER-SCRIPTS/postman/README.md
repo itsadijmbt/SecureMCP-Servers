@@ -17,8 +17,7 @@ Environment variables:
 export POSTMAN_API_KEY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_postman.py            # stdio
-python proxy_postman.py http 8080  # http
+python proxy_postman.py
 ```
 
 Register with Claude Code:

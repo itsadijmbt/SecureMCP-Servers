@@ -10,8 +10,8 @@ Wraps `uvx pan-mcp-relay@latest --config-file mcp-relay.yaml` over stdio. MACAW 
 
 Environment variables:
 
-- `PRISMA_AIRS_API_KEY`
-- `PRISMA_AIRS_AI_PROFILE`
+- `PRISMA_AIRS_API_KEY`  — required.
+- `PRISMA_AIRS_AI_PROFILE`  — required.
 
 ## Setup
 
@@ -20,8 +20,7 @@ export PRISMA_AIRS_API_KEY="..."
 export PRISMA_AIRS_AI_PROFILE="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_pan_mcp_relay.py            # stdio
-python proxy_pan_mcp_relay.py http 8080  # http
+python proxy_pan_mcp_relay.py
 ```
 
 Register with Claude Code:

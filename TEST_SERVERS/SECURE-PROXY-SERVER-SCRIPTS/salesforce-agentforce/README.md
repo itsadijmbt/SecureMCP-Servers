@@ -37,8 +37,7 @@ export AGENTFORCE_REPO="..."
 export AGENTFORCE_PY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_salesforce.py            # stdio
-python proxy_salesforce.py http 8080  # http
+python proxy_salesforce.py
 ```
 
 Register with Claude Code:

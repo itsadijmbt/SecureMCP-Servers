@@ -9,7 +9,7 @@ Wraps `npx -y @stripe/mcp` over stdio. MACAW policy is enforced at the proxy bef
 
 Environment variables:
 
-- `STRIPE_SECRET_KEY`
+- `STRIPE_SECRET_KEY`  — required.
 
 ## Setup
 
@@ -17,8 +17,7 @@ Environment variables:
 export STRIPE_SECRET_KEY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_stripe.py            # stdio
-python proxy_stripe.py http 8080  # http
+python proxy_stripe.py
 ```
 
 Register with Claude Code:

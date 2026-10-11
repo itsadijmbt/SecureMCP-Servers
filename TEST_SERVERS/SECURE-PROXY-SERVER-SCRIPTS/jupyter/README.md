@@ -21,8 +21,7 @@ export JUPYTER_TOKEN="..."
 export DOCUMENT_ID="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_jupyter.py            # stdio
-python proxy_jupyter.py http 8080  # http
+python proxy_jupyter.py
 ```
 
 Register with Claude Code:
@@ -34,3 +33,5 @@ claude mcp add jupyter-macaw python /path/to/proxy_jupyter.py \
   -e DOCUMENT_ID=... \
   -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
 ```
+
+Startup can exceed Claude Code's 30s default. Run `export MCP_TIMEOUT=120000` before starting Claude Code.

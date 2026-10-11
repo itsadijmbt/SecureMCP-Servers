@@ -23,8 +23,7 @@ export AZURE_CLIENT_SECRET="..."
 export AZURE_SUBSCRIPTION_ID="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_azure.py            # stdio
-python proxy_azure.py http 8080  # http
+python proxy_azure.py
 ```
 
 Register with Claude Code:

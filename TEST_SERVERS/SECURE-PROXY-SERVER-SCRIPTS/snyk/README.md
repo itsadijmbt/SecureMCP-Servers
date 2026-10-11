@@ -9,7 +9,7 @@ Wraps `npx -y snyk@latest mcp -t stdio`. MACAW policy is enforced at the proxy b
 
 Environment variables:
 
-- `SNYK_TOKEN`
+- `SNYK_TOKEN`  — required.
 - `SNYK_CFG_ORG`
 
 ## Setup
@@ -19,8 +19,7 @@ export SNYK_TOKEN="..."
 export SNYK_CFG_ORG="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_snyk.py            # stdio
-python proxy_snyk.py http 8080  # http
+python proxy_snyk.py
 ```
 
 Register with Claude Code:

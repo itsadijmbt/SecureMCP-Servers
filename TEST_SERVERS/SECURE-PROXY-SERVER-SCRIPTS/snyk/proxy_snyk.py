@@ -8,7 +8,6 @@ Prereq:
 
 Run:
     python proxy_snyk.py
-    python proxy_snyk.py http 8080
 
 Claude Code:
     claude mcp add snyk-macaw python /path/to/proxy_snyk.py \
@@ -20,7 +19,7 @@ Claude Code:
 import os
 import sys
 import logging
-from macaw_adapters.mcp import SecureMCPProxy, Client
+from macaw_adapters.mcp import SecureMCPProxy
 
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -47,22 +46,4 @@ proxy = SecureMCPProxy(
 )
 logging.info("snyk-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-client = Client("snyk-macaw-gateway")
-bound = proxy.bind_to_user(client.macaw_client)
-
-import macaw_adapters.mcp._endpoint as _endpoint
-
-_StubClient = _endpoint.Client
-
-
-def _bound_stub_client(name):
-    stub = _StubClient(name)
-    stub.macaw_client = bound.user_client
-    return stub
-
-
-_endpoint.Client = _bound_stub_client
-
-transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
-port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
-proxy.run(transport=transport, port=port)
+proxy.run()

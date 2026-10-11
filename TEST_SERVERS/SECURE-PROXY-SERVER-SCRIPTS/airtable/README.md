@@ -9,7 +9,7 @@ Wraps `npx -y airtable-mcp-server` over stdio. MACAW policy is enforced at the p
 
 Environment variables:
 
-- `AIRTABLE_API_KEY`
+- `AIRTABLE_API_KEY`  — required.
 
 ## Setup
 
@@ -17,8 +17,7 @@ Environment variables:
 export AIRTABLE_API_KEY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_airtable.py            # stdio
-python proxy_airtable.py http 8080  # http
+python proxy_airtable.py
 ```
 
 Register with Claude Code:
