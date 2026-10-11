@@ -9,7 +9,7 @@ Wraps `npx -y @notionhq/notion-mcp-server` over stdio. MACAW policy is enforced 
 
 Environment variables:
 
-- `NOTION_TOKEN`
+- `NOTION_TOKEN`  — required.
 
 ## Setup
 

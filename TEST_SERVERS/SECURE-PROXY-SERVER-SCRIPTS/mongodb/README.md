@@ -14,6 +14,8 @@ Environment variables:
 - `MDB_MCP_API_CLIENT_ID`
 - `MDB_MCP_API_CLIENT_SECRET`
 
+Set `MDB_MCP_CONNECTION_STRING`, or `MDB_MCP_API_CLIENT_ID` with `MDB_MCP_API_CLIENT_SECRET`. One of the two is required.
+
 ## Setup
 
 ```bash

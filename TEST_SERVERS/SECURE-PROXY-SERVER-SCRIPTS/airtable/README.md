@@ -9,7 +9,7 @@ Wraps `npx -y airtable-mcp-server` over stdio. MACAW policy is enforced at the p
 
 Environment variables:
 
-- `AIRTABLE_API_KEY`
+- `AIRTABLE_API_KEY`  — required.
 
 ## Setup
 

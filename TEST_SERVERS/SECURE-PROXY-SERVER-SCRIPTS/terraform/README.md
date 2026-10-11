@@ -5,6 +5,7 @@ Wraps `hashicorp/terraform-mcp-server:0.5.2` in Docker over stdio. MACAW policy 
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
+- Docker daemon running.
 - Image pulled: `docker pull hashicorp/terraform-mcp-server:0.5.2`.
 
 Environment variables:

@@ -9,7 +9,7 @@ Wraps `npx -y @stripe/mcp` over stdio. MACAW policy is enforced at the proxy bef
 
 Environment variables:
 
-- `STRIPE_SECRET_KEY`
+- `STRIPE_SECRET_KEY`  — required.
 
 ## Setup
 

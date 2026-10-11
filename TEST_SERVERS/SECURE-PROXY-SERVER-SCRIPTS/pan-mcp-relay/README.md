@@ -10,8 +10,8 @@ Wraps `uvx pan-mcp-relay@latest --config-file mcp-relay.yaml` over stdio. MACAW 
 
 Environment variables:
 
-- `PRISMA_AIRS_API_KEY`
-- `PRISMA_AIRS_AI_PROFILE`
+- `PRISMA_AIRS_API_KEY`  — required.
+- `PRISMA_AIRS_AI_PROFILE`  — required.
 
 ## Setup
 

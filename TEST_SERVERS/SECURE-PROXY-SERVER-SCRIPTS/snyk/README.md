@@ -9,7 +9,7 @@ Wraps `npx -y snyk@latest mcp -t stdio`. MACAW policy is enforced at the proxy b
 
 Environment variables:
 
-- `SNYK_TOKEN`
+- `SNYK_TOKEN`  — required.
 - `SNYK_CFG_ORG`
 
 ## Setup

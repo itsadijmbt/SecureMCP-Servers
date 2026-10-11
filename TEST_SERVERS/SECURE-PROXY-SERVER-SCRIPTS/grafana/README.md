@@ -1,17 +1,17 @@
 # Grafana MCP — SecureMCPProxy
 
-Wraps `mcp/grafana` in Docker over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
+Wraps `grafana/mcp-grafana` in Docker over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
 
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
 - Docker daemon running.
-- Image pulled: `docker pull mcp/grafana`.
+- Image pulled: `docker pull grafana/mcp-grafana`.
 
 Environment variables:
 
-- `GRAFANA_URL`
-- `GRAFANA_SERVICE_ACCOUNT_TOKEN`
+- `GRAFANA_URL`  — required.
+- `GRAFANA_SERVICE_ACCOUNT_TOKEN`  — required.
 
 ## Setup
 

@@ -9,7 +9,7 @@ Wraps `npx -y @brave/brave-search-mcp-server --transport stdio`. MACAW policy is
 
 Environment variables:
 
-- `BRAVE_API_KEY`
+- `BRAVE_API_KEY`  — required.
 
 ## Setup
 
