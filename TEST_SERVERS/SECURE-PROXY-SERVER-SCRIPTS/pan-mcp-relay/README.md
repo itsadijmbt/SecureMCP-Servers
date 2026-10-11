@@ -20,8 +20,7 @@ export PRISMA_AIRS_API_KEY="..."
 export PRISMA_AIRS_AI_PROFILE="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_pan_mcp_relay.py            # stdio
-python proxy_pan_mcp_relay.py http 8080  # http
+python proxy_pan_mcp_relay.py
 ```
 
 Register with Claude Code:

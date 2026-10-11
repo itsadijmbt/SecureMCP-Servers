@@ -20,8 +20,7 @@ export GRAFANA_URL="..."
 export GRAFANA_SERVICE_ACCOUNT_TOKEN="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_grafana.py            # stdio
-python proxy_grafana.py http 8080  # http
+python proxy_grafana.py
 ```
 
 Register with Claude Code:

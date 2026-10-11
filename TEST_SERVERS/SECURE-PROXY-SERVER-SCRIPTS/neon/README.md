@@ -16,8 +16,7 @@ Environment variables:
 export NEON_API_KEY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_neon.py            # stdio
-python proxy_neon.py http 8080  # http
+python proxy_neon.py
 ```
 
 Register with Claude Code:

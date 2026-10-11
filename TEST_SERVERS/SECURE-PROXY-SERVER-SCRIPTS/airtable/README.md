@@ -17,8 +17,7 @@ Environment variables:
 export AIRTABLE_API_KEY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_airtable.py            # stdio
-python proxy_airtable.py http 8080  # http
+python proxy_airtable.py
 ```
 
 Register with Claude Code:

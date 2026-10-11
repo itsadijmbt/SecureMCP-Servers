@@ -15,8 +15,7 @@ No credentials required.
 ```bash
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_chrome_devtools.py            # stdio
-python proxy_chrome_devtools.py http 8080  # http
+python proxy_chrome_devtools.py
 ```
 
 Register with Claude Code:

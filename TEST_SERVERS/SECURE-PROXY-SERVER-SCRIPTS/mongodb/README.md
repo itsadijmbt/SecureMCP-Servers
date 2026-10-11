@@ -24,8 +24,7 @@ export MDB_MCP_API_CLIENT_ID="..."
 export MDB_MCP_API_CLIENT_SECRET="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_mongodb.py            # stdio
-python proxy_mongodb.py http 8080  # http
+python proxy_mongodb.py
 ```
 
 Register with Claude Code:

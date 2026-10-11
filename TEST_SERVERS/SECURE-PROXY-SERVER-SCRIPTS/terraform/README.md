@@ -20,8 +20,7 @@ export TFE_TOKEN="..."
 export TFE_ADDRESS="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_terraform.py            # stdio
-python proxy_terraform.py http 8080  # http
+python proxy_terraform.py
 ```
 
 Register with Claude Code:

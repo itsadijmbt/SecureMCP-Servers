@@ -16,8 +16,7 @@ Environment variables:
 export CLOUDFLARE_API_TOKEN="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_cloudflare.py            # stdio
-python proxy_cloudflare.py http 8080  # http
+python proxy_cloudflare.py
 ```
 
 Register with Claude Code:

@@ -15,7 +15,6 @@ Prereq:
 
 Run:
     python proxy_dbt.py
-    python proxy_dbt.py http 8080
 
 Claude Code:
     claude mcp add dbt-macaw python /path/to/proxy_dbt.py \
@@ -64,6 +63,4 @@ proxy = SecureMCPProxy(
 )
 logging.info("dbt-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
-port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
-proxy.run(transport=transport, port=port)
+proxy.run()

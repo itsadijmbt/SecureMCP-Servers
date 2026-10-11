@@ -21,8 +21,7 @@ export JUPYTER_TOKEN="..."
 export DOCUMENT_ID="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_jupyter.py            # stdio
-python proxy_jupyter.py http 8080  # http
+python proxy_jupyter.py
 ```
 
 Register with Claude Code:

@@ -7,7 +7,6 @@ Prereq:
 
 Run:
     python proxy_notion.py
-    python proxy_notion.py http 8080
 
 Claude Code:
     claude mcp add notion-macaw python /path/to/proxy_notion.py \
@@ -38,6 +37,4 @@ proxy = SecureMCPProxy(
 )
 logging.info("notion-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
-port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
-proxy.run(transport=transport, port=port)
+proxy.run()

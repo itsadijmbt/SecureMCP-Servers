@@ -7,7 +7,6 @@ Prereq:
 
 Run:
     python proxy_neon.py
-    python proxy_neon.py http 8080
 
 Claude Code:
     claude mcp add neon-macaw python /path/to/proxy_neon.py \
@@ -52,6 +51,4 @@ proxy = SecureMCPProxy(
 )
 logging.info("neon-proxy: %d tools; serving native clients", len(proxy.list_tools()))
 
-transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
-port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
-proxy.run(transport=transport, port=port)
+proxy.run()
