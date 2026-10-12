@@ -6,7 +6,7 @@ Wraps `npx -y chrome-devtools-mcp@latest --headless --isolated` — spawns the s
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
 - Node.js and `npx` on `PATH`.
-- Google Chrome installed — the package launches the system browser, it does not bundle one.
+- Google Chrome installed (the package launches the system browser).
 
 No credentials required.
 
