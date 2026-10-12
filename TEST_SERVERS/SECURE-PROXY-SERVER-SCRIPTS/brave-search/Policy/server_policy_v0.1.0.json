@@ -233,5 +233,5 @@
       }
     }
   },
-  "description": "Brave Search MCP via SecureMCPProxy -- bulk LLM-context extraction denied and custom goggles re-ranking blocked; queries length-capped, safesearch pinned above off, and result counts held to the upstream schema maxima."
+  "description": "Brave Search MCP via SecureMCPProxy"
 }

@@ -187,5 +187,5 @@
       }
     }
   },
-  "description": "Notion MCP via SecureMCPProxy -- all page/block/data-source mutation, deletion, archival and comment creation denied; read surface bound to UUID ids and 100-item pages."
+  "description": "Notion MCP via SecureMCPProxy"
 }

@@ -33,5 +33,5 @@
       }
     }
   },
-  "description": "Salesforce Agentforce MCP via SecureMCPProxy -- only the single natural-language tool is allow-listed, every other resource denied by omission; message length-capped and screened for injection and secret-shaped strings."
+  "description": "Salesforce Agentforce MCP via SecureMCPProxy"
 }

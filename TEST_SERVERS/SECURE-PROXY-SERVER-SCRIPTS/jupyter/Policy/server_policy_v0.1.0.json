@@ -62,5 +62,5 @@
       }
     }
   },
-  "description": "Jupyter MCP via SecureMCPProxy -- all kernel execution, cell mutation and runtime server re-pointing denied; read surface path-bound to relative .ipynb files and size-capped."
+  "description": "Jupyter MCP via SecureMCPProxy"
 }

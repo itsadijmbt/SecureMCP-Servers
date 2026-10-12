@@ -1,7 +1,7 @@
 {
   "policy_id": "app:databricks-proxy",
   "version": "0.3.0",
-  "description": "Databricks Managed MCP via SecureMCPProxy .",
+  "description": "Databricks Managed MCP via SecureMCPProxy",
   "resources": [
     "tool:databricks-proxy/**"
   ],
@@ -38,8 +38,7 @@
           "*GRANT *",
           "*grant *",
           "*VACUUM*",
-          "*vacuum*",
-          "*hr_salaries*"
+          "*vacuum*"
         ]
       },
       "tool:databricks-proxy/execute_sql_read_only": {
@@ -67,8 +66,7 @@
           "*VACUUM*",
           "*vacuum*",
           "*COPY INTO*",
-          "*copy into*",
-          "*hr_salaries*"
+          "*copy into*"
         ]
       }
     }

@@ -1,6 +1,6 @@
 # Prisma AIRS MCP Relay MCP — SecureMCPProxy
 
-Wraps `uvx pan-mcp-relay@latest --config-file mcp-relay.yaml` over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
+Wraps `uvx --with "mcp==1.21.2" pan-mcp-relay@latest --config-file mcp-relay.yaml --transport http`, started by the proxy on `127.0.0.1` and reached over HTTP. MACAW policy is enforced at the proxy before any call reaches the upstream.
 
 ## What it needs
 
@@ -12,6 +12,9 @@ Environment variables:
 
 - `PRISMA_AIRS_API_KEY`  — required.
 - `PRISMA_AIRS_AI_PROFILE`  — required.
+- `MCP_RELAY_PORT`
+
+`MCP_RELAY_PORT` is the local port the relay listens on. The default is `8000`.
 
 ## Setup
 
