@@ -1,2 +1,0 @@
-__init__
-alibabacloud_rds_openapi_mcp_server

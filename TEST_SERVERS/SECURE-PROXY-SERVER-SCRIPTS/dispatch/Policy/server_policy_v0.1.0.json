@@ -1,0 +1,42 @@
+{
+  "policy_id": "app:dispatch-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:dispatch-proxy/list_namespaces",
+    "tool:dispatch-proxy/list_agents",
+    "tool:dispatch-proxy/get_deploy_status",
+    "tool:dispatch-proxy/get_agent_logs",
+    "tool:dispatch-proxy/get_topic_schema",
+    "tool:dispatch-proxy/list_topics",
+    "tool:dispatch-proxy/get_recent_events",
+    "tool:dispatch-proxy/get_event_trace",
+    "tool:dispatch-proxy/get_recent_traces",
+    "tool:dispatch-proxy/get_agent_functions",
+    "tool:dispatch-proxy/get_invocation_status",
+    "tool:dispatch-proxy/list_long_term_memories",
+    "tool:dispatch-proxy/list_schedules",
+    "tool:dispatch-proxy/get_schedule",
+    "tool:dispatch-proxy/list_local_routers",
+    "tool:dispatch-proxy/read_local_agent_logs"
+  ],
+  "denied_resources": [
+    "tool:dispatch-proxy/create_agent",
+    "tool:dispatch-proxy/deploy_agent",
+    "tool:dispatch-proxy/download_agent_source",
+    "tool:dispatch-proxy/uninstall_agent",
+    "tool:dispatch-proxy/stop_agent",
+    "tool:dispatch-proxy/reboot_agent",
+    "tool:dispatch-proxy/publish_event",
+    "tool:dispatch-proxy/invoke_function",
+    "tool:dispatch-proxy/start_local_agent_dev",
+    "tool:dispatch-proxy/stop_local_router",
+    "tool:dispatch-proxy/send_local_test_event",
+    "tool:dispatch-proxy/invoke_local_function",
+    "tool:dispatch-proxy/create_schedule",
+    "tool:dispatch-proxy/update_schedule",
+    "tool:dispatch-proxy/delete_schedule",
+    "tool:dispatch-proxy/submit_feedback"
+  ],
+  "description": "Dispatch operator MCP via SecureMCPProxy -- read-only"
+}
