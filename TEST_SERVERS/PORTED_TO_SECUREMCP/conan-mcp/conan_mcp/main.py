@@ -139,6 +139,19 @@ async def run_command(
          - list_conan_packages(name="fmt", version="1.0.0")
          - list_conan_packages(name="*boost*", filter_settings=["arch=armv8", "os=Windows"])
          - list_conan_packages(name="zlib", filter_options=["*:shared=True"])
+
+    Parameter descriptions:
+        name: Package name pattern (supports wildcards)
+        version: Version or version range to search for.
+        user: User name. Use * to search all users.
+        channel: Channel name. Use * to search all channels.
+        recipe_revision: Recipe revision number also know as rrev. Use * to search all revisions. Use "latest" to search the latest revision.
+        package_id: Package ID. Use * to search all packages.
+        filter_settings: Filter settings like architecture, operating system, build type, compiler, compiler version, compiler runtime, compiler runtime version.
+        filter_options: Filter options like fPIC, header_only, shared, with_*, without_*, etc.
+        remote: Name of the remote to search in.
+        search_in_cache: Include local cache in search
+        include_all_package_revisions: Include all package revisions
     """
 )
 async def list_conan_packages(
@@ -148,8 +161,8 @@ async def list_conan_packages(
     channel: str =None,
     recipe_revision: str =None,
     package_id: str =None,
-    filter_settings: list[str] = None,
-    filter_options: list[str] = None,
+    filter_settings: list = None,  # was: filter_settings: list[str]
+    filter_options: list = None,  # was: filter_options: list[str]
     remote: str = "*",
     search_in_cache: bool= False,
     include_all_package_revisions: bool = False,
@@ -209,6 +222,9 @@ async def list_conan_packages(
         - "host": Host profile settings (compiler, arch, build_type, etc.)
         - "build": Build profile settings (compiler, arch, build_type, etc.)
         - Additional configuration like package_settings, options, tool_requires, etc.
+
+    Parameter descriptions:
+        profile: Specific profile name to retrieve. If not provided, uses the default profile.
     """
 )
 async def get_conan_profile(
@@ -296,6 +312,17 @@ async def list_conan_profiles() -> list[str]:
         - Skip: Package skipped from installation
         - Download: Recipe/binary was downloaded
         - null: Binary unknown (e.g., consumer conanfile.txt)
+
+    Parameter descriptions:
+        path: Path to the folder containing the recipe of the project or to a recipe file conanfile.txt/.py
+        work_dir: Working directory where the command should be executed. This is the base directory from which all paths are resolved. Always required.
+        remote: Remote name. Omit  to search in all remotes.
+        search_in_cache: Do not use remote, resolve exclusively in the cache.
+        build_profile: Profile to the build context.
+        host_profile: Profile to the host context.
+        settings_host: Apply different settings like architecture, operating system, build type, compiler,
+        options_host: Apply options like fPIC, header_only, shared, with_*, without_*, etc. to the host context only.
+        build_missing: Build all the missing binary dependencies when they are not available in the cache or in the remotes for download.
     """
 )
 async def install_conan_packages(
@@ -306,8 +333,8 @@ async def install_conan_packages(
     search_in_cache: bool= False,
     build_profile: str = None,
     host_profile: str = None,
-    settings_host: list[str] = None,
-    options_host: list[str] = None,
+    settings_host: list = None,  # was: settings_host: list[str]
+    options_host: list = None,  # was: options_host: list[str]
     build_missing: bool= False,
 ) -> dict:
     # Expand ~ in work_dir and ensure it exists
@@ -399,6 +426,15 @@ async def install_conan_packages(
         Dictionary containing:
         - result: Success message with project details, dependency note, and 
                   raw output from the conan new command
+
+    Parameter descriptions:
+        template: Template type for the project. If not specified, use cmake_lib for libraries or cmake_exe for executables
+        name: Name of the project
+        work_dir: Working directory where the command should be executed. The project will be created directly in this directory. Always required.
+        version: Version of the project
+        requires: List of dependencies with versions
+        tool_requires: List of tool dependencies with versions. Common examples: ['cmake/4.1.2'], ['ninja/1.13.1'], ['meson/1.9.1']
+        force: Overwrite existing files if they exist
     """
 )
 async def create_conan_project(
@@ -406,8 +442,8 @@ async def create_conan_project(
     name: str  ,
         work_dir:str,
     version: str ="0.1", 
-    requires: list[str] = None,
-    tool_requires: list[str] =None,
+    requires: list = None,  # was: requires: list[str]
+    tool_requires: list =None,  # was: tool_requires: list[str]
 
     force: bool =False,
 ) -> dict:
@@ -537,12 +573,20 @@ def _extract_licenses_from_graph(graph_data: dict) -> list[dict[str, str | list[
         List of dictionaries, each containing:
         - "ref": Package reference (string)
         - "licenses": List of license strings (always a list, empty if no license specified)
+
+    Parameter descriptions:
+        work_dir: Working directory where the command should be executed. This is the base directory from which all paths are resolved. Always required.
+        path: Path to the folder containing the recipe of the project or to a recipe file conanfile.txt/.py. Optional if requires is provided.
+        requires: List of package references to check licenses for (e.g., ['zlib/1.2.11', 'fmt/10.0.0']). Each reference will be passed as a --requires flag. Optional if path is provided.
+        remote: Remote name. Omit to search in all remotes.
+        build_profile: Profile to the build context.
+        host_profile: Profile to the host context.
     """
 )
 async def get_conan_licenses(
     work_dir: str ,
     path: str = None,
-    requires: list[str] =None,
+    requires: list =None,  # was: requires: list[str]
     remote: str = None,
     build_profile: str = None,
     host_profile: str = None,
@@ -611,6 +655,11 @@ async def get_conan_licenses(
         reference: Conan reference to audit. For example, "fmt/12.0.0". Use it in case the user provides a specific reference to audit. Use it instead of path. When using reference, only the vulnerabilities of that specific package reference will be scanned, but NOT its dependencies.
     Returns:
         Dictionary containing the result of the audit scan.
+
+    Parameter descriptions:
+        work_dir: Working directory where the command should be executed. Always required.
+        path: Path to the folder relative to working directory containing the recipe of the project or to a recipe file conanfile.txt/.py
+        reference: Conan reference to audit. For example, 'fmt/12.0.0'.
     """
 )
 async def scan_conan_dependencies(

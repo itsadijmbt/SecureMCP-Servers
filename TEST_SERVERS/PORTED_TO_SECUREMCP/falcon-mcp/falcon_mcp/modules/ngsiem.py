@@ -54,41 +54,10 @@ class NGSIEMModule(BaseModule):
 
     async def search_ngsiem(
         self,
-        query_string: str = Field(
-            description=(
-                "The CQL query string to execute. "
-                "This tool executes pre-written CQL queries - it does NOT help construct queries. "
-                "Users must provide a complete, valid CQL query. "
-                "Example: '#event_simpleName=ProcessRollup2' or 'source=firewall | count()'"
-            ),
-        ),
-        start: str = Field(
-            description=(
-                "Search start time as an ISO 8601 timestamp (REQUIRED format). "
-                "Example: start='2025-01-01T00:00:00Z'"
-            ),
-            examples={"2025-01-01T00:00:00Z"},
-        ),
-        repository: str = Field(
-            default="search-all",
-            description=(
-                "Repository to search. Valid options: "
-                "search-all (default - all event data), "
-                "investigate_view (endpoint events), "
-                "third-party (third-party source events), "
-                "falcon_for_it_view (Falcon for IT data), "
-                "forensics_view (Falcon Forensics triage data)"
-            ),
-        ),
-        end: str | None = Field(
-            default=None,
-            description=(
-                "Search end time as an ISO 8601 timestamp. "
-                "If not provided, defaults to the current time. "
-                "Example: end='2025-02-06T00:00:00Z'"
-            ),
-            examples={"2025-01-01T00:00:00Z"},
-        ),
+        query_string: str,  # was: Field()
+        start: str,  # was: Field()
+        repository: str = "search-all",  # was: Field(default="search-all")
+        end: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]] | dict[str, Any]:
         """Execute a CQL query against CrowdStrike Next-Gen SIEM.
 
@@ -107,6 +76,14 @@ class NGSIEMModule(BaseModule):
             repository (optional): Repository to search. Default: 'search-all'.
                 Options: search-all, investigate_view, third-party, falcon_for_it_view, forensics_view
             end (optional): ISO 8601 timestamp for search end. Defaults to current time.
+
+        Parameter descriptions:
+            query_string: The CQL query string to execute. This tool executes pre-written CQL queries - it does NOT help construct queries. Users must provide a complete, valid CQL query. Example: '#event_simpleName=ProcessRollup2' or 'source=firewall | count()'
+            start: Search start time as an ISO 8601 timestamp (REQUIRED format). Example: start='2025-01-01T00:00:00Z'
+                Examples: {"2025-01-01T00:00:00Z"}
+            repository: Repository to search. Valid options: search-all (default - all event data), investigate_view (endpoint events), third-party (third-party source events), falcon_for_it_view (Falcon for IT data), forensics_view (Falcon Forensics triage data)
+            end: Search end time as an ISO 8601 timestamp. If not provided, defaults to the current time. Example: end='2025-02-06T00:00:00Z'
+                Examples: {"2025-01-01T00:00:00Z"}
         """
         # Step 1: Start the search job
         # Note: FalconPy uber class passes body unchanged; API expects camelCase keys

@@ -1,0 +1,26 @@
+MIGRATION: esp-rainmaker-mcp, FastMCP -> SecureMCP
+Upstream base: espressif/esp-rainmaker-mcp @ afb272e (2025-07-15)
+
+WHAT
+- server.py only. FastMCP("ESP-RainMaker-MCP", lifespan=..., dependencies=...)
+  -> SecureMCP("ESP-RainMaker-MCP"). Context comes from macaw_adapters.mcp.
+- Upstream's lifespan function only logged the config paths and checked the
+  config at start. SecureMCP has no lifespan argument, so the same lines run
+  once at import. The "shutting down" log line is gone.
+- A main() that calls mcp.run() is added.
+- All 13 tools are upstream's.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- 4 tool parameters given a plain type: set_schedule.trigger and .action
+  (dict | None -> dict), get_group_details.fields and .node_fields
+  (list[str] | None -> list). They were published as "string".
+  Old type kept in "# was:".
+
+BROKEN ON PURPOSE
+- The lifespan hook and the dependencies= hint of FastMCP.
+- Argument checking by pydantic.
+
+VERIFICATION (2026-10-12)
+- Compared with the upstream base function by function: only those 4
+  annotations differ inside the tools.
+- Not run in this revision. It needs an ESP RainMaker login.

@@ -93,28 +93,11 @@ class ScheduledReportsModule(BaseModule):
 
     def search_scheduled_reports(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL filter to limit results. Use id:'<id>' to get specific reports. IMPORTANT: use the `falcon://scheduled-reports/search/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of records to return. (Max: 5000)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return IDs.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="Property to sort by. Ex: created_on.asc, last_updated_on.desc, next_execution_on.desc",
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free-text search for terms in id, name, description, type, status fields",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Search for scheduled reports and searches in your CrowdStrike environment.
 
@@ -135,6 +118,13 @@ class ScheduledReportsModule(BaseModule):
         - filter=status:'ACTIVE'+type:'event_search' - Active scheduled searches
         - filter=created_on:>'2023-01-01' - Created after date
         - filter=id:'45c59557ded4413cafb8ff81e7640456' - Specific report by ID
+
+        Args:
+            filter: FQL filter to limit results. Use id:'<id>' to get specific reports. IMPORTANT: use the `falcon://scheduled-reports/search/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. (Max: 5000)
+            offset: Starting index of overall result set from which to return IDs.
+            sort: Property to sort by. Ex: created_on.asc, last_updated_on.desc, next_execution_on.desc
+            q: Free-text search for terms in id, name, description, type, status fields
         """
         report_ids = self._base_search_api_call(
             operation="scheduled_reports_query",
@@ -169,7 +159,7 @@ class ScheduledReportsModule(BaseModule):
 
     def launch_scheduled_report(
         self,
-        id: str = Field(description="Scheduled report/search entity ID to execute."),
+        id: str,  # was: Field()
     ) -> list[dict[str, Any]]:
         """Launch a scheduled report on demand.
 
@@ -181,6 +171,9 @@ class ScheduledReportsModule(BaseModule):
         - falcon_download_report_execution to download results when ready
 
         Note: The report will run with the same parameters as defined in the entity configuration.
+
+        Args:
+            id: Scheduled report/search entity ID to execute.
         """
         result = self._base_query_api_call(
             operation="scheduled_reports_launch",
@@ -196,24 +189,10 @@ class ScheduledReportsModule(BaseModule):
 
     def search_report_executions(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL filter to limit results. Use id:'<id>' to get specific executions. IMPORTANT: use the `falcon://scheduled-reports/executions/search/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of records to return. (Max: 5000)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return IDs.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="Property to sort by. Ex: created_on.asc, last_updated_on.desc",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Search for scheduled report/search executions in your CrowdStrike environment.
 
@@ -233,6 +212,12 @@ class ScheduledReportsModule(BaseModule):
         - filter=status:'DONE'+created_on:>'2023-01-01' - Successful runs after date
         - filter=scheduled_report_id:'abc123' - All executions for report abc123
         - filter=id:'f1984ff006a94980b352f18ee79aed77' - Specific execution by ID
+
+        Args:
+            filter: FQL filter to limit results. Use id:'<id>' to get specific executions. IMPORTANT: use the `falcon://scheduled-reports/executions/search/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. (Max: 5000)
+            offset: Starting index of overall result set from which to return IDs.
+            sort: Property to sort by. Ex: created_on.asc, last_updated_on.desc
         """
         execution_ids = self._base_search_api_call(
             operation="report_executions_query",
@@ -266,7 +251,7 @@ class ScheduledReportsModule(BaseModule):
 
     def download_report_execution(
         self,
-        id: str = Field(description="Report execution ID to download."),
+        id: str,  # was: Field()
     ) -> str | list[dict[str, Any]] | dict[str, Any]:
         """Download generated report results.
 
@@ -281,6 +266,9 @@ class ScheduledReportsModule(BaseModule):
         Note: Check execution status first using falcon_search_report_executions with
         filter=id:'<execution-id>' to ensure the execution is complete (status='DONE')
         before attempting to download.
+
+        Args:
+            id: Report execution ID to download.
         """
         prepared_params = prepare_api_parameters({"ids": id})
         response = self.client.command(

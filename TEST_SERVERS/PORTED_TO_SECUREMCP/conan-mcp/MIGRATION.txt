@@ -1,0 +1,32 @@
+MIGRATION: conan-mcp, FastMCP -> SecureMCP
+Upstream base: conan-io/conan-mcp @ f8a7540 (2025-12-03, v0.1.0-6)
+
+WHAT
+- conan_mcp/main.py only. FastMCP("conan-mcp") -> SecureMCP("conan-mcp").
+- All 37 Field(...) parameter defaults replaced by their plain default.
+- create_conan_project: work_dir moved before the parameters that have a
+  default (Python needs required parameters first). Calls are by name, so
+  callers are not affected.
+- Tool bodies and tool descriptions are upstream's.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- The 37 Field descriptions were deleted by the first port. They are back, word
+  for word, at the end of each tool's description= text under
+  "Parameter descriptions:". They are in description= and not in a docstring
+  because SecureMCP publishes description= when it is given and ignores the
+  docstring. Upstream's own "Args:" text in those descriptions is unchanged.
+- 7 list[str] parameters given the plain type list (filter_settings,
+  filter_options, settings_host, options_host, requires x2, tool_requires).
+  They were published as "string". Old type kept in "# was:".
+
+BROKEN ON PURPOSE
+- Per-parameter descriptions in the schema (now in the description text).
+- Argument checking by pydantic.
+
+VERIFICATION (2026-10-12, macaw-adapters 0.9.10.1, conan 2.33.0 from PyPI)
+- Compared with upstream function by function: bodies identical.
+- Served through MACAW and called as a normal MCP client with a real conan:
+  7 tools, list parameters published as array, list_conan_profiles and a real
+  list_conan_packages search on conancenter (with a list argument) returned
+  data, a list sent as a string and a missing required argument were rejected.
+  The published descriptions contain the restored parameter text.

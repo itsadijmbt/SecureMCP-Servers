@@ -80,25 +80,24 @@ class IOCModule(BaseModule):
 
     def search_iocs(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL filter to limit IOC search results. IMPORTANT: use the `falcon://ioc/search/fql-guide` resource when building this filter parameter.",
-            examples={"type:'domain'+expired:false", "source:'mcp'"},
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=500,
-            description="Maximum number of IOC IDs to return from search. (Max: 500)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return IDs.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent("""
-                Sort IOCs using FQL sort syntax.
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=500)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        after: str | None = None,  # was: Field(default=None)
+        from_parent: bool = None,  # was: Field(default=None); from_parent: bool | None
+    ) -> list[dict[str, Any]] | dict[str, Any]:
+        """Search custom IOCs and return full IOC details.
+
+        IMPORTANT: You must use the `falcon://ioc/search/fql-guide` resource
+        when you need to use the `filter` parameter.
+
+        Args:
+            filter: FQL filter to limit IOC search results. IMPORTANT: use the `falcon://ioc/search/fql-guide` resource when building this filter parameter.
+                Examples: {"type:'domain'+expired:false", "source:'mcp'"}
+            limit: Maximum number of IOC IDs to return from search. (Max: 500)
+            offset: Starting index of overall result set from which to return IDs.
+            sort: Sort IOCs using FQL sort syntax.
 
                 Common fields include:
                 action, applied_globally, created_on, expiration, modified_on,
@@ -106,22 +105,9 @@ class IOCModule(BaseModule):
 
                 Supported formats: 'field.asc', 'field.desc', 'field|asc', 'field|desc'
                 Examples: 'modified_on.desc', 'severity_number|desc'
-            """).strip(),
-            examples={"modified_on.desc", "severity_number|desc"},
-        ),
-        after: str | None = Field(
-            default=None,
-            description="Pagination token for large result sets. Use the `after` value returned by the previous search call.",
-        ),
-        from_parent: bool | None = Field(
-            default=None,
-            description="Return indicators from the MSSP parent when applicable.",
-        ),
-    ) -> list[dict[str, Any]] | dict[str, Any]:
-        """Search custom IOCs and return full IOC details.
-
-        IMPORTANT: You must use the `falcon://ioc/search/fql-guide` resource
-        when you need to use the `filter` parameter.
+                Examples: {"modified_on.desc", "severity_number|desc"}
+            after: Pagination token for large result sets. Use the `after` value returned by the previous search call.
+            from_parent: Return indicators from the MSSP parent when applicable.
         """
         indicator_ids = self._base_search_api_call(
             operation="indicator_search_v1",
@@ -157,80 +143,47 @@ class IOCModule(BaseModule):
 
     def add_ioc(
         self,
-        type: str | None = Field(
-            default=None,
-            description="IOC type for single IOC creation. Common values: domain, ipv4, ipv6, md5, sha256. Required when `indicators` is not provided.",
-        ),
-        value: str | None = Field(
-            default=None,
-            description="IOC value for single IOC creation. Required when `indicators` is not provided.",
-        ),
-        action: str = Field(
-            default="detect",
-            description="Action for single IOC creation. Example values: detect, prevent, no_action.",
-        ),
-        source: str = Field(
-            default="mcp",
-            description="Source label for the IOC.",
-        ),
-        severity: str | None = Field(
-            default=None,
-            description="Severity label for single IOC creation.",
-        ),
-        description: str | None = Field(
-            default=None,
-            description="Description text for single IOC creation.",
-        ),
-        expiration: str | None = Field(
-            default=None,
-            description="Expiration timestamp in UTC (ISO 8601). Example: 2026-12-31T23:59:59Z",
-        ),
-        applied_globally: bool | None = Field(
-            default=None,
-            description="Whether the IOC is applied globally.",
-        ),
-        mobile_action: str | None = Field(
-            default=None,
-            description="Action to apply on mobile platforms.",
-        ),
-        platforms: list[str] | None = Field(
-            default=None,
-            description="Platform list for single IOC creation.",
-        ),
-        host_groups: list[str] | None = Field(
-            default=None,
-            description="Host groups for scoped IOC application.",
-        ),
-        tags: list[str] | None = Field(
-            default=None,
-            description="Falcon grouping tags to attach to the IOC.",
-        ),
-        metadata: dict[str, Any] | None = Field(
-            default=None,
-            description="Metadata dictionary for the IOC. Example: {'filename': 'evil.exe'}",
-        ),
-        filename: str | None = Field(
-            default=None,
-            description="Convenience shortcut for metadata filename. Merged into `metadata`.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment for IOC creation.",
-        ),
-        indicators: list[dict[str, Any]] | None = Field(
-            default=None,
-            description="Optional bulk IOC payload. If provided, single IOC fields are ignored.",
-        ),
-        ignore_warnings: bool = Field(
-            default=False,
-            description="Set to true to ignore warnings and create all submitted IOCs.",
-        ),
-        retrodetects: bool | None = Field(
-            default=None,
-            description="Whether to submit IOCs to retrodetect processing.",
-        ),
+        type: str | None = None,  # was: Field(default=None)
+        value: str | None = None,  # was: Field(default=None)
+        action: str = "detect",  # was: Field(default="detect")
+        source: str = "mcp",  # was: Field(default="mcp")
+        severity: str | None = None,  # was: Field(default=None)
+        description: str | None = None,  # was: Field(default=None)
+        expiration: str | None = None,  # was: Field(default=None)
+        applied_globally: bool = None,  # was: Field(default=None); applied_globally: bool | None
+        mobile_action: str | None = None,  # was: Field(default=None)
+        platforms: list = None,  # was: Field(default=None); platforms: list[str] | None
+        host_groups: list = None,  # was: Field(default=None); host_groups: list[str] | None
+        tags: list = None,  # was: Field(default=None); tags: list[str] | None
+        metadata: dict = None,  # was: Field(default=None); metadata: dict[str, Any] | None
+        filename: str | None = None,  # was: Field(default=None)
+        comment: str | None = None,  # was: Field(default=None)
+        indicators: list = None,  # was: Field(default=None); indicators: list[dict[str, Any]] | None
+        ignore_warnings: bool = False,  # was: Field(default=False)
+        retrodetects: bool = None,  # was: Field(default=None); retrodetects: bool | None
     ) -> list[dict[str, Any]]:
-        """Create one or more custom IOCs."""
+        """Create one or more custom IOCs.
+
+        Args:
+            type: IOC type for single IOC creation. Common values: domain, ipv4, ipv6, md5, sha256. Required when `indicators` is not provided.
+            value: IOC value for single IOC creation. Required when `indicators` is not provided.
+            action: Action for single IOC creation. Example values: detect, prevent, no_action.
+            source: Source label for the IOC.
+            severity: Severity label for single IOC creation.
+            description: Description text for single IOC creation.
+            expiration: Expiration timestamp in UTC (ISO 8601). Example: 2026-12-31T23:59:59Z
+            applied_globally: Whether the IOC is applied globally.
+            mobile_action: Action to apply on mobile platforms.
+            platforms: Platform list for single IOC creation.
+            host_groups: Host groups for scoped IOC application.
+            tags: Falcon grouping tags to attach to the IOC.
+            metadata: Metadata dictionary for the IOC. Example: {'filename': 'evil.exe'}
+            filename: Convenience shortcut for metadata filename. Merged into `metadata`.
+            comment: Audit comment for IOC creation.
+            indicators: Optional bulk IOC payload. If provided, single IOC fields are ignored.
+            ignore_warnings: Set to true to ignore warnings and create all submitted IOCs.
+            retrodetects: Whether to submit IOCs to retrodetect processing.
+        """
         payload_or_error = self._build_add_ioc_payload(
             type=type,
             value=value,
@@ -271,24 +224,19 @@ class IOCModule(BaseModule):
 
     def remove_iocs(
         self,
-        ids: list[str] | None = Field(
-            default=None,
-            description="IOC IDs to remove. Use this when deleting specific IOCs.",
-        ),
-        filter: str | None = Field(
-            default=None,
-            description="FQL expression for bulk IOC removal. If both `filter` and `ids` are provided, `filter` takes precedence.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment describing why these IOCs are being removed.",
-        ),
-        from_parent: bool | None = Field(
-            default=None,
-            description="Limit action to IOCs originating from the MSSP parent.",
-        ),
+        ids: list = None,  # was: Field(default=None); ids: list[str] | None
+        filter: str | None = None,  # was: Field(default=None)
+        comment: str | None = None,  # was: Field(default=None)
+        from_parent: bool = None,  # was: Field(default=None); from_parent: bool | None
     ) -> list[dict[str, Any]]:
-        """Remove custom IOCs by IDs or FQL filter."""
+        """Remove custom IOCs by IDs or FQL filter.
+
+        Args:
+            ids: IOC IDs to remove. Use this when deleting specific IOCs.
+            filter: FQL expression for bulk IOC removal. If both `filter` and `ids` are provided, `filter` takes precedence.
+            comment: Audit comment describing why these IOCs are being removed.
+            from_parent: Limit action to IOCs originating from the MSSP parent.
+        """
         if not ids and not filter:
             return [
                 _format_error_response(

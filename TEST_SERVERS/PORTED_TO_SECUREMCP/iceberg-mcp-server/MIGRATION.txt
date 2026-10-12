@@ -1,0 +1,17 @@
+MIGRATION: iceberg-mcp-server, FastMCP -> SecureMCP
+Upstream base: cloudera/iceberg-mcp-server @ 38a7f39 (2025-07-11)
+
+WHAT
+- src/iceberg_mcp_server/server.py: FastMCP -> SecureMCP. The server name
+  "Cloudera Iceberg MCP Server via Impala" is written with dashes.
+  main() calls mcp.run(); the MCP_TRANSPORT value is only printed.
+- pyproject.toml: requires-python lowered from 3.13 to 3.11. The MACAW client
+  builds used here are for Python 3.11 and 3.12.
+- The tools are upstream's, word for word.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- Nothing. The one tool parameter is a plain str and there is no Field default.
+
+VERIFICATION (2026-10-12)
+- Compared with the upstream base function by function.
+- Not run in this revision. It needs an Impala / Iceberg catalog.

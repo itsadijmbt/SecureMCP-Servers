@@ -1,0 +1,22 @@
+MIGRATION: datacloud-mcp-query, FastMCP -> SecureMCP
+Upstream base: forcedotcom/datacloud-mcp-query @ 76e7664 (2026-04-20)
+
+WHAT
+- server.py only. FastMCP("Demo") -> SecureMCP("Demo"). "Demo" is upstream's
+  own server name.
+- The 6 Field(...) parameter defaults of the 3 tools are replaced by their
+  plain default, and each Field description is moved into the tool's
+  description= text under "Args:".
+- Tool bodies are upstream's.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- query.query_settings: Optional[dict[str, str]] -> dict. It was published as
+  "string". Old type kept in "# was:".
+
+BROKEN ON PURPOSE
+- Per-parameter descriptions in the schema (they are in the description text).
+- Argument checking by pydantic.
+
+VERIFICATION (2026-10-12)
+- Compared with the upstream base function by function.
+- Not run in this revision. It needs a Salesforce Data 360 org.

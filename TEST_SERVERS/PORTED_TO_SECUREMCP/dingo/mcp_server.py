@@ -808,7 +808,7 @@ def _run_dingo_evaluation_internal(
 @mcp.tool()
 def run_dingo_evaluation(
         input_path: str,
-        evaluation_type: Literal["rule", "llm"] = "rule",
+        evaluation_type: str = "rule",  # was: evaluation_type: Literal["rule", "llm"]
         eval_group_name: str = "",
         kwargs: dict = {}
 ) -> str:
@@ -991,7 +991,7 @@ def _get_prompts_info(include_details: bool = False) -> Dict[str, List]:
 
 @mcp.tool()
 def list_dingo_components(
-        component_type: Literal["rule_groups", "llm_models", "prompts", "all"] = "all",
+        component_type: str = "all",  # was: component_type: Literal["rule_groups", "llm_models", "prompts", "all"]
         include_details: bool = False
 ) -> Dict[str, Any]:
     """Lists available Dingo rule groups, registered LLM model identifiers, and prompt definitions.

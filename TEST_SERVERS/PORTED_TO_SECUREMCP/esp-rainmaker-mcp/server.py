@@ -522,7 +522,7 @@ async def get_schedules(ctx: Context, node_id: str) -> dict | str:
 
 @mcp.tool()
 async def set_schedule(ctx: Context, node_id: str, operation: str, schedule_id: str | None = None,
-                      name: str | None = None, trigger: dict | None = None, action: dict | None = None,
+                      name: str | None = None, trigger: dict = None, action: dict = None,  # was: trigger: dict | None; action: dict | None
                       info: str | None = None, flags: str | None = None) -> str:
     """
     Manage schedules for one or more nodes.
@@ -1002,8 +1002,8 @@ async def get_group_details(
     ctx: Context,
     group_id: str | None = None,
     include_nodes: bool = False,
-    fields: list[str] | None = None,
-    node_fields: list[str] | None = None
+    fields: list = None,  # was: fields: list[str] | None
+    node_fields: list = None  # was: node_fields: list[str] | None
 ) -> dict | str:
     """
     Get comprehensive group information using Python library API.

@@ -1,0 +1,34 @@
+MIGRATION: dingo (mcp_server.py), FastMCP -> SecureMCP
+Upstream base: MigoXLab/dingo @ a9629b1 (2026-04-02, v2.2.2)
+
+WHAT
+- mcp_server.py only. FastMCP("Dingo Evaluator") -> SecureMCP("Dingo Evaluator").
+- The start block always calls mcp.run(). Upstream called
+  mcp.run(transport="sse") unless LOCAL_DEPLOYMENT_MODE was "true".
+- All 25 functions are upstream's.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- dingo/io/output/ was missing from this repository (4 files: __init__.py,
+  eval_detail.py, result_info.py, summary_model.py). Dingo's own .gitignore has
+  the line "output/", so the folder was skipped when the port was committed.
+  dingo/io/__init__.py imports it, so "import dingo.io" failed with
+  "No module named 'dingo.io.output'". The 4 files are restored from the
+  upstream base. They must be added with "git add -f".
+- 2 tool parameters given a plain type:
+  run_dingo_evaluation.evaluation_type and list_dingo_components.component_type
+  were Literal[...]; they are str now. Old type kept in "# was:".
+
+BROKEN ON PURPOSE
+- The SSE transport.
+- The allowed values of the two Literal parameters are not published and not
+  checked by the server. The docstrings still list them.
+
+KNOWN GAPS
+- The server name has a space. On 0.9.10.1 a served server with spaces in its
+  name answered calls normally, and the policy id uses the same name, so it is
+  left as upstream has it.
+
+VERIFICATION (2026-10-12)
+- "import dingo.io" works with the 4 files and fails without them.
+- mcp_server.py compared with the upstream base function by function.
+- Not run through MACAW in this revision (Dingo's dependencies are large).

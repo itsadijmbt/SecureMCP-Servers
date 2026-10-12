@@ -56,23 +56,28 @@ class ServerlessModule(BaseModule):
 
     def search_serverless_vulnerabilities(
         self,
-        filter: str = Field(
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://serverless/vulnerabilities/fql-guide` resource when building this filter parameter.",
-            examples={"cloud_provider:'aws'", "severity:'HIGH'"},
-        ),
-        limit: int | None = Field(
-            default=10,
-            ge=1,
-            description="The upper-bound on the number of records to retrieve. (Default: 10)",
-        ),
-        offset: int | None = Field(
-            default=0,
-            description="The offset from where to begin.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent("""
-                Sort serverless vulnerabilities using FQL syntax.
+        filter: str,  # was: Field()
+        limit: int = 10,  # was: Field(default=10, ge=1); limit: int | None
+        offset: int = 0,  # was: Field(default=0); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+    ) -> list[dict[str, Any]]:
+        """Search for vulnerabilities in your serverless functions across all cloud service providers.
+
+        This endpoint provides security information in SARIF format, including:
+        - CVE IDs for identified vulnerabilities
+        - Severity levels
+        - Vulnerability descriptions
+        - Additional relevant details
+
+        IMPORTANT: You must use the `falcon://serverless/vulnerabilities/fql-guide` resource when you need to use the `filter` parameter.
+        This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_serverless_vulnerabilities` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://serverless/vulnerabilities/fql-guide` resource when building this filter parameter.
+                Examples: {"cloud_provider:'aws'", "severity:'HIGH'"}
+            limit: The upper-bound on the number of records to retrieve. (Default: 10)
+            offset: The offset from where to begin.
+            sort: Sort serverless vulnerabilities using FQL syntax.
 
                 Supported sorting fields:
                 • application_name: Name of the application
@@ -97,24 +102,7 @@ class ServerlessModule(BaseModule):
                 Format: 'field'
 
                 Examples: 'severity', 'cloud_provider', 'first_seen_timestamp'
-            """).strip(),
-            examples={
-                "severity",
-                "cloud_provider",
-                "first_seen_timestamp",
-            },
-        ),
-    ) -> list[dict[str, Any]]:
-        """Search for vulnerabilities in your serverless functions across all cloud service providers.
-
-        This endpoint provides security information in SARIF format, including:
-        - CVE IDs for identified vulnerabilities
-        - Severity levels
-        - Vulnerability descriptions
-        - Additional relevant details
-
-        IMPORTANT: You must use the `falcon://serverless/vulnerabilities/fql-guide` resource when you need to use the `filter` parameter.
-        This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_serverless_vulnerabilities` tool.
+                Examples: { "severity", "cloud_provider", "first_seen_timestamp", }
         """
         # Prepare parameters for GetCombinedVulnerabilitiesSARIF
         params = prepare_api_parameters(

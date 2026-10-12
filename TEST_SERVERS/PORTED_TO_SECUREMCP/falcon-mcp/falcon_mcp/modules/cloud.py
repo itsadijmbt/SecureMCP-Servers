@@ -102,26 +102,22 @@ class CloudModule(BaseModule):
 
     def search_kubernetes_containers(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/kubernetes-containers/fql-guide` resource when building this filter parameter.",
-            examples={"cloud:'AWS'", "cluster_name:'prod'"},
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=9999,
-            description="The maximum number of containers to return in this response (default: 10; max: 9999). Use with the offset parameter to manage pagination of results.",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return containers.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent(
-                """
-                Sort kubernetes containers using these options:
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=9999)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+    ) -> list[dict[str, Any]]:
+        """Search for kubernetes containers in your CrowdStrike Kubernetes & Containers Inventory
+
+        IMPORTANT: You must use the `falcon://cloud/kubernetes-containers/fql-guide` resource when you need to use the `filter` parameter.
+        This resource contains the guide on how to build the FQL `filter` parameter for `falcon_search_kubernetes_containers` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/kubernetes-containers/fql-guide` resource when building this filter parameter.
+                Examples: {"cloud:'AWS'", "cluster_name:'prod'"}
+            limit: The maximum number of containers to return in this response (default: 10; max: 9999). Use with the offset parameter to manage pagination of results.
+            offset: Starting index of overall result set from which to return containers.
+            sort: Sort kubernetes containers using these options:
 
                 cloud_name: Cloud provider name
                 cloud_region: Cloud region name
@@ -138,15 +134,7 @@ class CloudModule(BaseModule):
                 When searching containers running vulnerable images, use 'image_vulnerability_count.desc' to get container with most images vulnerabilities.
 
                 Examples: 'container_name.desc', 'last_seen.desc'
-            """
-            ).strip(),
-            examples={"container_name.desc", "last_seen.desc"},
-        ),
-    ) -> list[dict[str, Any]]:
-        """Search for kubernetes containers in your CrowdStrike Kubernetes & Containers Inventory
-
-        IMPORTANT: You must use the `falcon://cloud/kubernetes-containers/fql-guide` resource when you need to use the `filter` parameter.
-        This resource contains the guide on how to build the FQL `filter` parameter for `falcon_search_kubernetes_containers` tool.
+                Examples: {"container_name.desc", "last_seen.desc"}
         """
 
         return self._base_search_api_call(
@@ -162,16 +150,16 @@ class CloudModule(BaseModule):
 
     def count_kubernetes_containers(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/kubernetes-containers/fql-guide` resource when building this filter parameter.",
-            examples={"cloud:'Azure'", "container_name:'service'"},
-        ),
+        filter: str | None = None,  # was: Field(default=None)
     ) -> int:
         """Count kubernetes containers in your CrowdStrike Kubernetes & Containers Inventory
 
         IMPORTANT: You must use the `falcon://cloud/kubernetes-containers/fql-guide` resource when you need to use the `filter` parameter.
         This resource contains the guide on how to build the FQL `filter` parameter for `falcon_count_kubernetes_containers` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/kubernetes-containers/fql-guide` resource when building this filter parameter.
+                Examples: {"cloud:'Azure'", "container_name:'service'"}
         """
 
         # Prepare parameters
@@ -197,26 +185,22 @@ class CloudModule(BaseModule):
 
     def search_images_vulnerabilities(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/images-vulnerabilities/fql-guide` resource when building this filter parameter.",
-            examples={"cve_id:*'*2025*'", "cvss_score:>5"},
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=9999,
-            description="The maximum number of containers to return in this response (default: 10; max: 9999). Use with the offset parameter to manage pagination of results.",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return containers.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent(
-                """
-                Sort images vulnerabilities using these options:
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=9999)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+    ) -> list[dict[str, Any]]:
+        """Search for images vulnerabilities in your CrowdStrike Image Assessments
+
+        IMPORTANT: You must use the `falcon://cloud/images-vulnerabilities/fql-guide` resource when you need to use the `filter` parameter.
+        This resource contains the guide on how to build the FQL `filter` parameter for `falcon_search_images_vulnerabilities` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/images-vulnerabilities/fql-guide` resource when building this filter parameter.
+                Examples: {"cve_id:*'*2025*'", "cvss_score:>5"}
+            limit: The maximum number of containers to return in this response (default: 10; max: 9999). Use with the offset parameter to manage pagination of results.
+            offset: Starting index of overall result set from which to return containers.
+            sort: Sort images vulnerabilities using these options:
 
                 cps_current_rating: CSP rating of the image vulnerability
                 cve_id: CVE ID of the image vulnerability
@@ -227,15 +211,7 @@ class CloudModule(BaseModule):
                 Both formats are supported: 'container_name.desc' or 'container_name|desc'
 
                 Examples: 'cvss_score.desc', 'cps_current_rating.asc'
-            """
-            ).strip(),
-            examples={"cvss_score.desc", "cps_current_rating.asc"},
-        ),
-    ) -> list[dict[str, Any]]:
-        """Search for images vulnerabilities in your CrowdStrike Image Assessments
-
-        IMPORTANT: You must use the `falcon://cloud/images-vulnerabilities/fql-guide` resource when you need to use the `filter` parameter.
-        This resource contains the guide on how to build the FQL `filter` parameter for `falcon_search_images_vulnerabilities` tool.
+                Examples: {"cvss_score.desc", "cps_current_rating.asc"}
         """
 
         # Prepare parameters
@@ -264,47 +240,11 @@ class CloudModule(BaseModule):
 
     def search_cspm_assets(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/cspm-assets/fql-guide` resource when building this filter parameter.",
-            examples=["cloud_provider:'AWS'", "tag_key:'Environment'+tag_value:'Production'"],
-        ),
-        limit: int = Field(
-            default=100,
-            ge=1,
-            le=1000,
-            description="The maximum number of assets to return in this response (default: 100; max: 1000). Use with the offset or after parameter to manage pagination of results.",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return assets.",
-        ),
-        after: str | None = Field(
-            default=None,
-            description="A pagination token used with the limit parameter to manage pagination of results. On your first request, don't provide an after token. On subsequent requests, provide the after token from the previous response to continue from that result set.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent(
-                """
-                Sort cloud assets using these options:
-
-                cloud_provider: Cloud provider name (AWS, Azure, GCP)
-                account_id: Cloud account ID
-                account_name: Cloud account name
-                resource_type: Resource type (e.g., AWS::EC2::Instance)
-                region: Cloud region
-                creation_time: When the asset was created
-                updated_at: When the asset was last updated
-
-                Sort either asc (ascending) or desc (descending).
-                Both formats are supported: 'updated_at.desc' or 'updated_at|desc'
-
-                Examples: 'updated_at.desc', 'resource_type.asc'
-            """
-            ).strip(),
-            examples=["updated_at.desc", "resource_type.asc"],
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 100,  # was: Field(default=100, ge=1, le=1000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        after: str | None = None,  # was: Field(default=None)
+        sort: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]] | dict[str, Any]:
         """Search for cloud assets in your CrowdStrike CSPM Asset Inventory.
 
@@ -320,6 +260,28 @@ class CloudModule(BaseModule):
         This resource contains the guide on how to build the FQL `filter` parameter for `falcon_search_cspm_assets` tool.
 
         Returns FQL syntax guide on error or empty results to help refine queries.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://cloud/cspm-assets/fql-guide` resource when building this filter parameter.
+                Examples: ["cloud_provider:'AWS'", "tag_key:'Environment'+tag_value:'Production'"]
+            limit: The maximum number of assets to return in this response (default: 100; max: 1000). Use with the offset or after parameter to manage pagination of results.
+            offset: Starting index of overall result set from which to return assets.
+            after: A pagination token used with the limit parameter to manage pagination of results. On your first request, don't provide an after token. On subsequent requests, provide the after token from the previous response to continue from that result set.
+            sort: Sort cloud assets using these options:
+
+                cloud_provider: Cloud provider name (AWS, Azure, GCP)
+                account_id: Cloud account ID
+                account_name: Cloud account name
+                resource_type: Resource type (e.g., AWS::EC2::Instance)
+                region: Cloud region
+                creation_time: When the asset was created
+                updated_at: When the asset was last updated
+
+                Sort either asc (ascending) or desc (descending).
+                Both formats are supported: 'updated_at.desc' or 'updated_at|desc'
+
+                Examples: 'updated_at.desc', 'resource_type.asc'
+                Examples: ["updated_at.desc", "resource_type.asc"]
         """
         # Step 1: Query for asset IDs
         asset_ids = self._base_search_api_call(

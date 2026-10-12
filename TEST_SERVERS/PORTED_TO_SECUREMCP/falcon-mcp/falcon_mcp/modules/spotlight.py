@@ -54,25 +54,24 @@ class SpotlightModule(BaseModule):
 
     def search_vulnerabilities(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://spotlight/vulnerabilities/fql-guide` resource when building this filter parameter.",
-            examples={"status:'open'", "cve.severity:'HIGH'"},
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of results to return. (Max: 5000, Default: 10)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return results.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent("""
-                Sort vulnerabilities using FQL syntax.
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        after: str | None = None,  # was: Field(default=None)
+        facet: str | None = None,  # was: Field(default=None)
+    ) -> list[dict[str, Any]]:
+        """Search for vulnerabilities in your CrowdStrike environment.
+
+        IMPORTANT: You must use the `falcon://spotlight/vulnerabilities/fql-guide` resource when you need to use the `filter` parameter.
+        This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_vulnerabilities` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://spotlight/vulnerabilities/fql-guide` resource when building this filter parameter.
+                Examples: {"status:'open'", "cve.severity:'HIGH'"}
+            limit: Maximum number of results to return. (Max: 5000, Default: 10)
+            offset: Starting index of overall result set from which to return results.
+            sort: Sort vulnerabilities using FQL syntax.
 
                 Supported sorting fields:
                 • created_timestamp: When the vulnerability was found
@@ -83,21 +82,9 @@ class SpotlightModule(BaseModule):
                 Format: 'field|direction'
 
                 Examples: 'created_timestamp|desc', 'updated_timestamp|desc', 'closed_timestamp|asc'
-            """).strip(),
-            examples={
-                "created_timestamp|desc",
-                "updated_timestamp|desc",
-                "closed_timestamp|asc",
-            },
-        ),
-        after: str | None = Field(
-            default=None,
-            description="A pagination token used with the limit parameter to manage pagination of results. On your first request, don't provide an after token. On subsequent requests, provide the after token from the previous response to continue from that place in the results.",
-        ),
-        facet: str | None = Field(
-            default=None,
-            description=dedent("""
-                Important: Use only one value!
+                Examples: { "created_timestamp|desc", "updated_timestamp|desc", "closed_timestamp|asc", }
+            after: A pagination token used with the limit parameter to manage pagination of results. On your first request, don't provide an after token. On subsequent requests, provide the after token from the previous response to continue from that place in the results.
+            facet: Important: Use only one value!
 
                 Select various detail blocks to be returned for each vulnerability.
 
@@ -111,14 +98,7 @@ class SpotlightModule(BaseModule):
                 cve for detailed vulnerability scoring, and evaluation_logic for assessment details.
 
                 Examples: 'host_info', 'cve', 'remediation'
-            """).strip(),
-            examples={"host_info", "cve", "remediation", "evaluation_logic"},
-        ),
-    ) -> list[dict[str, Any]]:
-        """Search for vulnerabilities in your CrowdStrike environment.
-
-        IMPORTANT: You must use the `falcon://spotlight/vulnerabilities/fql-guide` resource when you need to use the `filter` parameter.
-        This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_vulnerabilities` tool.
+                Examples: {"host_info", "cve", "remediation", "evaluation_logic"}
         """
         vulnerabilities = self._base_search_api_call(
             operation="combinedQueryVulnerabilities",

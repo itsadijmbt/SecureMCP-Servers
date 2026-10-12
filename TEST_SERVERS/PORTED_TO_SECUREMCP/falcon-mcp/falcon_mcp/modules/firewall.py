@@ -85,40 +85,27 @@ class FirewallModule(BaseModule):
 
     def search_firewall_rules(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL filter for firewall rule search. IMPORTANT: use the `falcon://firewall/rules/fql-guide` resource when building this filter parameter.",
-            examples=["enabled:true", "platform:'windows'+name:'Block*'"],
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of rule IDs to return. (Max: 5000)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return IDs.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent("""
-                Sort firewall rules using FQL syntax.
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
+        after: str | None = None,  # was: Field(default=None)
+    ) -> list[dict[str, Any]] | dict[str, Any]:
+        """Search firewall rules and return full rule details.
+
+        Args:
+            filter: FQL filter for firewall rule search. IMPORTANT: use the `falcon://firewall/rules/fql-guide` resource when building this filter parameter.
+                Examples: ["enabled:true", "platform:'windows'+name:'Block*'"]
+            limit: Maximum number of rule IDs to return. (Max: 5000)
+            offset: Starting index of overall result set from which to return IDs.
+            sort: Sort firewall rules using FQL syntax.
 
                 Supported examples: name.asc, modified_on.desc, platform|asc
-            """).strip(),
-            examples=["modified_on.desc", "name|asc"],
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free-text query string across rule fields.",
-        ),
-        after: str | None = Field(
-            default=None,
-            description="Pagination token from a previous query response.",
-        ),
-    ) -> list[dict[str, Any]] | dict[str, Any]:
-        """Search firewall rules and return full rule details."""
+                Examples: ["modified_on.desc", "name|asc"]
+            q: Free-text query string across rule fields.
+            after: Pagination token from a previous query response.
+        """
         rule_ids = self._base_search_api_call(
             operation="query_rules",
             search_params={
@@ -157,35 +144,24 @@ class FirewallModule(BaseModule):
 
     def search_firewall_rule_groups(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL filter for firewall rule group search. IMPORTANT: use the `falcon://firewall/rules/fql-guide` resource when building this filter parameter.",
-            examples=["enabled:true", "platform:'windows'+name:'Default*'"],
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of rule group IDs to return. (Max: 5000)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return IDs.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="Sort expression in FQL syntax (e.g., modified_on.desc).",
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free-text query string across rule group fields.",
-        ),
-        after: str | None = Field(
-            default=None,
-            description="Pagination token from a previous query response.",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
+        after: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]] | dict[str, Any]:
-        """Search firewall rule groups and return full rule group details."""
+        """Search firewall rule groups and return full rule group details.
+
+        Args:
+            filter: FQL filter for firewall rule group search. IMPORTANT: use the `falcon://firewall/rules/fql-guide` resource when building this filter parameter.
+                Examples: ["enabled:true", "platform:'windows'+name:'Default*'"]
+            limit: Maximum number of rule group IDs to return. (Max: 5000)
+            offset: Starting index of overall result set from which to return IDs.
+            sort: Sort expression in FQL syntax (e.g., modified_on.desc).
+            q: Free-text query string across rule group fields.
+            after: Pagination token from a previous query response.
+        """
         rule_group_ids = self._base_search_api_call(
             operation="query_rule_groups",
             search_params={
@@ -224,33 +200,23 @@ class FirewallModule(BaseModule):
 
     def search_firewall_policy_rules(
         self,
-        policy_id: str = Field(
-            description="Policy container ID to query rules within.",
-        ),
-        filter: str | None = Field(
-            default=None,
-            description="FQL filter for policy rule search. IMPORTANT: use the `falcon://firewall/rules/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of policy rule IDs to return. (Max: 5000)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return IDs.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="Sort expression in FQL syntax (e.g., modified_on.desc).",
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free-text query string across policy rule fields.",
-        ),
+        policy_id: str,  # was: Field()
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]] | dict[str, Any]:
-        """Search firewall rules in a specific policy container and return full rule details."""
+        """Search firewall rules in a specific policy container and return full rule details.
+
+        Args:
+            policy_id: Policy container ID to query rules within.
+            filter: FQL filter for policy rule search. IMPORTANT: use the `falcon://firewall/rules/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of policy rule IDs to return. (Max: 5000)
+            offset: Starting index of overall result set from which to return IDs.
+            sort: Sort expression in FQL syntax (e.g., modified_on.desc).
+            q: Free-text query string across policy rule fields.
+        """
         policy_rule_ids = self._base_search_api_call(
             operation="query_policy_rules",
             search_params={
@@ -289,44 +255,29 @@ class FirewallModule(BaseModule):
 
     def create_firewall_rule_group(
         self,
-        name: str | None = Field(
-            default=None,
-            description="Rule group name. Required when `body` is not provided.",
-        ),
-        platform: str | None = Field(
-            default=None,
-            description="Target platform (for example: windows, mac, linux). Required when `body` is not provided.",
-        ),
-        rules: list[dict[str, Any]] | None = Field(
-            default=None,
-            description="Rule definitions. Required when `body` is not provided and `clone_id` is not set.",
-        ),
-        description: str | None = Field(
-            default=None,
-            description="Rule group description.",
-        ),
-        enabled: bool = Field(
-            default=True,
-            description="Whether this rule group is enabled.",
-        ),
-        clone_id: str | None = Field(
-            default=None,
-            description="Rule group ID to clone from.",
-        ),
-        library: bool | None = Field(
-            default=None,
-            description="Set true when cloning from the CrowdStrike rule group library.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit log comment for this action.",
-        ),
-        body: dict[str, Any] | None = Field(
-            default=None,
-            description="Full request body override. If provided, convenience fields are ignored.",
-        ),
+        name: str | None = None,  # was: Field(default=None)
+        platform: str | None = None,  # was: Field(default=None)
+        rules: list = None,  # was: Field(default=None); rules: list[dict[str, Any]] | None
+        description: str | None = None,  # was: Field(default=None)
+        enabled: bool = True,  # was: Field(default=True)
+        clone_id: str | None = None,  # was: Field(default=None)
+        library: bool = None,  # was: Field(default=None); library: bool | None
+        comment: str | None = None,  # was: Field(default=None)
+        body: dict = None,  # was: Field(default=None); body: dict[str, Any] | None
     ) -> list[dict[str, Any]]:
-        """Create a firewall rule group."""
+        """Create a firewall rule group.
+
+        Args:
+            name: Rule group name. Required when `body` is not provided.
+            platform: Target platform (for example: windows, mac, linux). Required when `body` is not provided.
+            rules: Rule definitions. Required when `body` is not provided and `clone_id` is not set.
+            description: Rule group description.
+            enabled: Whether this rule group is enabled.
+            clone_id: Rule group ID to clone from.
+            library: Set true when cloning from the CrowdStrike rule group library.
+            comment: Audit log comment for this action.
+            body: Full request body override. If provided, convenience fields are ignored.
+        """
         request_body = body
         if request_body is None:
             if not name or not platform:
@@ -373,16 +324,15 @@ class FirewallModule(BaseModule):
 
     def delete_firewall_rule_groups(
         self,
-        ids: list[str] | None = Field(
-            default=None,
-            description="Rule group IDs to delete.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit log comment for this action.",
-        ),
+        ids: list = None,  # was: Field(default=None); ids: list[str] | None
+        comment: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
-        """Delete firewall rule groups by ID."""
+        """Delete firewall rule groups by ID.
+
+        Args:
+            ids: Rule group IDs to delete.
+            comment: Audit log comment for this action.
+        """
         if not ids:
             return [
                 _format_error_response(

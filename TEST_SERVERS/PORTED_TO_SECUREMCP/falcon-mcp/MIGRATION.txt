@@ -1,0 +1,68 @@
+MIGRATION: falcon-mcp, FastMCP -> SecureMCP
+Upstream base: CrowdStrike/falcon-mcp @ 95fd9bd (2026-03-18, v0.8.0-3)
+
+WHAT
+- falcon_mcp/server.py: FastMCP(...) -> SecureMCP("securemcp-falcon-mcp").
+  add_tool(..., annotations=...) -> server.tool(name=...)(method).
+  The HTTP transports, uvicorn, the API-key middleware and the --transport,
+  host, port, api_key and stateless_http options are commented out.
+- falcon_mcp/modules/base.py: _add_tool uses server.tool(name=...)(method).
+  _add_resource registers each TextResource with @server.resource(uri, ...).
+- falcon_mcp/modules/*.py (15 modules): tool parameters only, see below.
+  Every tool body is upstream's.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- Startup login is back. The first port replaced
+      if not self.falcon_client.authenticate(): raise RuntimeError(...)
+  with a warning "Skipping Falcon API auth (dev mode)". The server again stops
+  at start when the Falcon credentials are wrong, as upstream does.
+- 205 Field(...) parameter defaults in 15 modules replaced by their plain
+  default. They had been left as they were. FastMCP read the default out of the
+  Field object; SecureMCP calls the method with only the arguments that were
+  sent, so a left-out argument arrived as a FieldInfo object. Example, calling
+  search_hosts with nothing: the API call carried
+      {"filter": <FieldInfo>, "limit": <FieldInfo>, "offset": <FieldInfo>, ...}
+  and now carries {"limit": 10}.
+  Each line keeps the old call as "# was: Field(default=..., ge=..., le=...)".
+- The 204 Field descriptions (and 45 examples sets) are moved, word for word,
+  into each tool's docstring under "Args:". Two tools already had an "Args:"
+  section (get_mitre_report, search_ngsiem); there the block is headed
+  "Parameter descriptions:". The docstring is what SecureMCP publishes.
+- 53 tool parameters given a plain type (int | None -> int, list[str] -> list,
+  bool | None -> bool, dict[str, Any] | None -> dict). Old type kept in "# was:".
+
+WHY
+SecureMCP publishes six parameter types: str, int, float, bool, dict, list.
+Anything else is published as "string". It reads the default straight from the
+signature and does not understand pydantic Field.
+
+BROKEN ON PURPOSE
+- HTTP transports (sse, streamable-http) and the static API key. MACAW carries
+  the call and identifies the caller.
+- Tool annotations (readOnlyHint and friends). SecureMCP.tool() has no such
+  argument.
+- Argument checking by pydantic. The bounds upstream put on Field (25 ge and
+  24 le, for example limit 1..5000 on search_hosts) are not enforced by the
+  server any more. Policy/server_policy_v0.1.json carries min/max for "limit"
+  on 24 tools; that is where they are enforced now.
+- Per-parameter descriptions in the schema. They live in the docstring.
+
+KNOWN GAPS
+- investigate_entity.investigation_types has a list as plain default
+  (["entity_details"]). The body only reads it.
+- The server name gives the MACAW app id "securemcp-securemcp-falcon-mcp"
+  (SecureMCP adds its own prefix). The policy file uses the same id, so it is
+  left alone.
+
+VERIFICATION (2026-10-12, macaw-adapters 0.9.10.1, macaw-client 0.9.10.1)
+- Every module compared with the upstream base function by function: same
+  parameters, plain default equal to Field's default, bodies identical,
+  204 of 204 descriptions found word for word in the docstrings.
+- Served through MACAW with run(transport="stdio") and called as a normal MCP
+  client. The CrowdStrike API was replaced by a stand-in that echoes what each
+  tool sent (no Falcon account was used).
+  48 tools published. All 205 parameters: published type and required flag
+  match the source. Calls: left-out arguments arrive as plain defaults, a list
+  arrives as a list, a missing required argument is rejected, and
+  falcon_add_ioc was denied by the policy loaded in the workspace.
+- Not run against a real Falcon tenant.

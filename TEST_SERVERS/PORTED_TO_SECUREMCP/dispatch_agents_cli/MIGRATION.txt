@@ -1,0 +1,37 @@
+MIGRATION: dispatch_agents_cli (operator MCP server), FastMCP -> SecureMCP
+Upstream base: datadog-labs/dispatch_agents_cli @ ac48e10 (2026-04-27, v0.9.4)
+
+WHAT
+- dispatch_cli/mcp/operator/server.py and tools.py only.
+- Upstream tools take one pydantic model ("request: XRequest"). SecureMCP
+  cannot publish a model, so each of the 31 tools takes the model's fields as
+  plain parameters. The request and response model classes are still in the
+  file; responses are returned as dicts.
+- dispatch_cli/mcp/models.py is identical to upstream.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+All 31 tools were compared with the fields of upstream's request models.
+Five differed:
+- get_agent_logs.version       default None -> "latest" (upstream's default)
+- get_recent_events.limit      default 50   -> 20       (upstream's default)
+- get_recent_traces.limit      default 20   -> 50       (upstream's default)
+- invoke_function.payload      was required; upstream has default_factory=dict.
+                               It is optional again and becomes {} when left out.
+- send_local_test_event.agent_directory was dropped; upstream accepts it (and
+                               never reads it). It is accepted again.
+- 5 tool parameters given a plain type (dict | None -> dict, int | None -> int,
+  bool | None -> bool). Old type kept in "# was:".
+
+BROKEN ON PURPOSE
+- The single "request" object. Callers send the fields directly.
+- Argument checking by pydantic. Upstream limited get_recent_events.limit and
+  get_recent_traces.limit to 1..100 (ge=1, le=100). Nothing enforces that now.
+
+KNOWN GAPS
+- There is no Policy folder for this port. The 1..100 limits above belong in it.
+
+VERIFICATION (2026-10-12)
+- Field-by-field comparison of all 31 tools with upstream's models: names,
+  required flags and defaults now match (three payload parameters use None in
+  the signature and {} in the body, which is what default_factory=dict gives).
+- Not run. It needs the Dispatch backend and its SDK.

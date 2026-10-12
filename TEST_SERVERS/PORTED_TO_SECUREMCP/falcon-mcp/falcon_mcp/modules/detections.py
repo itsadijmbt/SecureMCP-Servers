@@ -62,29 +62,53 @@ class DetectionsModule(BaseModule):
 
     def search_detections(
         self,
-        filter: str | None = Field(
-            default=None,
-            description=EMBEDDED_FQL_SYNTAX,
-            examples=["status:'new'+severity_name:'High'", "device.hostname:'DC*'"],
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=9999,
-            description="The maximum number of detections to return in this response (default: 10; max: 9999). Use with the offset parameter to manage pagination of results.",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="The first detection to return, where 0 is the latest detection. Use with the offset parameter to manage pagination of results.",
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Search all detection metadata for the provided string",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent("""
-                Sort detections using these options:
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=9999)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        q: str | None = None,  # was: Field(default=None)
+        sort: str | None = None,  # was: Field(default=None)
+        include_hidden: bool = True,  # was: Field(default=True)
+    ) -> list[dict[str, Any]] | dict[str, Any]:
+        """Find detections by criteria and return their complete details.
+
+        Use this tool to discover detections - filter by severity, status, hostname,
+        time range, etc. Returns full detection information including behaviors,
+        device context, and threat details.
+
+        Returns FQL syntax guide on error or empty results to help refine queries.
+
+        Args:
+            filter: FQL filter string for querying detections.
+
+                SYNTAX:
+                - Equals: field:'value'
+                - Not equals: field:!'value'
+                - Comparison: field:>50, field:>=50, field:<50, field:<=50
+                - Contains (case-insensitive): field:~'partial'
+                - Wildcard: field:'prefix*', field:'*suffix'
+
+                COMBINING:
+                - AND (all must match): field1:'value1'+field2:'value2'
+                - OR (any can match): field:'value1',field:'value2'
+                - Grouping: (status:'new',status:'in_progress')+severity_name:'High'
+
+                COMMON FIELDS:
+                - status: 'new', 'in_progress', 'closed', 'reopened'
+                - severity_name: 'Informational', 'Low', 'Medium', 'High', 'Critical'
+                - product: 'epp', 'idp', 'xdr', 'overwatch'
+                - device.hostname: Hostname contains string
+                - created_timestamp: ISO 8601 format (e.g., '2025-01-14T00:00:00Z')
+
+                EXAMPLES:
+                - New high/critical alerts: status:'new'+(severity_name:'High',severity_name:'Critical')
+                - Last 24h endpoint detections: created_timestamp:>'2025-01-14T00:00:00Z'+product:'epp'
+                - Hostname pattern: device.hostname:'DC*'+status:'new'
+                - Unassigned critical: assigned_to_name:!'*'+severity_name:'Critical'
+                Examples: ["status:'new'+severity_name:'High'", "device.hostname:'DC*'"]
+            limit: The maximum number of detections to return in this response (default: 10; max: 9999). Use with the offset parameter to manage pagination of results.
+            offset: The first detection to return, where 0 is the latest detection. Use with the offset parameter to manage pagination of results.
+            q: Search all detection metadata for the provided string
+            sort: Sort detections using these options:
 
                 timestamp: Timestamp when the detection occurred
                 created_timestamp: When the detection was created
@@ -100,18 +124,7 @@ class DetectionsModule(BaseModule):
                 For chronological ordering, use 'timestamp.desc' for most recent detections first.
 
                 Examples: 'severity.desc', 'timestamp.desc'
-            """).strip(),
-            examples=["severity.desc", "timestamp.desc"],
-        ),
-        include_hidden: bool = Field(default=True),
-    ) -> list[dict[str, Any]] | dict[str, Any]:
-        """Find detections by criteria and return their complete details.
-
-        Use this tool to discover detections - filter by severity, status, hostname,
-        time range, etc. Returns full detection information including behaviors,
-        device context, and threat details.
-
-        Returns FQL syntax guide on error or empty results to help refine queries.
+                Examples: ["severity.desc", "timestamp.desc"]
         """
         detection_ids = self._base_search_api_call(
             operation="GetQueriesAlertsV2",
@@ -150,18 +163,17 @@ class DetectionsModule(BaseModule):
 
     def get_detection_details(
         self,
-        ids: list[str] = Field(
-            description="Composite ID(s) to retrieve detection details for.",
-        ),
-        include_hidden: bool = Field(
-            default=True,
-            description="Whether to include hidden detections (default: True). When True, shows all detections including previously hidden ones for comprehensive visibility.",
-        ),
+        ids: list,  # was: Field(); ids: list[str]
+        include_hidden: bool = True,  # was: Field(default=True)
     ) -> list[dict[str, Any]] | dict[str, Any]:
         """Retrieve details for detection IDs you already have.
 
         Use ONLY when you have specific composite detection ID(s). To find detections
         by criteria (severity, status, hostname, etc.), use `falcon_search_detections`.
+
+        Args:
+            ids: Composite ID(s) to retrieve detection details for.
+            include_hidden: Whether to include hidden detections (default: True). When True, shows all detections including previously hidden ones for comprehensive visibility.
         """
         logger.debug("Getting detection details for ID(s): %s", ids)
 

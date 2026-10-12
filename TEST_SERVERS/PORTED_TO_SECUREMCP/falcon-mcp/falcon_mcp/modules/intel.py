@@ -97,37 +97,27 @@ class IntelModule(BaseModule):
 
     def query_actor_entities(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL query expression that should be used to limit the results. IMPORTANT: use the `falcon://intel/actors/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of records to return. Max 5000",
-            examples={10, 20, 100},
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return ids.",
-            examples=[0, 10],
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="The field and direction to sort results on. The format is {field}|{asc/desc}. Valid values include: name, target_countries, target_industries, type, created_date, last_activity_date and last_modified_date. Ex: created_date|desc",
-            examples={"created_date|desc"},
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free text search across all indexed fields.",
-            examples={"BEAR"},
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Research threat actors and adversary groups tracked by CrowdStrike intelligence.
 
         IMPORTANT: You must use the `falcon://intel/actors/fql-guide` resource when you need to use the `filter` parameter.
         This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_actors` tool.
+
+        Args:
+            filter: FQL query expression that should be used to limit the results. IMPORTANT: use the `falcon://intel/actors/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. Max 5000
+                Examples: {10, 20, 100}
+            offset: Starting index of overall result set from which to return ids.
+                Examples: [0, 10]
+            sort: The field and direction to sort results on. The format is {field}|{asc/desc}. Valid values include: name, target_countries, target_industries, type, created_date, last_activity_date and last_modified_date. Ex: created_date|desc
+                Examples: {"created_date|desc"}
+            q: Free text search across all indexed fields.
+                Examples: {"BEAR"}
         """
         api_response = self._base_search_api_call(
             operation="QueryIntelActorEntities",
@@ -148,42 +138,28 @@ class IntelModule(BaseModule):
 
     def query_indicator_entities(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL query expression that should be used to limit the results. IMPORTANT: use the `falcon://intel/indicators/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of records to return. (Max: 5000)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return ids.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="The field and direction to sort results on. The format is {field}|{asc/desc}. Valid values are: id, indicator, type, published_date, last_updated, and _marker. Ex: published_date|desc",
-            examples={"published_date|desc"},
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free text search across all indexed fields.",
-        ),
-        include_deleted: bool = Field(
-            default=False,
-            description="Flag indicating if both published and deleted indicators should be returned.",
-        ),
-        include_relations: bool = Field(
-            default=False,
-            description="Flag indicating if related indicators should be returned.",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
+        include_deleted: bool = False,  # was: Field(default=False)
+        include_relations: bool = False,  # was: Field(default=False)
     ) -> list[dict[str, Any]]:
         """Search for threat indicators and indicators of compromise (IOCs) from CrowdStrike intelligence.
 
         IMPORTANT: You must use the `falcon://intel/indicators/fql-guide` resource when you need to use the `filter` parameter.
         This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_indicators` tool.
+
+        Args:
+            filter: FQL query expression that should be used to limit the results. IMPORTANT: use the `falcon://intel/indicators/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. (Max: 5000)
+            offset: Starting index of overall result set from which to return ids.
+            sort: The field and direction to sort results on. The format is {field}|{asc/desc}. Valid values are: id, indicator, type, published_date, last_updated, and _marker. Ex: published_date|desc
+                Examples: {"published_date|desc"}
+            q: Free text search across all indexed fields.
+            include_deleted: Flag indicating if both published and deleted indicators should be returned.
+            include_relations: Flag indicating if related indicators should be returned.
         """
         api_response = self._base_search_api_call(
             operation="QueryIntelIndicatorEntities",
@@ -206,29 +182,11 @@ class IntelModule(BaseModule):
 
     def query_report_entities(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL query expression that should be used to limit the results. IMPORTANT: use the `falcon://intel/reports/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="Maximum number of records to return. (Max: 5000)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return ids.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="The field and direction to sort results on in the format of: {field}.{asc}or {field}.{desc}. Valid values include: name, target_countries, target_industries, type, created_date, last_modified_date. Ex: created_date|desc",
-            examples={"created_date|desc"},
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free text search across all indexed fields.",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Access CrowdStrike intelligence publications and threat reports.
 
@@ -238,6 +196,14 @@ class IntelModule(BaseModule):
 
         IMPORTANT: You must use the `falcon://intel/reports/fql-guide` resource when you need to use the `filter` parameter.
         This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_reports` tool.
+
+        Args:
+            filter: FQL query expression that should be used to limit the results. IMPORTANT: use the `falcon://intel/reports/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. (Max: 5000)
+            offset: Starting index of overall result set from which to return ids.
+            sort: The field and direction to sort results on in the format of: {field}.{asc}or {field}.{desc}. Valid values include: name, target_countries, target_industries, type, created_date, last_modified_date. Ex: created_date|desc
+                Examples: {"created_date|desc"}
+            q: Free text search across all indexed fields.
         """
         api_response = self._base_search_api_call(
             operation="QueryIntelReportEntities",
@@ -260,16 +226,8 @@ class IntelModule(BaseModule):
 
     def get_mitre_report(
         self,
-        actor: str = Field(
-            ...,
-            description="Threat actor name or ID",
-            examples={"WARP PANDA", "234987", "revenant spider"},
-        ),
-        format: str = Field(
-            default="json",
-            description="Report format. Accepted options: 'csv' or 'json'.",
-            examples={"json", "csv"},
-        ),
+        actor: str,  # was: Field(...)
+        format: str = "json",  # was: Field(default="json")
     ) -> list[dict[str, Any]] | str:
         """Generate MITRE ATT&CK report for a given threat actor.
 
@@ -279,6 +237,12 @@ class IntelModule(BaseModule):
         Args:
             actor: Pass the actor name (string) or numeric actor ID (string).
             format: Report format. Accepted options: 'csv' or 'json'. Defaults to 'json'.
+
+        Parameter descriptions:
+            actor: Threat actor name or ID
+                Examples: {"WARP PANDA", "234987", "revenant spider"}
+            format: Report format. Accepted options: 'csv' or 'json'.
+                Examples: {"json", "csv"}
         """
 
         # Check if the actor parameter looks like an ID (numeric) or a name

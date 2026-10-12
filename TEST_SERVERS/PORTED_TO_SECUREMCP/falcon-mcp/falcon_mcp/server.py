@@ -91,10 +91,9 @@ class FalconMCPServer:
         )
 
         # Authenticate with the Falcon API
-        # if not self.falcon_client.authenticate():
-        #     logger.error("Failed to authenticate with the Falcon API")
-        #     raise RuntimeError("Failed to authenticate with the Falcon API")
-        logger.warning("Skipping Falcon API auth (dev mode)")
+        if not self.falcon_client.authenticate():
+            logger.error("Failed to authenticate with the Falcon API")
+            raise RuntimeError("Failed to authenticate with the Falcon API")
 
         # Initialize the MCP server
         # old

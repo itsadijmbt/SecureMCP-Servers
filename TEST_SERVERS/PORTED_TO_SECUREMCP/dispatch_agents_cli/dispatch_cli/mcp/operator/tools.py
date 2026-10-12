@@ -1281,7 +1281,7 @@ namespace: {ns}
     async def get_agent_logs(
         agent_name: str,
         namespace: str,
-        version: str | None = None,
+        version: str = "latest",  # PORT fix: was `str | None = None`; upstream GetAgentLogsRequest.version defaults to "latest"
         limit: int = 100,
     ) -> dict:
         """Get recent logs from an agent's CloudWatch logs.
@@ -1289,7 +1289,7 @@ namespace: {ns}
         Args:
             agent_name: Agent name.
             namespace: Namespace (required).
-            version: Optional agent version filter.
+            version: Agent version (default "latest").
             limit: Maximum number of log entries (default 100).
 
         Returns:
@@ -1376,14 +1376,14 @@ namespace: {ns}
     #     return client.get_recent_events(namespace=ns, topic=request.topic, limit=request.limit)
     @mcp.tool()
     async def get_recent_events(
-        namespace: str, topic: str | None = None, limit: int = 50
+        namespace: str, topic: str | None = None, limit: int = 20  # PORT fix: was 50; upstream GetRecentEventsRequest.limit = Field(default=20, ge=1, le=100)
     ) -> list:
         """Get recent events, optionally filtered by topic.
 
         Args:
             namespace: Namespace (required).
             topic: Optional topic filter.
-            limit: Maximum number of events (default 50).
+            limit: Max events to return (1-100, default 20).
 
         Returns:
             List of event records (dicts).
@@ -1424,7 +1424,7 @@ namespace: {ns}
     #     return client.get_recent_traces(namespace=ns, topic=request.topic, limit=request.limit)
     @mcp.tool()
     async def get_recent_traces(
-        namespace: str, topic: str | None = None, limit: int = 20
+        namespace: str, topic: str | None = None, limit: int = 50  # PORT fix: was 20; upstream GetRecentTracesRequest.limit = Field(default=50, ge=1, le=100)
     ) -> dict:
         """Get recent trace summaries for agent invocations.
 
@@ -1435,7 +1435,7 @@ namespace: {ns}
         Args:
             namespace: Namespace (required).
             topic: Optional topic filter.
-            limit: Maximum number of trace summaries (default 20).
+            limit: Max traces to return (1-100, default 50).
 
         Returns:
             Dict with total_events, unique_traces, and list of TraceSummary.
@@ -1500,8 +1500,8 @@ namespace: {ns}
     async def invoke_function(
         agent_name: str,
         function_name: str,
-        payload: dict,
         namespace: str,
+        payload: dict = None,  # PORT fix: was required; upstream InvokeFunctionRequest.payload = Field(default_factory=dict)
         wait_for_result: bool = True,
         timeout_seconds: int = 300,
         poll_interval_seconds: float = 1.0,
@@ -1517,7 +1517,7 @@ namespace: {ns}
         Args:
             agent_name: Agent name.
             function_name: Function name on the agent.
-            payload: Function payload (JSON-serializable dict).
+            payload: Input payload for the function (default empty dict).
             namespace: Namespace (required).
             wait_for_result: If True, poll until result is available.
             timeout_seconds: Total timeout when waiting (default 300).
@@ -1526,6 +1526,8 @@ namespace: {ns}
         Returns:
             Dict with status and result (if waited).
         """
+        if payload is None:
+            payload = {}
         ns = _get_namespace(namespace)
 
         # Start the invocation (use async method for proper non-blocking)
@@ -1961,6 +1963,7 @@ namespace: {ns}
         topic: str,
         payload: dict,
         ctx: Context,
+        agent_directory: str | None = None,  # PORT fix: was dropped; upstream SendTestEventRequest has it (and never reads it either)
         router_port: int = LOCAL_ROUTER_PORT,
     ) -> dict:
         """Send a test event through the local router using dispatch router test.
@@ -1969,6 +1972,7 @@ namespace: {ns}
             topic: Topic name.
             payload: Event payload (JSON-serializable dict).
             ctx: MCP context for logging.
+            agent_directory: Optional agent directory for context (auto-discovers namespace).
             router_port: Local router port (default LOCAL_ROUTER_PORT).
 
         Returns:
@@ -2040,7 +2044,7 @@ namespace: {ns}
         agent_directory: str,
         function_name: str,
         ctx: Context,
-        payload: dict | None = None,
+        payload: dict = None,  # was: payload: dict | None
         router_port: int = LOCAL_ROUTER_PORT,
         timeout_seconds: int = 60,
     ) -> dict:
@@ -2231,9 +2235,9 @@ namespace: {ns}
         cron_expression: str,
         namespace: str,
         timezone: str = "UTC",
-        payload: dict | None = None,
+        payload: dict = None,  # was: payload: dict | None
         description: str | None = None,
-        timeout_seconds: int | None = None,
+        timeout_seconds: int = None,  # was: timeout_seconds: int | None
     ) -> dict:
         """Create a new function schedule with a cron expression.
 
@@ -2321,9 +2325,9 @@ namespace: {ns}
         namespace: str,
         cron_expression: str | None = None,
         timezone: str | None = None,
-        payload: dict | None = None,
+        payload: dict = None,  # was: payload: dict | None
         description: str | None = None,
-        is_paused: bool | None = None,
+        is_paused: bool = None,  # was: is_paused: bool | None
     ) -> dict:
         """Update a schedule's configuration.
 

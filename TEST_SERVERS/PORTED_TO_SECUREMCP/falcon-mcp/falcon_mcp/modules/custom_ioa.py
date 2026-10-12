@@ -140,30 +140,11 @@ class CustomIOAModule(BaseModule):
 
     def search_ioa_rule_groups(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL filter to limit rule group search results. IMPORTANT: use the `falcon://custom-ioa/rule-groups/fql-guide` resource when building this filter parameter.",
-            examples={"platform:'windows'+enabled:true", "rules.pattern_severity:'high'"},
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=500,
-            description="Maximum number of rule groups to return. (Max: 500)",
-        ),
-        offset: str | None = Field(
-            default=None,
-            description="Starting offset for pagination. Use the offset value from a previous response.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="Sort rule groups using FQL sort syntax. Fields: created_by, created_on, enabled, modified_by, modified_on, name, description. Example: 'modified_on.desc'",
-            examples={"modified_on.desc", "name.asc"},
-        ),
-        q: str | None = Field(
-            default=None,
-            description="Free-text match query that searches across all filter string fields.",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=500)
+        offset: str | None = None,  # was: Field(default=None)
+        sort: str | None = None,  # was: Field(default=None)
+        q: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]] | dict[str, Any]:
         """Search Custom IOA rule groups and return full rule group details including their rules.
 
@@ -172,6 +153,15 @@ class CustomIOAModule(BaseModule):
 
         Rule groups are containers that hold behavioral detection rules. Each group is
         associated with a specific platform (windows, mac, or linux).
+
+        Args:
+            filter: FQL filter to limit rule group search results. IMPORTANT: use the `falcon://custom-ioa/rule-groups/fql-guide` resource when building this filter parameter.
+                Examples: {"platform:'windows'+enabled:true", "rules.pattern_severity:'high'"}
+            limit: Maximum number of rule groups to return. (Max: 500)
+            offset: Starting offset for pagination. Use the offset value from a previous response.
+            sort: Sort rule groups using FQL sort syntax. Fields: created_by, created_on, enabled, modified_by, modified_on, name, description. Example: 'modified_on.desc'
+                Examples: {"modified_on.desc", "name.asc"}
+            q: Free-text match query that searches across all filter string fields.
         """
         result = self._base_search_api_call(
             operation="query_rule_groups_full",
@@ -228,16 +218,8 @@ class CustomIOAModule(BaseModule):
 
     def get_ioa_rule_types(
         self,
-        limit: int = Field(
-            default=100,
-            ge=1,
-            le=500,
-            description="Maximum number of rule types to return. (Max: 500)",
-        ),
-        offset: str | None = Field(
-            default=None,
-            description="Starting offset for pagination.",
-        ),
+        limit: int = 100,  # was: Field(default=100, ge=1, le=500)
+        offset: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]] | dict[str, Any]:
         """Get all available Custom IOA rule types.
 
@@ -247,6 +229,10 @@ class CustomIOAModule(BaseModule):
 
         Rule types define the category of behavioral detection (e.g., Process Creation,
         Network Connection, File Creation).
+
+        Args:
+            limit: Maximum number of rule types to return. (Max: 500)
+            offset: Starting offset for pagination.
         """
         rule_type_ids = self._base_search_api_call(
             operation="query_rule_types",
@@ -276,22 +262,10 @@ class CustomIOAModule(BaseModule):
 
     def create_ioa_rule_group(
         self,
-        name: str = Field(
-            description="Name for the new rule group.",
-            examples={"Suspicious PowerShell Activity", "Lateral Movement Detection"},
-        ),
-        platform: str = Field(
-            description="Platform this rule group applies to. Allowed values: windows, mac, linux.",
-            examples={"windows", "mac", "linux"},
-        ),
-        description: str | None = Field(
-            default=None,
-            description="Optional description for the rule group.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment explaining why the rule group is being created.",
-        ),
+        name: str,  # was: Field()
+        platform: str,  # was: Field()
+        description: str | None = None,  # was: Field(default=None)
+        comment: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Create a new Custom IOA rule group.
 
@@ -300,6 +274,14 @@ class CustomIOAModule(BaseModule):
         rules to it.
 
         Use `falcon_get_ioa_platforms` to see available platform values.
+
+        Args:
+            name: Name for the new rule group.
+                Examples: {"Suspicious PowerShell Activity", "Lateral Movement Detection"}
+            platform: Platform this rule group applies to. Allowed values: windows, mac, linux.
+                Examples: {"windows", "mac", "linux"}
+            description: Optional description for the rule group.
+            comment: Audit comment explaining why the rule group is being created.
         """
         body: dict[str, Any] = {
             "name": name,
@@ -324,28 +306,12 @@ class CustomIOAModule(BaseModule):
 
     def update_ioa_rule_group(
         self,
-        id: str = Field(
-            description="ID of the rule group to update.",
-        ),
-        rulegroup_version: int = Field(
-            description="Current version of the rule group. Required for optimistic locking. Retrieve this from `falcon_search_ioa_rule_groups`.",
-        ),
-        name: str | None = Field(
-            default=None,
-            description="New name for the rule group.",
-        ),
-        description: str | None = Field(
-            default=None,
-            description="New description for the rule group.",
-        ),
-        enabled: bool | None = Field(
-            default=None,
-            description="Whether the rule group should be enabled or disabled.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment explaining why the rule group is being updated.",
-        ),
+        id: str,  # was: Field()
+        rulegroup_version: int,  # was: Field()
+        name: str | None = None,  # was: Field(default=None)
+        description: str | None = None,  # was: Field(default=None)
+        enabled: bool = None,  # was: Field(default=None); enabled: bool | None
+        comment: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Update an existing Custom IOA rule group.
 
@@ -354,6 +320,14 @@ class CustomIOAModule(BaseModule):
         concurrent modification conflicts.
 
         Use `falcon_search_ioa_rule_groups` to retrieve the current version number.
+
+        Args:
+            id: ID of the rule group to update.
+            rulegroup_version: Current version of the rule group. Required for optimistic locking. Retrieve this from `falcon_search_ioa_rule_groups`.
+            name: New name for the rule group.
+            description: New description for the rule group.
+            enabled: Whether the rule group should be enabled or disabled.
+            comment: Audit comment explaining why the rule group is being updated.
         """
         body: dict[str, Any] = {
             "id": id,
@@ -382,18 +356,17 @@ class CustomIOAModule(BaseModule):
 
     def delete_ioa_rule_groups(
         self,
-        ids: list[str] = Field(
-            description="IDs of the rule groups to delete.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment explaining why the rule groups are being deleted.",
-        ),
+        ids: list,  # was: Field(); ids: list[str]
+        comment: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Delete Custom IOA rule groups by ID.
 
         This permanently removes the rule groups and all rules within them.
         Use `falcon_search_ioa_rule_groups` to find rule group IDs.
+
+        Args:
+            ids: IDs of the rule groups to delete.
+            comment: Audit comment explaining why the rule groups are being deleted.
         """
         if not ids:
             return [
@@ -420,42 +393,14 @@ class CustomIOAModule(BaseModule):
 
     def create_ioa_rule(
         self,
-        rulegroup_id: str = Field(
-            description="ID of the rule group to add the rule to.",
-        ),
-        name: str = Field(
-            description="Name for the new rule.",
-            examples={"Block cmd.exe spawned from Office", "Detect encoded PowerShell"},
-        ),
-        ruletype_id: str = Field(
-            description="Rule type ID that defines the detection category. Use `falcon_get_ioa_rule_types` to find valid IDs.",
-        ),
-        disposition_id: int = Field(
-            description="Disposition ID that determines the action taken when the rule fires. Use `falcon_get_ioa_rule_types` to find valid disposition IDs for the rule type.",
-        ),
-        pattern_severity: str = Field(
-            description="Severity level for this rule. Allowed values: critical, high, medium, low, informational.",
-            examples={"critical", "high", "medium", "low", "informational"},
-        ),
-        field_values: list[dict[str, Any]] = Field(
-            description=(
-                "List of field value objects that define the rule's matching criteria. "
-                "Each field value object should include: 'name' (field name), 'value' (match value), "
-                "and optionally 'label', 'type', 'final_value', 'values' (list of label/value pairs). "
-                "Use `falcon_get_ioa_rule_types` to discover required fields for the chosen rule type."
-            ),
-            examples={
-                '[{"name": "GrandparentImageFilename", "value": ".*\\\\\\\\winword\\\\.exe", "label": "Grand Parent Image Filename"}]'
-            },
-        ),
-        description: str | None = Field(
-            default=None,
-            description="Optional description for the rule.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment explaining why this rule is being created.",
-        ),
+        rulegroup_id: str,  # was: Field()
+        name: str,  # was: Field()
+        ruletype_id: str,  # was: Field()
+        disposition_id: int,  # was: Field()
+        pattern_severity: str,  # was: Field()
+        field_values: list,  # was: Field(); field_values: list[dict[str, Any]]
+        description: str | None = None,  # was: Field(default=None)
+        comment: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Create a new Custom IOA behavioral detection rule within a rule group.
 
@@ -466,6 +411,19 @@ class CustomIOAModule(BaseModule):
 
         The `field_values` parameter defines the behavioral criteria the rule will match
         against (e.g., process names, file paths, command line patterns using regex).
+
+        Args:
+            rulegroup_id: ID of the rule group to add the rule to.
+            name: Name for the new rule.
+                Examples: {"Block cmd.exe spawned from Office", "Detect encoded PowerShell"}
+            ruletype_id: Rule type ID that defines the detection category. Use `falcon_get_ioa_rule_types` to find valid IDs.
+            disposition_id: Disposition ID that determines the action taken when the rule fires. Use `falcon_get_ioa_rule_types` to find valid disposition IDs for the rule type.
+            pattern_severity: Severity level for this rule. Allowed values: critical, high, medium, low, informational.
+                Examples: {"critical", "high", "medium", "low", "informational"}
+            field_values: List of field value objects that define the rule's matching criteria. Each field value object should include: 'name' (field name), 'value' (match value), and optionally 'label', 'type', 'final_value', 'values' (list of label/value pairs). Use `falcon_get_ioa_rule_types` to discover required fields for the chosen rule type.
+                Examples: { '[{"name": "GrandparentImageFilename", "value": ".*\\\\\\\\\\\\\\\\winword\\\\\\\\.exe", "label": "Grand Parent Image Filename"}]' }
+            description: Optional description for the rule.
+            comment: Audit comment explaining why this rule is being created.
         """
         body: dict[str, Any] = {
             "rulegroup_id": rulegroup_id,
@@ -494,49 +452,34 @@ class CustomIOAModule(BaseModule):
 
     def update_ioa_rule(
         self,
-        rulegroup_id: str = Field(
-            description="ID of the rule group containing the rule.",
-        ),
-        rulegroup_version: int = Field(
-            description="Current version of the rule group. Required for optimistic locking. Retrieve from `falcon_search_ioa_rule_groups`.",
-        ),
-        instance_id: str = Field(
-            description="Instance ID of the rule to update. Retrieve from `falcon_search_ioa_rule_groups`.",
-        ),
-        name: str | None = Field(
-            default=None,
-            description="New name for the rule.",
-        ),
-        description: str | None = Field(
-            default=None,
-            description="New description for the rule.",
-        ),
-        enabled: bool | None = Field(
-            default=None,
-            description="Whether the rule should be enabled or disabled.",
-        ),
-        pattern_severity: str | None = Field(
-            default=None,
-            description="New severity level. Allowed values: critical, high, medium, low, informational.",
-        ),
-        disposition_id: int | None = Field(
-            default=None,
-            description="New disposition ID for the action taken when the rule fires.",
-        ),
-        field_values: list[dict[str, Any]] | None = Field(
-            default=None,
-            description="Updated field value objects that define the rule's matching criteria.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment explaining why the rule is being updated.",
-        ),
+        rulegroup_id: str,  # was: Field()
+        rulegroup_version: int,  # was: Field()
+        instance_id: str,  # was: Field()
+        name: str | None = None,  # was: Field(default=None)
+        description: str | None = None,  # was: Field(default=None)
+        enabled: bool = None,  # was: Field(default=None); enabled: bool | None
+        pattern_severity: str | None = None,  # was: Field(default=None)
+        disposition_id: int = None,  # was: Field(default=None); disposition_id: int | None
+        field_values: list = None,  # was: Field(default=None); field_values: list[dict[str, Any]] | None
+        comment: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Update an existing Custom IOA behavioral detection rule.
 
         The `rulegroup_version` is required for optimistic locking to prevent
         concurrent modification conflicts. Use `falcon_search_ioa_rule_groups` to
         retrieve the current version and instance ID.
+
+        Args:
+            rulegroup_id: ID of the rule group containing the rule.
+            rulegroup_version: Current version of the rule group. Required for optimistic locking. Retrieve from `falcon_search_ioa_rule_groups`.
+            instance_id: Instance ID of the rule to update. Retrieve from `falcon_search_ioa_rule_groups`.
+            name: New name for the rule.
+            description: New description for the rule.
+            enabled: Whether the rule should be enabled or disabled.
+            pattern_severity: New severity level. Allowed values: critical, high, medium, low, informational.
+            disposition_id: New disposition ID for the action taken when the rule fires.
+            field_values: Updated field value objects that define the rule's matching criteria.
+            comment: Audit comment explaining why the rule is being updated.
         """
         rule_update: dict[str, Any] = {
             "instance_id": instance_id,
@@ -577,21 +520,19 @@ class CustomIOAModule(BaseModule):
 
     def delete_ioa_rules(
         self,
-        rule_group_id: str = Field(
-            description="ID of the rule group containing the rules to delete.",
-        ),
-        ids: list[str] = Field(
-            description="IDs of the rules to delete. Retrieve from `falcon_search_ioa_rule_groups`.",
-        ),
-        comment: str | None = Field(
-            default=None,
-            description="Audit comment explaining why the rules are being deleted.",
-        ),
+        rule_group_id: str,  # was: Field()
+        ids: list,  # was: Field(); ids: list[str]
+        comment: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Delete Custom IOA behavioral detection rules from a rule group.
 
         Use `falcon_search_ioa_rule_groups` to find the rule group ID and
         the individual rule IDs (instance IDs) to delete.
+
+        Args:
+            rule_group_id: ID of the rule group containing the rules to delete.
+            ids: IDs of the rules to delete. Retrieve from `falcon_search_ioa_rule_groups`.
+            comment: Audit comment explaining why the rules are being deleted.
         """
         if not ids:
             return [

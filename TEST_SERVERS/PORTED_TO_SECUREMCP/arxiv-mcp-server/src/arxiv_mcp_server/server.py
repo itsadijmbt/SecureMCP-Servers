@@ -214,10 +214,10 @@ def _extract_text(result: List[Any]) -> str:
 @app.tool()
 async def search_papers(
     query: str,
-    max_results: Optional[int] = None,
+    max_results: int = None,  # was: max_results: Optional[int]
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
-    categories: Optional[List[str]] = None,
+    categories: list = None,  # was: categories: Optional[List[str]]
     sort_by: Optional[str] = None,
 ) -> str:
     """Search for papers on arXiv with advanced filtering.
@@ -404,7 +404,7 @@ async def citation_graph(paper_id: str) -> str:
 @app.tool()
 async def watch_topic(
     topic: str,
-    categories: Optional[List[str]] = None,
+    categories: list = None,  # was: categories: Optional[List[str]]
     max_results: int = 10,
 ) -> str:
     """Save or update a persistent research topic watch.

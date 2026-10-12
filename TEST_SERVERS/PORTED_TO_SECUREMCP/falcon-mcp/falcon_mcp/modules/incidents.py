@@ -100,30 +100,22 @@ class IncidentsModule(BaseModule):
 
     def show_crowd_score(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://incidents/crowd-score/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=2500,
-            description="Maximum number of records to return. (Max: 2500)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return ids.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="The property to sort by. (Ex: modified_timestamp.desc)",
-            examples={"modified_timestamp.desc"},
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=2500)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
     ) -> dict[str, Any]:
         """View calculated CrowdScores and security posture metrics for your environment.
 
         IMPORTANT: You must use the `falcon://incidents/crowd-score/fql-guide` resource when you need to use the `filter` parameter.
         This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_show_crowd_score` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://incidents/crowd-score/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. (Max: 2500)
+            offset: Starting index of overall result set from which to return ids.
+            sort: The property to sort by. (Ex: modified_timestamp.desc)
+                Examples: {"modified_timestamp.desc"}
         """
         api_response = self._base_search_api_call(
             operation="CrowdScore",
@@ -166,29 +158,21 @@ class IncidentsModule(BaseModule):
 
     def search_incidents(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://incidents/search/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=500,
-            description="Maximum number of records to return. (Max: 500)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return ids.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="The property to sort by. FQL syntax. Ex: state.asc, name.desc",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=500)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Find and analyze security incidents to understand coordinated activity in your environment.
 
         IMPORTANT: You must use the `falcon://incidents/search/fql-guide` resource when you need to use the `filter` parameter.
         This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_incidents` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://incidents/search/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. (Max: 500)
+            offset: Starting index of overall result set from which to return ids.
+            sort: The property to sort by. FQL syntax. Ex: state.asc, name.desc
         """
         incident_ids = self._base_query(
             operation="QueryIncidents",
@@ -209,13 +193,16 @@ class IncidentsModule(BaseModule):
 
     def get_incident_details(
         self,
-        ids: list[str] = Field(description="Incident ID(s) to retrieve."),
+        ids: list,  # was: Field(); ids: list[str]
     ) -> list[dict[str, Any]]:
         """Get comprehensive incident details to understand attack patterns and coordinated activities.
 
         This tool returns comprehensive incident details for one or more incident IDs.
         Use this when you already have specific incident IDs and need their full details.
         For searching/discovering incidents, use the `falcon_search_incidents` tool instead.
+
+        Args:
+            ids: Incident ID(s) to retrieve.
         """
         incidents = self._base_get_by_ids(
             operation="GetIncidents",
@@ -229,24 +216,10 @@ class IncidentsModule(BaseModule):
 
     def search_behaviors(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://incidents/behaviors/fql-guide` resource when building this filter parameter.",
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=500,
-            description="Maximum number of records to return. (Max: 500)",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="Starting index of overall result set from which to return ids.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description="The property to sort by. (Ex: modified_timestamp.desc)",
-        ),
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=500)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
     ) -> list[dict[str, Any]]:
         """Find and analyze behaviors to understand suspicious activity in your environment.
 
@@ -255,6 +228,12 @@ class IncidentsModule(BaseModule):
 
         IMPORTANT: You must use the `falcon://incidents/behaviors/fql-guide` resource when you need to use the `filter` parameter.
         This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_behaviors` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://incidents/behaviors/fql-guide` resource when building this filter parameter.
+            limit: Maximum number of records to return. (Max: 500)
+            offset: Starting index of overall result set from which to return ids.
+            sort: The property to sort by. (Ex: modified_timestamp.desc)
         """
         behavior_ids = self._base_query(
             operation="QueryBehaviors",
@@ -275,12 +254,15 @@ class IncidentsModule(BaseModule):
 
     def get_behavior_details(
         self,
-        ids: list[str] = Field(description="Behavior ID(s) to retrieve."),
+        ids: list,  # was: Field(); ids: list[str]
     ) -> list[dict[str, Any]]:
         """Get detailed behavior information to understand attack techniques and tactics.
 
         Use this when you already know the specific behavior ID(s) and need to retrieve their details.
         For searching behaviors based on criteria, use the `falcon_search_behaviors` tool instead.
+
+        Args:
+            ids: Behavior ID(s) to retrieve.
         """
         behaviors = self._base_get_by_ids(
             operation="GetBehaviors",

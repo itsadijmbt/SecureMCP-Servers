@@ -60,25 +60,22 @@ class HostsModule(BaseModule):
 
     def search_hosts(
         self,
-        filter: str | None = Field(
-            default=None,
-            description="FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://hosts/search/fql-guide` resource when building this filter parameter.",
-            examples={"platform_name:'Windows'", "hostname:'PC*'"},
-        ),
-        limit: int = Field(
-            default=10,
-            ge=1,
-            le=5000,
-            description="The maximum records to return. [1-5000]",
-        ),
-        offset: int | None = Field(
-            default=None,
-            description="The offset to start retrieving records from.",
-        ),
-        sort: str | None = Field(
-            default=None,
-            description=dedent("""
-                Sort hosts using these options:
+        filter: str | None = None,  # was: Field(default=None)
+        limit: int = 10,  # was: Field(default=10, ge=1, le=5000)
+        offset: int = None,  # was: Field(default=None); offset: int | None
+        sort: str | None = None,  # was: Field(default=None)
+    ) -> list[dict[str, Any]]:
+        """Search for hosts in your CrowdStrike environment.
+
+        IMPORTANT: You must use the `falcon://hosts/search/fql-guide` resource when you need to use the `filter` parameter.
+        This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_hosts` tool.
+
+        Args:
+            filter: FQL Syntax formatted string used to limit the results. IMPORTANT: use the `falcon://hosts/search/fql-guide` resource when building this filter parameter.
+                Examples: {"platform_name:'Windows'", "hostname:'PC*'"}
+            limit: The maximum records to return. [1-5000]
+            offset: The offset to start retrieving records from.
+            sort: Sort hosts using these options:
 
                 hostname: Host name/computer name
                 last_seen: Timestamp when the host was last seen
@@ -93,14 +90,7 @@ class HostsModule(BaseModule):
                 Both formats are supported: 'hostname.desc' or 'hostname|desc'
 
                 Examples: 'hostname.asc', 'last_seen.desc', 'platform_name.asc'
-            """).strip(),
-            examples={"hostname.asc", "last_seen.desc"},
-        ),
-    ) -> list[dict[str, Any]]:
-        """Search for hosts in your CrowdStrike environment.
-
-        IMPORTANT: You must use the `falcon://hosts/search/fql-guide` resource when you need to use the `filter` parameter.
-        This resource contains the guide on how to build the FQL `filter` parameter for the `falcon_search_hosts` tool.
+                Examples: {"hostname.asc", "last_seen.desc"}
         """
         device_ids = self._base_search_api_call(
             operation="QueryDevicesByFilter",
@@ -137,15 +127,16 @@ class HostsModule(BaseModule):
 
     def get_host_details(
         self,
-        ids: list[str] = Field(
-            description="Host device IDs to retrieve details for. You can get device IDs from the search_hosts operation, the Falcon console, or the Streaming API. Maximum: 5000 IDs per request."
-        ),
+        ids: list,  # was: Field(); ids: list[str]
     ) -> list[dict[str, Any]] | dict[str, Any]:
         """Retrieve detailed information for specified host device IDs.
 
         This tool returns comprehensive host details for one or more device IDs.
         Use this when you already have specific device IDs and need their full details.
         For searching/discovering hosts, use the `falcon_search_hosts` tool instead.
+
+        Args:
+            ids: Host device IDs to retrieve details for. You can get device IDs from the search_hosts operation, the Falcon console, or the Streaming API. Maximum: 5000 IDs per request.
         """
         logger.debug("Getting host details for IDs: %s", ids)
 
