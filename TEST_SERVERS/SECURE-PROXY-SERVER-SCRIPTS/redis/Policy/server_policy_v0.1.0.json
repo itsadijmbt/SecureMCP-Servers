@@ -1,0 +1,276 @@
+{
+  "policy_id": "app:redis-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:redis-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:redis-proxy/hset",
+    "tool:redis-proxy/set_vector_in_hash",
+    "tool:redis-proxy/json_set",
+    "tool:redis-proxy/lpush",
+    "tool:redis-proxy/rpush",
+    "tool:redis-proxy/sadd",
+    "tool:redis-proxy/zadd",
+    "tool:redis-proxy/xadd",
+    "tool:redis-proxy/set",
+    "tool:redis-proxy/expire",
+    "tool:redis-proxy/rename",
+    "tool:redis-proxy/create_vector_index_hash",
+    "tool:redis-proxy/xgroup_create",
+    "tool:redis-proxy/xack",
+    "tool:redis-proxy/xreadgroup",
+    "tool:redis-proxy/delete",
+    "tool:redis-proxy/hdel",
+    "tool:redis-proxy/json_del",
+    "tool:redis-proxy/lpop",
+    "tool:redis-proxy/rpop",
+    "tool:redis-proxy/lrem",
+    "tool:redis-proxy/srem",
+    "tool:redis-proxy/zrem",
+    "tool:redis-proxy/xdel",
+    "tool:redis-proxy/xgroup_destroy",
+    "tool:redis-proxy/info",
+    "tool:redis-proxy/client_list",
+    "tool:redis-proxy/scan_all_keys",
+    "tool:redis-proxy/publish",
+    "tool:redis-proxy/subscribe",
+    "tool:redis-proxy/psubscribe",
+    "tool:redis-proxy/read_messages",
+    "tool:redis-proxy/unsubscribe",
+    "tool:redis-proxy/search_redis_documents"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:redis-proxy/hget": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:redis-proxy/hgetall": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:redis-proxy/hexists": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:redis-proxy/get_vector_from_hash": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "vector_field": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128
+        }
+      },
+      "tool:redis-proxy/json_get": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "path": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:redis-proxy/lrange": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "start": {
+          "type": "integer",
+          "min": 0,
+          "max": 999
+        },
+        "stop": {
+          "type": "integer",
+          "min": 0,
+          "max": 999
+        }
+      },
+      "tool:redis-proxy/llen": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:redis-proxy/type": {
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:redis-proxy/scan_keys": {
+        "pattern": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128
+        },
+        "count": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        },
+        "cursor": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:redis-proxy/get_index_info": {
+        "index_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        }
+      },
+      "tool:redis-proxy/get_indexed_keys_number": {
+        "index_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        }
+      },
+      "tool:redis-proxy/vector_search_hash": {
+        "query_vector": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 4096
+        },
+        "index_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "vector_field": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128
+        },
+        "k": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        },
+        "return_fields": {
+          "type": "array",
+          "max_items": 20
+        }
+      },
+      "tool:redis-proxy/hybrid_search": {
+        "query_vector": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 4096
+        },
+        "filter_expression": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 512
+        },
+        "index_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "vector_field": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128
+        },
+        "k": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        },
+        "return_fields": {
+          "type": "array",
+          "max_items": 20
+        }
+      },
+      "tool:redis-proxy/smembers": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:redis-proxy/zrange": {
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "start": {
+          "type": "integer",
+          "min": 0,
+          "max": 999
+        },
+        "end": {
+          "type": "integer",
+          "min": 0,
+          "max": 999
+        }
+      },
+      "tool:redis-proxy/xrange": {
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "count": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:redis-proxy/get": {
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:redis-proxy/scan_keys": {
+        "pattern": [
+          "*DENYME*"
+        ]
+      }
+    }
+  },
+  "description": "Redis MCP via SecureMCPProxy -- read-only"
+}

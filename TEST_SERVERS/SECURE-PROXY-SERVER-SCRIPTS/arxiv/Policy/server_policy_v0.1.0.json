@@ -1,0 +1,270 @@
+{
+  "policy_id": "app:arxiv-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:arxiv-proxy/**"
+  ],
+  "denied_resources": [
+    "tool:arxiv-proxy/reindex",
+    "tool:arxiv-proxy/watch_topic",
+    "tool:arxiv-proxy/unwatch_topic",
+    "tool:arxiv-proxy/check_alerts"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:arxiv-proxy/search_papers": {
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 300
+        },
+        "max_results": {
+          "type": "integer",
+          "min": 1,
+          "max": 25
+        },
+        "start": {
+          "type": "integer",
+          "min": 0,
+          "max": 1000
+        },
+        "abstract_mode": {
+          "type": "string",
+          "allowed_values": [
+            "none",
+            "snippet",
+            "full"
+          ]
+        },
+        "date_from": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 32
+        },
+        "date_to": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 32
+        },
+        "categories": {
+          "type": "array",
+          "max_items": 10
+        },
+        "sort_by": {
+          "type": "string",
+          "allowed_values": [
+            "relevance",
+            "date"
+          ]
+        }
+      },
+      "tool:arxiv-proxy/download_paper": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "start": {
+          "type": "integer",
+          "min": 0
+        },
+        "max_chars": {
+          "type": "integer",
+          "min": 1,
+          "max": 50000
+        }
+      },
+      "tool:arxiv-proxy/read_paper": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "start": {
+          "type": "integer",
+          "min": 0
+        },
+        "max_chars": {
+          "type": "integer",
+          "min": 1,
+          "max": 50000
+        }
+      },
+      "tool:arxiv-proxy/get_abstract": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        }
+      },
+      "tool:arxiv-proxy/semantic_search": {
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 300
+        },
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "max_results": {
+          "type": "integer",
+          "min": 1,
+          "max": 25
+        }
+      },
+      "tool:arxiv-proxy/citation_graph": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "max_citations": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:arxiv-proxy/export_citations": {
+        "paper_ids": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 20
+        }
+      },
+      "tool:arxiv-proxy/get_paper_latex": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "start": {
+          "type": "integer",
+          "min": 0
+        },
+        "max_chars": {
+          "type": "integer",
+          "min": 1,
+          "max": 50000
+        }
+      },
+      "tool:arxiv-proxy/list_paper_latex_sections": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "start": {
+          "type": "integer",
+          "min": 0
+        },
+        "max_sections": {
+          "type": "integer",
+          "min": 1,
+          "max": 200
+        }
+      },
+      "tool:arxiv-proxy/get_paper_latex_section": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "section_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 200
+        },
+        "start": {
+          "type": "integer",
+          "min": 0
+        },
+        "max_chars": {
+          "type": "integer",
+          "min": 1,
+          "max": 50000
+        }
+      },
+      "tool:arxiv-proxy/get_paper_outline": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "start": {
+          "type": "integer",
+          "min": 0
+        },
+        "max_sections": {
+          "type": "integer",
+          "min": 1,
+          "max": 200
+        }
+      },
+      "tool:arxiv-proxy/read_paper_section": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "section_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 200
+        },
+        "start": {
+          "type": "integer",
+          "min": 0
+        },
+        "max_chars": {
+          "type": "integer",
+          "min": 1,
+          "max": 50000
+        }
+      },
+      "tool:arxiv-proxy/search_paper_text": {
+        "paper_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 40,
+          "pattern": "^([0-9]{4}\\.[0-9]{4,5}|[a-z-]+(\\.[A-Z]{2})?/[0-9]{7})(v[0-9]{1,3})?$"
+        },
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 200
+        },
+        "max_passages": {
+          "type": "integer",
+          "min": 1,
+          "max": 25
+        },
+        "passage_chars": {
+          "type": "integer",
+          "min": 64,
+          "max": 2000
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:arxiv-proxy/search_papers": {
+        "query": [
+          "*DENYME*"
+        ]
+      }
+    }
+  },
+  "description": "arXiv MCP via SecureMCPProxy -- reading, capped"
+}

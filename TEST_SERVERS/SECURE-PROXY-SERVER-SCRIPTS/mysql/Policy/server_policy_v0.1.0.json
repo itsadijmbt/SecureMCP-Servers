@@ -1,0 +1,55 @@
+{
+  "policy_id": "app:mysql-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:mysql-proxy/**"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:mysql-proxy/execute_sql": {
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 4000,
+          "pattern": "^[ \\t\\r\\n]*([Ss][Ee][Ll][Ee][Cc][Tt]|[Ss][Hh][Oo][Ww]|[Dd][Ee][Ss][Cc]([Rr][Ii][Bb][Ee])?)[ \\t\\r\\n][^;]*;?[ \\t\\r\\n]*$"
+        }
+      },
+      "tool:mysql-proxy/get_schema_info": {
+        "table_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 129,
+          "pattern": "^[A-Za-z0-9_$]+(\\.[A-Za-z0-9_$]+)?$"
+        }
+      },
+      "tool:mysql-proxy/get_table_sample": {
+        "table_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 129,
+          "pattern": "^[A-Za-z0-9_$]+(\\.[A-Za-z0-9_$]+)?$"
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 20
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:mysql-proxy/execute_sql": {
+        "query": [
+          "*DENYME*",
+          "*INTO OUTFILE*",
+          "*into outfile*",
+          "*INTO DUMPFILE*",
+          "*into dumpfile*",
+          "*LOAD_FILE*",
+          "*load_file*"
+        ]
+      }
+    }
+  },
+  "description": "MySQL MCP via SecureMCPProxy -- read-only SQL"
+}
