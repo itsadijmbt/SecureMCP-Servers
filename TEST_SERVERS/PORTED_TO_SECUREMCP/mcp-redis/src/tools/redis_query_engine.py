@@ -103,11 +103,11 @@ async def create_vector_index_hash(
 
 @mcp.tool()
 async def vector_search_hash(
-    query_vector: List[float],
+    query_vector: list,  # was: query_vector: List[float]
     index_name: str = "vector_index",
     vector_field: str = "vector",
     k: int = 5,
-    return_fields: Optional[List[str]] = None,
+    return_fields: list = None,  # was: return_fields: Optional[List[str]]
 ) -> Union[List[Dict[str, Any]], str]:
     """
     Perform a KNN vector similarity search using Redis 8 or later version on vectors stored in hash data structures.
@@ -151,12 +151,12 @@ async def vector_search_hash(
 
 @mcp.tool()
 async def hybrid_search(
-    query_vector: List[float],
+    query_vector: list,  # was: query_vector: List[float]
     filter_expression: str = "*",
     index_name: str = "vector_index",
     vector_field: str = "vector",
     k: int = 5,
-    return_fields: Optional[List[str]] = None,
+    return_fields: list = None,  # was: return_fields: Optional[List[str]]
 ) -> Union[List[Dict[str, Any]], str]:
     """
     Perform a hybrid search combining a Redis filter expression with KNN vector similarity.

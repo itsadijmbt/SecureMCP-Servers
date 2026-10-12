@@ -12,7 +12,7 @@ from src.common.server import mcp
 async def set(
     key: str,
     value: Union[str, bytes, int, float, dict],
-    expiration: Optional[int] = None,
+    expiration: int = None,  # was: expiration: Optional[int]
 ) -> str:
     """Set a Redis string value with an optional expiration time.
 

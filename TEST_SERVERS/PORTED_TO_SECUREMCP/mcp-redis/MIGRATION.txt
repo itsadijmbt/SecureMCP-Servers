@@ -1,0 +1,53 @@
+MIGRATION: mcp-redis, FastMCP -> SecureMCP
+Upstream base: redis/mcp-redis @ 338a13a (2026-04-22, between 0.5.0 and 0.5.1)
+
+WHAT
+- src/common/server.py: FastMCP import and constructor replaced by SecureMCP.
+  The original lines are kept as comments.
+- src/tools/*.py: 16 tool parameters given a plain type.
+    int  (was Optional[int]): xadd.expiration, xreadgroup.block_ms,
+          json_set.expire_seconds, set.expiration, sadd.expire_seconds,
+          lpush.expire, rpush.expire, zadd.expiration, hset.expire_seconds
+    list: xack.entry_ids, vector_search_hash.query_vector and .return_fields,
+          hybrid_search.query_vector and .return_fields, set_vector_in_hash.vector
+    dict: xadd.fields
+- Every other file is byte-identical to upstream. No tool body changed.
+
+WHY
+SecureMCP publishes only six parameter types: str, int, float, bool, dict, list.
+Any other annotation (Optional[...], List[...], unions, models) is published as
+"string". Step 2 of the porting playbook therefore gives each tool parameter a
+plain type. Only the annotation changes; the old one is kept in a "# was:"
+comment and no tool body is touched by it.
+
+BROKEN ON PURPOSE
+- FastMCP dependencies=[...] (install metadata) is dropped. SecureMCP has no
+  such argument and it had no effect at run time.
+- Argument checking. FastMCP validated and converted every argument before the
+  tool ran. SecureMCP passes arguments as they were sent. With mcp 1.x a normal
+  MCP client still gets a type check against the published schema; with mcp 2.x
+  and for MACAW clients there is none. The MAPL policy is the guard.
+- Per-parameter schema detail (descriptions, item types, "may be null", allowed
+  values) is not published. The tool docstring is the only place it survives.
+
+KNOWN GAPS
+- Five parameters accept several types and stay published as "string":
+  set.value, lpush.value, rpush.value, lrem.element, hset.value.
+- The server name "securemcp-Redis-mCP-server" becomes the app id
+  "securemcp-securemcp-Redis-mCP-server" (the adapter adds its own prefix).
+  The policy uses the same id, so it was not renamed.
+- get_vector_from_hash fails once another tool has opened the connection: the
+  shared connection ignores decode_responses=False. Same in upstream. Not changed.
+- "python -m src.main" runs the legacy main(), which ignores command-line
+  options (upstream behaviour). Use the REDIS_* variables or the cli entry point.
+
+VERIFICATION (2026-10-12, macaw-adapters 0.9.10.1, mcp 2.2.0, Redis 8)
+- Every file compared with the upstream base function by function: the tool
+  files differ in annotations only.
+- Served with run(transport="stdio") and called as a normal MCP client through
+  the MACAW PEP: 51 tools; set/get, a number value with expiry, xadd (dict),
+  set_vector_in_hash (list), lpush/lrange all returned correct data from Redis.
+- Policy: delete was denied; a key that does not match the pattern was denied.
+
+LINES CHANGED
+9 Python files, 22 lines differ from upstream.

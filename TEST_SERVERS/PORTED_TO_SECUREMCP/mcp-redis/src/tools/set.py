@@ -7,7 +7,7 @@ from src.common.server import mcp
 
 
 @mcp.tool()
-async def sadd(name: str, value: str, expire_seconds: Optional[int] = None) -> str:
+async def sadd(name: str, value: str, expire_seconds: int = None) -> str:  # was: expire_seconds: Optional[int]
     """Add a value to a Redis set with an optional expiration time.
 
     Args:

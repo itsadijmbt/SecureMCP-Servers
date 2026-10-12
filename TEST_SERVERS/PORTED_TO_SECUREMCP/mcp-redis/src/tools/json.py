@@ -11,7 +11,7 @@ async def json_set(
     name: str,
     path: str,
     value: str,
-    expire_seconds: Optional[int] = None,
+    expire_seconds: int = None,  # was: expire_seconds: Optional[int]
 ) -> str:
     """Set a JSON value in Redis at a given path with an optional expiration time.
 

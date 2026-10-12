@@ -1,0 +1,53 @@
+MIGRATION: excel-mcp-server, FastMCP -> SecureMCP
+Upstream base: haris-musa/excel-mcp-server @ v0.1.8
+
+WHAT
+- src/excel_mcp/server.py only. Every other file is identical to upstream.
+- FastMCP import and constructor replaced by SecureMCP("excel-mcp").
+- annotations=ToolAnnotations(...) removed from all 25 tool decorators.
+- run_sse / run_streamable_http / run_stdio call mcp.run(). The three functions
+  are kept because __main__.py exposes them as commands.
+- 7 tool parameters given a plain type.
+    int : format_range.font_size
+    dict: format_range.protection, format_range.conditional_format
+    list: write_data_to_excel.data; create_pivot_table.rows, .values, .columns
+- No tool body changed.
+
+WHY
+SecureMCP publishes only six parameter types: str, int, float, bool, dict, list.
+Any other annotation (Optional[...], List[...], unions, models) is published as
+"string". Step 2 of the porting playbook therefore gives each tool parameter a
+plain type. Only the annotation changes; the old one is kept in a "# was:"
+comment and no tool body is touched by it.
+
+BROKEN ON PURPOSE
+- Tool annotations. Titles for all 25 tools, readOnlyHint on 6
+  (validate_formula_syntax, read_data_from_excel, get_workbook_metadata,
+  get_merged_cells, validate_excel_range, get_data_validation_info) and
+  destructiveHint on the other 19. SecureMCP has no place for them.
+- Constructor arguments host, port (FASTMCP_HOST, FASTMCP_PORT) and instructions.
+- Argument checking. FastMCP validated and converted every argument before the
+  tool ran. SecureMCP passes arguments as they were sent. With mcp 1.x a normal
+  MCP client still gets a type check against the published schema; with mcp 2.x
+  and for MACAW clients there is none. The MAPL policy is the guard.
+- Per-parameter schema detail (descriptions, item types, "may be null", allowed
+  values) is not published. The tool docstring is the only place it survives.
+  Example seen on this server: write_data_to_excel with data sent as a JSON
+  string instead of a list wrote 31 one-character rows.
+
+KNOWN GAPS
+- The file path rule is upstream's and is unchanged. Started with "stdio" the
+  server accepts any absolute path. Started with "sse" or "streamable-http" it
+  only opens files under EXCEL_FILES_PATH. Choose the start command accordingly.
+- create_pivot_table's default agg_func "mean" is rejected by the tool itself
+  (allowed: sum, average, count, min, max). Same in upstream. Not changed.
+
+VERIFICATION (2026-10-12, macaw-adapters 0.9.10.1, mcp 2.2.0)
+- Compared with the upstream base function by function: no tool body differs.
+- Called by a MACAW client over the mesh: create_workbook, get_workbook_metadata,
+  write_data_to_excel, read_data_from_excel returned correct results.
+- Served with run(transport="stdio") and called as a normal MCP client:
+  write (list), read, format_range (font_size 14, bold) verified in the file.
+
+LINES CHANGED
+1 Python file, 268 lines differ from upstream (mostly decorators and port comments).

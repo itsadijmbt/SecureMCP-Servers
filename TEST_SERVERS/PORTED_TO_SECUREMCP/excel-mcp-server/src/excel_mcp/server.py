@@ -198,7 +198,7 @@ def format_range(
     bold: bool = False,
     italic: bool = False,
     underline: bool = False,
-    font_size: Optional[int] = None,
+    font_size: int = None,  # was: font_size: Optional[int]
     font_color: Optional[str] = None,
     bg_color: Optional[str] = None,
     border_style: Optional[str] = None,
@@ -207,8 +207,8 @@ def format_range(
     alignment: Optional[str] = None,
     wrap_text: bool = False,
     merge_cells: bool = False,
-    protection: Optional[Dict[str, Any]] = None,
-    conditional_format: Optional[Dict[str, Any]] = None
+    protection: dict = None,  # was: protection: Optional[Dict[str, Any]]
+    conditional_format: dict = None  # was: conditional_format: Optional[Dict[str, Any]]
 ) -> str:
     """Apply formatting to a range of cells."""
     try:
@@ -303,7 +303,7 @@ def read_data_from_excel(
 def write_data_to_excel(
     filepath: str,
     sheet_name: str,
-    data: List[List],
+    data: list,  # was: data: List[List]
     start_cell: str = "A1",
 ) -> str:
     """
@@ -419,9 +419,9 @@ def create_pivot_table(
     filepath: str,
     sheet_name: str,
     data_range: str,
-    rows: List[str],
-    values: List[str],
-    columns: Optional[List[str]] = None,
+    rows: list,  # was: rows: List[str]
+    values: list,  # was: values: List[str]
+    columns: list = None,  # was: columns: Optional[List[str]]
     agg_func: str = "mean"
 ) -> str:
     """Create pivot table in worksheet."""

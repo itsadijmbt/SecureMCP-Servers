@@ -1,0 +1,56 @@
+MIGRATION: chroma-mcp, FastMCP -> SecureMCP
+Upstream base: chroma-core/chroma-mcp @ 98ff675 (2025-09-17)
+
+WHAT
+- src/chroma_mcp/server.py only. Every other file is identical to upstream.
+- FastMCP import and constructor replaced by SecureMCP; name "chroma" -> "chroma-mcp".
+- main(): mcp.run(transport='stdio') -> mcp.run().
+- argparse description text: "FastMCP server for Chroma DB" -> "MCP server for Chroma DB".
+- 22 tool parameters given a plain type.
+    int : chroma_list_collections.limit, .offset; chroma_get_documents.limit, .offset
+    dict: chroma_create_collection.metadata; chroma_modify_collection.new_metadata;
+          where and where_document on chroma_query_documents and chroma_get_documents
+    list: chroma_add_documents.documents, .ids, .metadatas;
+          chroma_query_documents.query_texts, .include;
+          chroma_get_documents.ids, .include;
+          chroma_update_documents.ids, .embeddings, .metadatas, .documents;
+          chroma_delete_documents.ids
+- No tool body changed.
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- The 13 description="..." strings added by the first port were removed. The
+  adapter uses a tool's docstring only when no description is given, so those
+  strings had replaced the upstream docstrings and their "Args:" text. One of
+  them was also wrong (chroma_get_collection_count).
+- load_dotenv(dotenv_path=args.dotenv_path) is called unconditionally again, as
+  in upstream. The first port had wrapped it in "if args.dotenv_path:".
+
+WHY
+SecureMCP publishes only six parameter types: str, int, float, bool, dict, list.
+Any other annotation (Optional[...], List[...], unions, models) is published as
+"string". Step 2 of the porting playbook therefore gives each tool parameter a
+plain type. Only the annotation changes; the old one is kept in a "# was:"
+comment and no tool body is touched by it.
+
+BROKEN ON PURPOSE
+- Argument checking. FastMCP validated and converted every argument before the
+  tool ran. SecureMCP passes arguments as they were sent. With mcp 1.x a normal
+  MCP client still gets a type check against the published schema; with mcp 2.x
+  and for MACAW clients there is none. The MAPL policy is the guard.
+- Per-parameter schema detail (descriptions, item types, "may be null", allowed
+  values) is not published. The tool docstring is the only place it survives.
+
+KNOWN GAPS
+- Results are returned exactly as chromadb gives them. Values that are not plain
+  JSON types (for example embedding arrays) are not converted. Not checked in
+  this session.
+- --client-type, --host, --port and the other arguments choose the Chroma
+  backend. They are not MCP transport settings and are unchanged.
+
+VERIFICATION (2026-10-12)
+- Compared with the upstream base function by function: decorators and bodies
+  match upstream; differences are the items under WHAT.
+- NOT run: chromadb was not installed on the test machine.
+
+LINES CHANGED
+1 Python file, 61 lines differ from upstream.
