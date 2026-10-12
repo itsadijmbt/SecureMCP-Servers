@@ -37,10 +37,6 @@ from alibabacloud_tea_util import models as util_models
 from alibabacloud_vpc20160428 import models as vpc_20160428_models
 
 
-from macaw_adapters.mcp import Context                                                                                                                                                      
-from utils import metadata_as_request_headers   # add to existing utils import
-
-
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
@@ -88,32 +84,31 @@ READ_ONLY_TOOL = ToolAnnotations(readOnlyHint=True)
 
 # now the anontations dont impact as the in .activate annoation as arg are not processed 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instances(ctx:Context,region_id: str):
+async def describe_db_instances(region_id: str):
     """
     Queries instances.
     Args:
         region_id: queries instances in region id(e.g. cn-hangzhou)
     :return:
     """
-    with metadata_as_request_headers(ctx):
-        client = get_rds_client(region_id)
-        try:
-            request = rds_20140815_models.DescribeDBInstancesRequest(
-                region_id=region_id,
-                page_size=100
-            )
-            response = client.describe_dbinstances(request)
+    client = get_rds_client(region_id)
+    try:
+        request = rds_20140815_models.DescribeDBInstancesRequest(
+            region_id=region_id,
+            page_size=100
+        )
+        response = client.describe_dbinstances(request)
 
-            res = json_array_to_csv(response.body.items.dbinstance)
-            if not res:
-                return "No RDS instances found."
-            return res
-        except Exception as e:
-            raise e
+        res = json_array_to_csv(response.body.items.dbinstance)
+        if not res:
+            return "No RDS instances found."
+        return res
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instance_attribute(ctx:Context,region_id: str, db_instance_id: str):
+async def describe_db_instance_attribute(region_id: str, db_instance_id: str):
     """
     Queries the details of an instance.
     Args:
@@ -121,23 +116,20 @@ async def describe_db_instance_attribute(ctx:Context,region_id: str, db_instance
         db_instance_id: db instance id(e.g. rm-xxx)
     :return:
     """
-    with metadata_as_request_headers(ctx):
-
-        client = get_rds_client(region_id)
-        try:
-            request = rds_20140815_models.DescribeDBInstanceAttributeRequest(dbinstance_id=db_instance_id)
-            response = client.describe_dbinstance_attribute(request)
-            return response.body.to_map()
-        except Exception as e:
-            raise e
+    client = get_rds_client(region_id)
+    try:
+        request = rds_20140815_models.DescribeDBInstanceAttributeRequest(dbinstance_id=db_instance_id)
+        response = client.describe_dbinstance_attribute(request)
+        return response.body.to_map()
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instance_performance(ctx:Context,
-                                           region_id: str,
+async def describe_db_instance_performance(region_id: str,
                                            db_instance_id: str,
                                            db_type: str,
-                                           perf_keys: list[str],
+                                           perf_keys: list,  # was: perf_keys: list[str]
                                            start_time: str,
                                            end_time: str):
     """
@@ -152,55 +144,54 @@ async def describe_db_instance_performance(ctx:Context,
         start_time: start time(e.g. 2023-01-01 00:00)
         end_time: end time(e.g. 2023-01-01 00:00)
     """
-    with metadata_as_request_headers(ctx):
 
-        def _compress_performance(performance_value, max_items=10):
-            if len(performance_value) > max_items:
-                result = []
-                offset = len(performance_value) / 10
-                for i in range(0, len(performance_value), int(offset)):
-                    _item = None
-                    for j in range(i, min(i + int(offset), len(performance_value))):
-                        if _item is None or sum([float(v) for v in performance_value[j].value.split('&')]) > sum(
-                                [float(v) for v in _item.value.split('&')]):
-                            _item = performance_value[j]
-                    
-                    _item.date = parse_iso_8601(_item.date)
-                    result.append(_item)
-                return result
-            else:
-                for item in performance_value:
-                    item.date = parse_iso_8601(item.date)
-                return performance_value
+    def _compress_performance(performance_value, max_items=10):
+        if len(performance_value) > max_items:
+            result = []
+            offset = len(performance_value) / 10
+            for i in range(0, len(performance_value), int(offset)):
+                _item = None
+                for j in range(i, min(i + int(offset), len(performance_value))):
+                    if _item is None or sum([float(v) for v in performance_value[j].value.split('&')]) > sum(
+                            [float(v) for v in _item.value.split('&')]):
+                        _item = performance_value[j]
+                
+                _item.date = parse_iso_8601(_item.date)
+                result.append(_item)
+            return result
+        else:
+            for item in performance_value:
+                item.date = parse_iso_8601(item.date)
+            return performance_value
 
-        try:
-            start_time = transform_to_datetime(start_time)
-            end_time = transform_to_datetime(end_time)
-            client = get_rds_client(region_id)
-            perf_key = transform_perf_key(db_type, perf_keys)
-            if not perf_key:
-                raise OpenAPIError(f"Unsupported perf_key: {perf_key}")
-            request = rds_20140815_models.DescribeDBInstancePerformanceRequest(
-                dbinstance_id=db_instance_id,
-                start_time=transform_to_iso_8601(start_time, "minutes"),
-                end_time=transform_to_iso_8601(end_time, "minutes"),
-                key=",".join(perf_key)
-            )
-            response = client.describe_dbinstance_performance(request)
-            responses = []
-            for perf_key in response.body.performance_keys.performance_key:
-                perf_key_info = f"""Key={perf_key.key}; Unit={perf_key.unit}; ValueFormat={perf_key.value_format}; Values={json_array_to_csv(_compress_performance(perf_key.values.performance_value))}"""
-                responses.append(perf_key_info)
-            return responses
-        except Exception as e:
-            raise e
+    try:
+        start_time = transform_to_datetime(start_time)
+        end_time = transform_to_datetime(end_time)
+        client = get_rds_client(region_id)
+        perf_key = transform_perf_key(db_type, perf_keys)
+        if not perf_key:
+            raise OpenAPIError(f"Unsupported perf_key: {perf_key}")
+        request = rds_20140815_models.DescribeDBInstancePerformanceRequest(
+            dbinstance_id=db_instance_id,
+            start_time=transform_to_iso_8601(start_time, "minutes"),
+            end_time=transform_to_iso_8601(end_time, "minutes"),
+            key=",".join(perf_key)
+        )
+        response = client.describe_dbinstance_performance(request)
+        responses = []
+        for perf_key in response.body.performance_keys.performance_key:
+            perf_key_info = f"""Key={perf_key.key}; Unit={perf_key.unit}; ValueFormat={perf_key.value_format}; Values={json_array_to_csv(_compress_performance(perf_key.values.performance_value))}"""
+            responses.append(perf_key_info)
+        return responses
+    except Exception as e:
+        raise e
 
 
 @mcp.tool()
-async def modify_parameter(ctx: Context, 
+async def modify_parameter(
         region_id: str,
         dbinstance_id: str,
-        parameters: Dict[str, str] = None,
+        parameters: dict = None,  # was: parameters: Dict[str, str]
         parameter_group_id: str = None,
         forcerestart: bool = False,
         switch_time_mode: str = "Immediate",
@@ -223,39 +214,38 @@ async def modify_parameter(ctx: Context,
     Returns:
         Dict[str, Any]: The response containing the request ID.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize the client
-            client = get_rds_client(region_id)
+    try:
+        # Initialize the client
+        client = get_rds_client(region_id)
 
-            # Create request
-            request = rds_20140815_models.ModifyParameterRequest(
-                dbinstance_id=dbinstance_id,
-                forcerestart=forcerestart,
-                switch_time_mode=switch_time_mode
-            )
+        # Create request
+        request = rds_20140815_models.ModifyParameterRequest(
+            dbinstance_id=dbinstance_id,
+            forcerestart=forcerestart,
+            switch_time_mode=switch_time_mode
+        )
 
-            # Add optional parameters if provided
-            if parameters:
-                request.parameters = json.dumps(parameters)
-            if parameter_group_id:
-                request.parameter_group_id = parameter_group_id
-            if switch_time:
-                request.switch_time = switch_time
-            if client_token:
-                request.client_token = client_token
+        # Add optional parameters if provided
+        if parameters:
+            request.parameters = json.dumps(parameters)
+        if parameter_group_id:
+            request.parameter_group_id = parameter_group_id
+        if switch_time:
+            request.switch_time = switch_time
+        if client_token:
+            request.client_token = client_token
 
-            # Make the API request
-            response = client.modify_parameter(request)
-            return response.body.to_map()
+        # Make the API request
+        response = client.modify_parameter(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while modifying parameters: {str(e)}")
-            raise OpenAPIError(f"Failed to modify RDS instance parameters: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while modifying parameters: {str(e)}")
+        raise OpenAPIError(f"Failed to modify RDS instance parameters: {str(e)}")
 
 
 @mcp.tool()
-async def modify_db_instance_spec(ctx: Context, 
+async def modify_db_instance_spec(
         region_id: str,
         dbinstance_id: str,
         dbinstance_class: str = None,
@@ -304,65 +294,64 @@ async def modify_db_instance_spec(ctx: Context,
     Returns:
         Dict[str, Any]: The response containing the request ID.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize the client
-            client = get_rds_client(region_id)
+    try:
+        # Initialize the client
+        client = get_rds_client(region_id)
 
-            # Create request
-            request = rds_20140815_models.ModifyDBInstanceSpecRequest(
-                dbinstance_id=dbinstance_id
-            )
+        # Create request
+        request = rds_20140815_models.ModifyDBInstanceSpecRequest(
+            dbinstance_id=dbinstance_id
+        )
 
-            # Add optional parameters if provided
-            if dbinstance_class:
-                request.dbinstance_class = dbinstance_class
-            if dbinstance_storage:
-                request.dbinstance_storage = dbinstance_storage
-            if pay_type:
-                request.pay_type = pay_type
-            if effective_time:
-                request.effective_time = effective_time
-            if switch_time:
-                request.switch_time = switch_time
-            if switch_time_mode:
-                request.switch_time_mode = switch_time_mode
-            if source_biz:
-                request.source_biz = source_biz
-            if dedicated_host_group_id:
-                request.dedicated_host_group_id = dedicated_host_group_id
-            if zone_id:
-                request.zone_id = zone_id
-            if vswitch_id:
-                request.vswitch_id = vswitch_id
-            if category:
-                request.category = category
-            if instance_network_type:
-                request.instance_network_type = instance_network_type
-            if direction:
-                request.direction = direction
-            if auto_pause is not None:
-                request.auto_pause = auto_pause
-            if max_capacity:
-                request.max_capacity = max_capacity
-            if min_capacity:
-                request.min_capacity = min_capacity
-            if switch_force is not None:
-                request.switch_force = switch_force
-            if client_token:
-                request.client_token = client_token
+        # Add optional parameters if provided
+        if dbinstance_class:
+            request.dbinstance_class = dbinstance_class
+        if dbinstance_storage:
+            request.dbinstance_storage = dbinstance_storage
+        if pay_type:
+            request.pay_type = pay_type
+        if effective_time:
+            request.effective_time = effective_time
+        if switch_time:
+            request.switch_time = switch_time
+        if switch_time_mode:
+            request.switch_time_mode = switch_time_mode
+        if source_biz:
+            request.source_biz = source_biz
+        if dedicated_host_group_id:
+            request.dedicated_host_group_id = dedicated_host_group_id
+        if zone_id:
+            request.zone_id = zone_id
+        if vswitch_id:
+            request.vswitch_id = vswitch_id
+        if category:
+            request.category = category
+        if instance_network_type:
+            request.instance_network_type = instance_network_type
+        if direction:
+            request.direction = direction
+        if auto_pause is not None:
+            request.auto_pause = auto_pause
+        if max_capacity:
+            request.max_capacity = max_capacity
+        if min_capacity:
+            request.min_capacity = min_capacity
+        if switch_force is not None:
+            request.switch_force = switch_force
+        if client_token:
+            request.client_token = client_token
 
-            # Make the API request
-            response = client.modify_dbinstance_spec(request)
-            return response.body.to_map()
+        # Make the API request
+        response = client.modify_dbinstance_spec(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while modifying instance specifications: {str(e)}")
-            raise OpenAPIError(f"Failed to modify RDS instance specifications: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while modifying instance specifications: {str(e)}")
+        raise OpenAPIError(f"Failed to modify RDS instance specifications: {str(e)}")
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_available_classes(ctx: Context, 
+async def describe_available_classes(
         region_id: str,
         zone_id: str,
         instance_charge_type: str,
@@ -391,41 +380,40 @@ async def describe_available_classes(ctx: Context,
     Returns:
         Dict[str, Any]: The response containing available instance classes and storage ranges.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize the client
-            client = get_rds_client(region_id)
+    try:
+        # Initialize the client
+        client = get_rds_client(region_id)
 
-            # Create request
-            request = rds_20140815_models.DescribeAvailableClassesRequest(
-                region_id=region_id,
-                zone_id=zone_id,
-                instance_charge_type=instance_charge_type,
-                engine=engine,
-                engine_version=engine_version,
-                dbinstance_storage_type=dbinstance_storage_type,
-                category=category
-            )
+        # Create request
+        request = rds_20140815_models.DescribeAvailableClassesRequest(
+            region_id=region_id,
+            zone_id=zone_id,
+            instance_charge_type=instance_charge_type,
+            engine=engine,
+            engine_version=engine_version,
+            dbinstance_storage_type=dbinstance_storage_type,
+            category=category
+        )
 
-            # Add optional parameters if provided
-            if dbinstance_id:
-                request.dbinstance_id = dbinstance_id
-            if order_type:
-                request.order_type = order_type
-            if commodity_code:
-                request.commodity_code = commodity_code
+        # Add optional parameters if provided
+        if dbinstance_id:
+            request.dbinstance_id = dbinstance_id
+        if order_type:
+            request.order_type = order_type
+        if commodity_code:
+            request.commodity_code = commodity_code
 
-            # Make the API request
-            response = client.describe_available_classes(request)
-            return response.body.to_map()
+        # Make the API request
+        response = client.describe_available_classes(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while querying available classes: {str(e)}")
-            raise OpenAPIError(f"Failed to query available instance classes: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while querying available classes: {str(e)}")
+        raise OpenAPIError(f"Failed to query available instance classes: {str(e)}")
 
 
 @mcp.tool()
-async def create_db_instance(ctx: Context, 
+async def create_db_instance(
         region_id: str,
         engine: str,
         engine_version: str,
@@ -448,7 +436,7 @@ async def create_db_instance(ctx: Context,
         resource_group_id: str = None,
         tde_status: str = None,
         encryption_key: str = None,
-        serverless_config: Dict[str, Any] = None,
+        serverless_config: dict = None,  # was: serverless_config: Dict[str, Any]
         table_names_case_sensitive: bool = False,
         db_time_zone: str = None,
         connection_string: str = None,
@@ -488,68 +476,67 @@ async def create_db_instance(ctx: Context,
     Returns:
         Dict[str, Any]: Response containing the created instance details.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
+    try:
+        client = get_rds_client(region_id)
 
-            request = rds_20140815_models.CreateDBInstanceRequest(
-                region_id=region_id,
-                engine=engine,
-                engine_version=engine_version,
-                dbinstance_class=dbinstance_class,
-                dbinstance_storage=dbinstance_storage,
-                security_iplist=security_ip_list,
-                instance_network_type=instance_network_type,
-                dbis_ignore_case=str(not table_names_case_sensitive).lower(),
-                dbtime_zone=db_time_zone,
-                connection_string=connection_string,
-                dbparam_group_id=db_param_group_id
-            )
+        request = rds_20140815_models.CreateDBInstanceRequest(
+            region_id=region_id,
+            engine=engine,
+            engine_version=engine_version,
+            dbinstance_class=dbinstance_class,
+            dbinstance_storage=dbinstance_storage,
+            security_iplist=security_ip_list,
+            instance_network_type=instance_network_type,
+            dbis_ignore_case=str(not table_names_case_sensitive).lower(),
+            dbtime_zone=db_time_zone,
+            connection_string=connection_string,
+            dbparam_group_id=db_param_group_id
+        )
 
-            # Add optional parameters
-            if zone_id:
-                request.zone_id = zone_id
-            if zone_id_slave1:
-                request.zone_id_slave_1 = zone_id_slave1
-            if zone_id_slave2:
-                request.zone_id_slave_2 = zone_id_slave2
-            if pay_type:
-                request.pay_type = pay_type
-            if system_db_charset:
-                request.system_dbcharset = system_db_charset
-            if dbinstance_net_type:
-                request.dbinstance_net_type = dbinstance_net_type
-            if category:
-                request.category = category
-            if dbinstance_storage_type:
-                request.dbinstance_storage_type = dbinstance_storage_type
-            if vpc_id:
-                request.vpcid = vpc_id
-            if vswitch_id:
-                request.v_switch_id = vswitch_id
-            if private_ip_address:
-                request.private_ip_address = private_ip_address
-            if client_token:
-                request.client_token = client_token
-            if resource_group_id:
-                request.resource_group_id = resource_group_id
-            if tde_status:
-                request.tde_status = tde_status
-            if encryption_key:
-                request.encryption_key = encryption_key
-            if serverless_config:
-                request.serverless_config = json.dumps(serverless_config)
+        # Add optional parameters
+        if zone_id:
+            request.zone_id = zone_id
+        if zone_id_slave1:
+            request.zone_id_slave_1 = zone_id_slave1
+        if zone_id_slave2:
+            request.zone_id_slave_2 = zone_id_slave2
+        if pay_type:
+            request.pay_type = pay_type
+        if system_db_charset:
+            request.system_dbcharset = system_db_charset
+        if dbinstance_net_type:
+            request.dbinstance_net_type = dbinstance_net_type
+        if category:
+            request.category = category
+        if dbinstance_storage_type:
+            request.dbinstance_storage_type = dbinstance_storage_type
+        if vpc_id:
+            request.vpcid = vpc_id
+        if vswitch_id:
+            request.v_switch_id = vswitch_id
+        if private_ip_address:
+            request.private_ip_address = private_ip_address
+        if client_token:
+            request.client_token = client_token
+        if resource_group_id:
+            request.resource_group_id = resource_group_id
+        if tde_status:
+            request.tde_status = tde_status
+        if encryption_key:
+            request.encryption_key = encryption_key
+        if serverless_config:
+            request.serverless_config = json.dumps(serverless_config)
 
-            response = client.create_dbinstance(request)
-            return response.body.to_map()
+        response = client.create_dbinstance(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while creating RDS instance: {str(e)}")
-            raise e
+    except Exception as e:
+        logger.error(f"Error occurred while creating RDS instance: {str(e)}")
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_available_zones(ctx: Context, 
+async def describe_available_zones(
         region_id: str,
         engine: str,
         engine_version: str = None,
@@ -598,42 +585,41 @@ async def describe_available_zones(ctx: Context,
     Returns:
         Dict[str, Any]: Response containing available zones information.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize the client
-            client = get_rds_client(region_id)
+    try:
+        # Initialize the client
+        client = get_rds_client(region_id)
 
-            # Create request
-            request = rds_20140815_models.DescribeAvailableZonesRequest(
-                region_id=region_id,
-                engine=engine
-            )
+        # Create request
+        request = rds_20140815_models.DescribeAvailableZonesRequest(
+            region_id=region_id,
+            engine=engine
+        )
 
-            # Add optional parameters if provided
-            if engine_version:
-                request.engine_version = engine_version
-            if commodity_code:
-                request.commodity_code = commodity_code
-            if zone_id:
-                request.zone_id = zone_id
-            if dispense_mode:
-                request.dispense_mode = dispense_mode
-            if dbinstance_name:
-                request.dbinstance_name = dbinstance_name
-            if category:
-                request.category = category
+        # Add optional parameters if provided
+        if engine_version:
+            request.engine_version = engine_version
+        if commodity_code:
+            request.commodity_code = commodity_code
+        if zone_id:
+            request.zone_id = zone_id
+        if dispense_mode:
+            request.dispense_mode = dispense_mode
+        if dbinstance_name:
+            request.dbinstance_name = dbinstance_name
+        if category:
+            request.category = category
 
-            # Make the API request
-            response = client.describe_available_zones(request)
-            return response.body.to_map()
+        # Make the API request
+        response = client.describe_available_zones(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while querying available zones: {str(e)}")
-            raise OpenAPIError(f"Failed to query available zones: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while querying available zones: {str(e)}")
+        raise OpenAPIError(f"Failed to query available zones: {str(e)}")
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_vpcs(ctx: Context, 
+async def describe_vpcs(
         region_id: str,
         vpc_id: str = None,
         vpc_name: str = None,
@@ -641,7 +627,7 @@ async def describe_vpcs(ctx: Context,
         page_number: int = 1,
         page_size: int = 10,
         vpc_owner_id: int = None,
-        tags: List[Dict[str, str]] = None
+        tags: list = None  # was: tags: List[Dict[str, str]]
 ) -> Dict[str, Any]:
     """Query VPC list.
 
@@ -658,41 +644,40 @@ async def describe_vpcs(ctx: Context,
     Returns:
         Dict[str, Any]: The response containing the list of VPCs.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize the client
-            client = get_vpc_client(region_id)
+    try:
+        # Initialize the client
+        client = get_vpc_client(region_id)
 
-            # Create request
-            request = vpc_20160428_models.DescribeVpcsRequest(
-                region_id=region_id,
-                page_number=page_number,
-                page_size=page_size
-            )
+        # Create request
+        request = vpc_20160428_models.DescribeVpcsRequest(
+            region_id=region_id,
+            page_number=page_number,
+            page_size=page_size
+        )
 
-            # Add optional parameters if provided
-            if vpc_id:
-                request.vpc_id = vpc_id
-            if vpc_name:
-                request.vpc_name = vpc_name
-            if resource_group_id:
-                request.resource_group_id = resource_group_id
-            if vpc_owner_id:
-                request.vpc_owner_id = vpc_owner_id
-            if tags:
-                request.tag = tags
+        # Add optional parameters if provided
+        if vpc_id:
+            request.vpc_id = vpc_id
+        if vpc_name:
+            request.vpc_name = vpc_name
+        if resource_group_id:
+            request.resource_group_id = resource_group_id
+        if vpc_owner_id:
+            request.vpc_owner_id = vpc_owner_id
+        if tags:
+            request.tag = tags
 
-            # Make the API request
-            response = client.describe_vpcs(request)
-            return response.to_map()
+        # Make the API request
+        response = client.describe_vpcs(request)
+        return response.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while querying VPCs: {str(e)}")
-            raise OpenAPIError(f"Failed to query VPCs: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while querying VPCs: {str(e)}")
+        raise OpenAPIError(f"Failed to query VPCs: {str(e)}")
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_vswitches(ctx: Context, 
+async def describe_vswitches(
         region_id: str = None,
         vpc_id: str = None,
         vswitch_id: str = None,
@@ -718,45 +703,44 @@ async def describe_vswitches(ctx: Context,
     Returns:
         Dict[str, Any]: The response containing the list of VSwitches.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize the client
-            if not region_id and not vpc_id:
-                raise OpenAPIError("At least one of region_id or vpc_id must be specified")
+    try:
+        # Initialize the client
+        if not region_id and not vpc_id:
+            raise OpenAPIError("At least one of region_id or vpc_id must be specified")
 
-            client = get_vpc_client(region_id)
+        client = get_vpc_client(region_id)
 
-            # Create request
-            request = vpc_20160428_models.DescribeVSwitchesRequest(
-                page_number=page_number,
-                page_size=page_size
-            )
+        # Create request
+        request = vpc_20160428_models.DescribeVSwitchesRequest(
+            page_number=page_number,
+            page_size=page_size
+        )
 
-            # Add optional parameters if provided
-            if vpc_id:
-                request.vpc_id = vpc_id
-            if vswitch_id:
-                request.vswitch_id = vswitch_id
-            if zone_id:
-                request.zone_id = zone_id
-            if vswitch_name:
-                request.vswitch_name = vswitch_name
-            if is_default is not None:
-                request.is_default = is_default
-            if resource_group_id:
-                request.resource_group_id = resource_group_id
+        # Add optional parameters if provided
+        if vpc_id:
+            request.vpc_id = vpc_id
+        if vswitch_id:
+            request.vswitch_id = vswitch_id
+        if zone_id:
+            request.zone_id = zone_id
+        if vswitch_name:
+            request.vswitch_name = vswitch_name
+        if is_default is not None:
+            request.is_default = is_default
+        if resource_group_id:
+            request.resource_group_id = resource_group_id
 
-            # Make the API request
-            response = client.describe_vswitches(request)
-            return response.body.to_map()
+        # Make the API request
+        response = client.describe_vswitches(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while querying VSwitches: {str(e)}")
-            raise OpenAPIError(f"Failed to query VSwitches: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while querying VSwitches: {str(e)}")
+        raise OpenAPIError(f"Failed to query VSwitches: {str(e)}")
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_slow_log_records(ctx: Context, 
+async def describe_slow_log_records(
         region_id: str,
         dbinstance_id: str,
         start_time: str,
@@ -787,40 +771,39 @@ async def describe_slow_log_records(ctx: Context,
     Returns:
         Dict[str, Any]: The response containing slow log records.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize the client
-            client = get_rds_client(region_id)
-            start_time = transform_to_datetime(start_time)
-            end_time = transform_to_datetime(end_time)
-            # Create request
-            request = rds_20140815_models.DescribeSlowLogRecordsRequest(
-                dbinstance_id=dbinstance_id,
-                start_time=transform_to_iso_8601(start_time, "minutes"),
-                end_time=transform_to_iso_8601(end_time, "minutes"),
-                page_size=page_size,
-                page_number=page_number
-            )
+    try:
+        # Initialize the client
+        client = get_rds_client(region_id)
+        start_time = transform_to_datetime(start_time)
+        end_time = transform_to_datetime(end_time)
+        # Create request
+        request = rds_20140815_models.DescribeSlowLogRecordsRequest(
+            dbinstance_id=dbinstance_id,
+            start_time=transform_to_iso_8601(start_time, "minutes"),
+            end_time=transform_to_iso_8601(end_time, "minutes"),
+            page_size=page_size,
+            page_number=page_number
+        )
 
-            # Add optional parameters if provided
-            if sqlhash:
-                request.sqlhash = sqlhash
-            if db_name:
-                request.db_name = db_name
-            if node_id:
-                request.node_id = node_id
+        # Add optional parameters if provided
+        if sqlhash:
+            request.sqlhash = sqlhash
+        if db_name:
+            request.db_name = db_name
+        if node_id:
+            request.node_id = node_id
 
-            # Make the API request
-            response = client.describe_slow_log_records(request)
-            return response.body.to_map()
+        # Make the API request
+        response = client.describe_slow_log_records(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while querying slow log records: {str(e)}")
-            raise OpenAPIError(f"Failed to query slow log records: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while querying slow log records: {str(e)}")
+        raise OpenAPIError(f"Failed to query slow log records: {str(e)}")
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_error_logs(ctx: Context, 
+async def describe_error_logs(
         region_id: str,
         db_instance_id: str,
         start_time: str,
@@ -840,34 +823,33 @@ async def describe_error_logs(ctx: Context,
     Returns:
         Dict[str, Any]: A dictionary containing error log information
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            start_time = transform_to_datetime(start_time)
-            end_time = transform_to_datetime(end_time)
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.DescribeErrorLogsRequest(
-                dbinstance_id=db_instance_id,
-                start_time=transform_to_iso_8601(start_time, "minutes"),
-                end_time=transform_to_iso_8601(end_time, "minutes"),
-                page_size=page_size,
-                page_number=page_number
-            )
-            response = await client.describe_error_logs_async(request)
-            return {
-                "Logs": "\n".join([log.error_info for log in response.body.items.error_log]),
-                "PageNumber": response.body.page_number,
-                "PageRecordCount": response.body.page_record_count,
-                "TotalRecordCount": response.body.total_record_count
-            }
-        except Exception as e:
-            logger.error(f"Failed to describe error logs: {str(e)}")
-            raise OpenAPIError(f"Failed to describe error logs: {str(e)}")
+    try:
+        start_time = transform_to_datetime(start_time)
+        end_time = transform_to_datetime(end_time)
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.DescribeErrorLogsRequest(
+            dbinstance_id=db_instance_id,
+            start_time=transform_to_iso_8601(start_time, "minutes"),
+            end_time=transform_to_iso_8601(end_time, "minutes"),
+            page_size=page_size,
+            page_number=page_number
+        )
+        response = await client.describe_error_logs_async(request)
+        return {
+            "Logs": "\n".join([log.error_info for log in response.body.items.error_log]),
+            "PageNumber": response.body.page_number,
+            "PageRecordCount": response.body.page_record_count,
+            "TotalRecordCount": response.body.total_record_count
+        }
+    except Exception as e:
+        logger.error(f"Failed to describe error logs: {str(e)}")
+        raise OpenAPIError(f"Failed to describe error logs: {str(e)}")
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instance_net_info(ctx: Context, 
+async def describe_db_instance_net_info(
         region_id: str,
-        db_instance_ids: list[str]
+        db_instance_ids: list  # was: db_instance_ids: list[str]
 ) -> list[dict]:
     """
     Batch retrieves network configuration details for multiple RDS instances.
@@ -877,25 +859,24 @@ async def describe_db_instance_net_info(ctx: Context,
     Returns:
         list[dict]: A list of dictionaries containing network configuration details for each instance.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            db_instance_net_infos = []
-            for db_instance_id in db_instance_ids:
-                request = rds_20140815_models.DescribeDBInstanceNetInfoRequest(
-                    dbinstance_id=db_instance_id
-                )
-                response = await client.describe_dbinstance_net_info_async(request)
-                db_instance_net_infos.append(response.body.to_map())
-            return db_instance_net_infos
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        db_instance_net_infos = []
+        for db_instance_id in db_instance_ids:
+            request = rds_20140815_models.DescribeDBInstanceNetInfoRequest(
+                dbinstance_id=db_instance_id
+            )
+            response = await client.describe_dbinstance_net_info_async(request)
+            db_instance_net_infos.append(response.body.to_map())
+        return db_instance_net_infos
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instance_ip_allowlist(ctx: Context, 
+async def describe_db_instance_ip_allowlist(
         region_id: str,
-        db_instance_ids: list[str]
+        db_instance_ids: list  # was: db_instance_ids: list[str]
 ) -> list[dict]:
     """
     Batch retrieves IP allowlist configurations for multiple RDS instances.
@@ -905,25 +886,24 @@ async def describe_db_instance_ip_allowlist(ctx: Context,
     Returns:
         list[dict]: A list of dictionaries containing network configuration details for each instance.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            db_instance_ip_allowlist = []
-            for db_instance_id in db_instance_ids:
-                request = rds_20140815_models.DescribeDBInstanceIPArrayListRequest(
-                    dbinstance_id=db_instance_id
-                )
-                response = await client.describe_dbinstance_iparray_list_async(request)
-                db_instance_ip_allowlist.append(response.body.to_map())
-            return db_instance_ip_allowlist
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        db_instance_ip_allowlist = []
+        for db_instance_id in db_instance_ids:
+            request = rds_20140815_models.DescribeDBInstanceIPArrayListRequest(
+                dbinstance_id=db_instance_id
+            )
+            response = await client.describe_dbinstance_iparray_list_async(request)
+            db_instance_ip_allowlist.append(response.body.to_map())
+        return db_instance_ip_allowlist
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instance_databases(ctx: Context, 
+async def describe_db_instance_databases(
         region_id: str,
-        db_instance_ids: list[str]
+        db_instance_ids: list  # was: db_instance_ids: list[str]
 ) -> list[dict]:
     """
     Batch retrieves database information for multiple RDS instances.
@@ -933,25 +913,24 @@ async def describe_db_instance_databases(ctx: Context,
     Returns:
         list[dict]: A list of dictionaries containing database information for each instance.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            db_instance_databases = []
-            for db_instance_id in db_instance_ids:
-                request = rds_20140815_models.DescribeDatabasesRequest(
-                    dbinstance_id=db_instance_id
-                )
-                response = await client.describe_databases_async(request)
-                db_instance_databases.append(response.body.to_map())
-            return db_instance_databases
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        db_instance_databases = []
+        for db_instance_id in db_instance_ids:
+            request = rds_20140815_models.DescribeDatabasesRequest(
+                dbinstance_id=db_instance_id
+            )
+            response = await client.describe_databases_async(request)
+            db_instance_databases.append(response.body.to_map())
+        return db_instance_databases
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instance_accounts(ctx: Context, 
+async def describe_db_instance_accounts(
         region_id: str,
-        db_instance_ids: list[str]
+        db_instance_ids: list  # was: db_instance_ids: list[str]
 ) -> list[dict]:
     """
     Batch retrieves account information for multiple RDS instances.
@@ -961,23 +940,22 @@ async def describe_db_instance_accounts(ctx: Context,
     Returns:
         list[dict]: A list of dictionaries containing account information for each instance.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            db_instance_accounts = []
-            for db_instance_id in db_instance_ids:
-                request = rds_20140815_models.DescribeAccountsRequest(
-                    dbinstance_id=db_instance_id
-                )
-                response = await client.describe_accounts_async(request)
-                db_instance_accounts.append(response.body.to_map())
-            return db_instance_accounts
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        db_instance_accounts = []
+        for db_instance_id in db_instance_ids:
+            request = rds_20140815_models.DescribeAccountsRequest(
+                dbinstance_id=db_instance_id
+            )
+            response = await client.describe_accounts_async(request)
+            db_instance_accounts.append(response.body.to_map())
+        return db_instance_accounts
+    except Exception as e:
+        raise e
 
 
 @mcp.tool()
-async def create_db_instance_account(ctx: Context, 
+async def create_db_instance_account(
         region_id: str,
         db_instance_id: str,
         account_name: str,
@@ -997,27 +975,26 @@ async def create_db_instance_account(ctx: Context,
     Returns:
          dict[str, Any]: The response.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.CreateAccountRequest(
-                dbinstance_id=db_instance_id,
-                account_name=account_name,
-                account_password=account_password,
-                account_description=account_description,
-                account_type=account_type
-            )
-            response = await client.create_account_async(request)
-            return response.body.to_map()
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.CreateAccountRequest(
+            dbinstance_id=db_instance_id,
+            account_name=account_name,
+            account_password=account_password,
+            account_description=account_description,
+            account_type=account_type
+        )
+        response = await client.create_account_async(request)
+        return response.body.to_map()
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_db_instance_parameters(ctx: Context, 
+async def describe_db_instance_parameters(
         region_id: str,
-        db_instance_ids: list[str],
-        paramters: list[str] = None
+        db_instance_ids: list,  # was: db_instance_ids: list[str]
+        paramters: list = None  # was: paramters: list[str]
 ) -> dict[str, dict[str, Any]]:
     """
     Batch retrieves parameter information for multiple RDS instances.
@@ -1028,38 +1005,37 @@ async def describe_db_instance_parameters(ctx: Context,
     Returns:
         list[dict]: A list of dictionaries containing parameter information(ParamGroupInfo,ConfigParameters,RunningParameters) foreach instance.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            db_instance_parameters = {}
-            for db_instance_id in db_instance_ids:
-                request = rds_20140815_models.DescribeParametersRequest(
-                    dbinstance_id=db_instance_id
-                )
-                response = await client.describe_parameters_async(request)
-                if paramters:
-                    response.body.config_parameters.dbinstance_parameter = [
-                        config_parameter for config_parameter in response.body.config_parameters.dbinstance_parameter
-                        if config_parameter.parameter_name in paramters
-                    ]
-                    response.body.running_parameters.dbinstance_parameter = [
-                        running_parameter for running_parameter in response.body.running_parameters.dbinstance_parameter
-                        if running_parameter.parameter_name in paramters
-                    ]
+    try:
+        client = get_rds_client(region_id)
+        db_instance_parameters = {}
+        for db_instance_id in db_instance_ids:
+            request = rds_20140815_models.DescribeParametersRequest(
+                dbinstance_id=db_instance_id
+            )
+            response = await client.describe_parameters_async(request)
+            if paramters:
+                response.body.config_parameters.dbinstance_parameter = [
+                    config_parameter for config_parameter in response.body.config_parameters.dbinstance_parameter
+                    if config_parameter.parameter_name in paramters
+                ]
+                response.body.running_parameters.dbinstance_parameter = [
+                    running_parameter for running_parameter in response.body.running_parameters.dbinstance_parameter
+                    if running_parameter.parameter_name in paramters
+                ]
 
-                    db_instance_parameters[db_instance_id] = {
-                        "ParamGroupInfo": response.body.param_group_info.to_map(),
-                        "ConfigParameters": json_array_to_csv(response.body.config_parameters.dbinstance_parameter),
-                        "RunningParameters": json_array_to_csv(response.body.running_parameters.dbinstance_parameter)
-                    }
-            return db_instance_parameters
-        except Exception as e:
-            raise e
+                db_instance_parameters[db_instance_id] = {
+                    "ParamGroupInfo": response.body.param_group_info.to_map(),
+                    "ConfigParameters": json_array_to_csv(response.body.config_parameters.dbinstance_parameter),
+                    "RunningParameters": json_array_to_csv(response.body.running_parameters.dbinstance_parameter)
+                }
+        return db_instance_parameters
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_bills(ctx: Context, 
-        billing_cycles: list[str],
+async def describe_bills(
+        billing_cycles: list,  # was: billing_cycles: list[str]
         db_instance_id: str = None,
         is_billing_item: bool = False
 ) -> dict[str, Any]:
@@ -1072,61 +1048,60 @@ async def describe_bills(ctx: Context,
     Returns:
         str: billing information.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_bill_client("cn-hangzhou")
-            res = {}
-            for billing_cycle in billing_cycles:
-                has_next_token = True
-                next_token = None
-                items = []
+    try:
+        client = get_bill_client("cn-hangzhou")
+        res = {}
+        for billing_cycle in billing_cycles:
+            has_next_token = True
+            next_token = None
+            items = []
 
-                while has_next_token:
-                    describe_instance_bill_request = bss_open_api_20171214_models.DescribeInstanceBillRequest(
-                        billing_cycle=billing_cycle,
-                        product_code='rds',
-                        is_billing_item=is_billing_item,
-                        next_token=next_token
+            while has_next_token:
+                describe_instance_bill_request = bss_open_api_20171214_models.DescribeInstanceBillRequest(
+                    billing_cycle=billing_cycle,
+                    product_code='rds',
+                    is_billing_item=is_billing_item,
+                    next_token=next_token
+                )
+                if db_instance_id:
+                    describe_instance_bill_request.db_instance_id = db_instance_id
+
+                response = client.describe_instance_bill(describe_instance_bill_request)
+                if not response.body.data:
+                    break
+                next_token = response.body.data.next_token
+                has_next_token = next_token is not None and next_token.strip() != ""
+                items.extend(response.body.data.items)
+            item_filters = []
+            for item in items:
+                if db_instance_id is None or db_instance_id in item.instance_id.split(";"):
+                    item_filters.append(
+                        {
+                            "Item": item.item,
+                            "AfterDiscountAmount": item.after_discount_amount,
+                            "InstanceID": item.instance_id,
+                            "BillingDate": item.billing_date,
+                            "InvoiceDiscount": item.invoice_discount,
+                            "SubscriptionType": item.subscription_type,
+                            "PretaxGrossAmount": item.pretax_gross_amount,
+                            "Currency": item.currency,
+                            "CommodityCode": item.commodity_code,
+                            "CostUnit": item.cost_unit,
+                            "NickName": item.nick_name,
+                            "PretaxAmount": item.pretax_amount,
+                            "BillingItem": item.billing_item,
+                            "BillingItemPriceUnit": item.list_price_unit,
+                            "BillingItemUsage": item.usage,
+                        }
                     )
-                    if db_instance_id:
-                        describe_instance_bill_request.db_instance_id = db_instance_id
-
-                    response = client.describe_instance_bill(describe_instance_bill_request)
-                    if not response.body.data:
-                        break
-                    next_token = response.body.data.next_token
-                    has_next_token = next_token is not None and next_token.strip() != ""
-                    items.extend(response.body.data.items)
-                item_filters = []
-                for item in items:
-                    if db_instance_id is None or db_instance_id in item.instance_id.split(";"):
-                        item_filters.append(
-                            {
-                                "Item": item.item,
-                                "AfterDiscountAmount": item.after_discount_amount,
-                                "InstanceID": item.instance_id,
-                                "BillingDate": item.billing_date,
-                                "InvoiceDiscount": item.invoice_discount,
-                                "SubscriptionType": item.subscription_type,
-                                "PretaxGrossAmount": item.pretax_gross_amount,
-                                "Currency": item.currency,
-                                "CommodityCode": item.commodity_code,
-                                "CostUnit": item.cost_unit,
-                                "NickName": item.nick_name,
-                                "PretaxAmount": item.pretax_amount,
-                                "BillingItem": item.billing_item,
-                                "BillingItemPriceUnit": item.list_price_unit,
-                                "BillingItemUsage": item.usage,
-                            }
-                        )
-                res[billing_cycle] = json_array_to_csv(item_filters)
-            return res
-        except Exception as e:
-            raise e
+            res[billing_cycle] = json_array_to_csv(item_filters)
+        return res
+    except Exception as e:
+        raise e
 
 
 @mcp.tool()
-async def modify_db_instance_description(ctx: Context, 
+async def modify_db_instance_description(
         region_id: str,
         db_instance_id: str,
         description: str
@@ -1140,21 +1115,20 @@ async def modify_db_instance_description(ctx: Context,
     Returns:
         dict[str, Any]: The response.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.ModifyDBInstanceDescriptionRequest(
-                dbinstance_id=db_instance_id,
-                dbinstance_description=description
-            )
-            response = await client.modify_dbinstance_description_async(request)
-            return response.body.to_map()
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.ModifyDBInstanceDescriptionRequest(
+            dbinstance_id=db_instance_id,
+            dbinstance_description=description
+        )
+        response = await client.modify_dbinstance_description_async(request)
+        return response.body.to_map()
+    except Exception as e:
+        raise e
 
 
 @mcp.tool()
-async def allocate_instance_public_connection(ctx: Context, 
+async def allocate_instance_public_connection(
         region_id: str,
         db_instance_id: str,
         connection_string_prefix: str = None,
@@ -1169,24 +1143,23 @@ async def allocate_instance_public_connection(ctx: Context,
     Returns:
         dict[str, Any]: The response.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            if connection_string_prefix is None:
-                connection_string_prefix = db_instance_id + "-public"
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.AllocateInstancePublicConnectionRequest(
-                dbinstance_id=db_instance_id,
-                connection_string_prefix=connection_string_prefix,
-                port=port
-            )
-            response = await client.allocate_instance_public_connection_async(request)
-            return response.body.to_map()
-        except Exception as e:
-            raise e
+    try:
+        if connection_string_prefix is None:
+            connection_string_prefix = db_instance_id + "-public"
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.AllocateInstancePublicConnectionRequest(
+            dbinstance_id=db_instance_id,
+            connection_string_prefix=connection_string_prefix,
+            port=port
+        )
+        response = await client.allocate_instance_public_connection_async(request)
+        return response.body.to_map()
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_all_whitelist_template(ctx: Context, 
+async def describe_all_whitelist_template(
         region_id: str,
         template_name: str = None
 ) -> List[Dict[str, Any]]:
@@ -1198,30 +1171,29 @@ async def describe_all_whitelist_template(ctx: Context,
     Returns:
         List[Dict[str, Any]]: The response contains all whitelist template information.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            next_pages = True
-            all_whitelists = []
-            page_num = 1
-            while next_pages:
-                request = rds_20140815_models.DescribeAllWhitelistTemplateRequest(
-                    template_name=template_name,
-                    fuzzy_search=False if template_name is None else True,
-                    max_records_per_page=100,
-                    page_numbers=page_num
-                )
-                response = await client.describe_all_whitelist_template_async(request)
-                next_pages = response.body.data.has_next
-                page_num += 1
-                all_whitelists.extend(response.body.data.templates)
-            return [item.to_map() for item in all_whitelists]
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        next_pages = True
+        all_whitelists = []
+        page_num = 1
+        while next_pages:
+            request = rds_20140815_models.DescribeAllWhitelistTemplateRequest(
+                template_name=template_name,
+                fuzzy_search=False if template_name is None else True,
+                max_records_per_page=100,
+                page_numbers=page_num
+            )
+            response = await client.describe_all_whitelist_template_async(request)
+            next_pages = response.body.data.has_next
+            page_num += 1
+            all_whitelists.extend(response.body.data.templates)
+        return [item.to_map() for item in all_whitelists]
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_instance_linked_whitelist_template(ctx: Context, 
+async def describe_instance_linked_whitelist_template(
         region_id: str,
         db_instance_id: str
 ):
@@ -1233,21 +1205,20 @@ async def describe_instance_linked_whitelist_template(ctx: Context,
     Returns:
         dict[str, Any]: The response.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.DescribeInstanceLinkedWhitelistTemplateRequest(
-                region_id=region_id,
-                ins_name=db_instance_id
-            )
-            response = await client.describe_instance_linked_whitelist_template_async(request)
-            return response.body.to_map()
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.DescribeInstanceLinkedWhitelistTemplateRequest(
+            region_id=region_id,
+            ins_name=db_instance_id
+        )
+        response = await client.describe_instance_linked_whitelist_template_async(request)
+        return response.body.to_map()
+    except Exception as e:
+        raise e
 
 
 @mcp.tool()
-async def attach_whitelist_template_to_instance(ctx: Context, 
+async def attach_whitelist_template_to_instance(
         region_id: str,
         db_instance_id: str,
         template_id: int
@@ -1261,25 +1232,24 @@ async def attach_whitelist_template_to_instance(ctx: Context,
     Returns:
         dict[str, Any]: The response.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.AttachWhitelistTemplateToInstanceRequest(
-                region_id=region_id,
-                ins_name=db_instance_id,
-                template_id=template_id
-            )
-            response = await client.attach_whitelist_template_to_instance_async(request)
-            return response.body.to_map()
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.AttachWhitelistTemplateToInstanceRequest(
+            region_id=region_id,
+            ins_name=db_instance_id,
+            template_id=template_id
+        )
+        response = await client.attach_whitelist_template_to_instance_async(request)
+        return response.body.to_map()
+    except Exception as e:
+        raise e
 
 
 @mcp.tool()
-async def add_tags_to_db_instance(ctx: Context, 
+async def add_tags_to_db_instance(
         region_id: str,
         db_instance_id: str,
-        tags: Dict[str, str]
+        tags: dict  # was: tags: Dict[str, str]
 ):
     """
     add tags to db instance.
@@ -1290,46 +1260,44 @@ async def add_tags_to_db_instance(ctx: Context,
     Returns:
         dict[str, Any]: The response.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.AddTagsToResourceRequest(
-                region_id=region_id,
-                dbinstance_id=db_instance_id,
-                tags=json.dumps(tags)
-            )
-            response = await client.add_tags_to_resource_async(request)
-            return response.body.to_map()
-        except Exception as e:
-            raise e
+    try:
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.AddTagsToResourceRequest(
+            region_id=region_id,
+            dbinstance_id=db_instance_id,
+            tags=json.dumps(tags)
+        )
+        response = await client.add_tags_to_resource_async(request)
+        return response.body.to_map()
+    except Exception as e:
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def get_current_time(ctx: Context) -> Dict[str, Any]:
+async def get_current_time() -> Dict[str, Any]:
     """Get the current time.
 
     Returns:
         Dict[str, Any]: The response containing the current time.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Get the current time
-            current_time = datetime.now()
+    try:
+        # Get the current time
+        current_time = datetime.now()
 
-            # Format the current time as a string
-            formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        # Format the current time as a string
+        formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
-            # Return the response
-            return {
-                "current_time": formatted_time
-            }
-        except Exception as e:
-            logger.error(f"Error occurred while getting the current time: {str(e)}")
-            raise Exception(f"Failed to get the current time: {str(e)}")
+        # Return the response
+        return {
+            "current_time": formatted_time
+        }
+    except Exception as e:
+        logger.error(f"Error occurred while getting the current time: {str(e)}")
+        raise Exception(f"Failed to get the current time: {str(e)}")
 
 
 @mcp.tool()
-async def modify_security_ips(ctx: Context, 
+async def modify_security_ips(
         region_id: str,
         dbinstance_id: str,
         security_ips: str,
@@ -1362,39 +1330,38 @@ async def modify_security_ips(ctx: Context,
     Returns:
         Dict[str, Any]: response contains request id.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # initialize client
-            client = get_rds_client(region_id)
+    try:
+        # initialize client
+        client = get_rds_client(region_id)
 
-            # create request
-            request = rds_20140815_models.ModifySecurityIpsRequest(
-                dbinstance_id=dbinstance_id,
-                security_ips=security_ips,
-                whitelist_network_type=whitelist_network_type
-            )
+        # create request
+        request = rds_20140815_models.ModifySecurityIpsRequest(
+            dbinstance_id=dbinstance_id,
+            security_ips=security_ips,
+            whitelist_network_type=whitelist_network_type
+        )
 
-            # add optional parameters
-            if security_ip_type:
-                request.security_ip_type = security_ip_type
-            if dbinstance_ip_array_name:
-                request.dbinstance_ip_array_name = dbinstance_ip_array_name
-            if dbinstance_ip_array_attribute:
-                request.dbinstance_ip_array_attribute = dbinstance_ip_array_attribute
-            if client_token:
-                request.client_token = client_token
+        # add optional parameters
+        if security_ip_type:
+            request.security_ip_type = security_ip_type
+        if dbinstance_ip_array_name:
+            request.dbinstance_ip_array_name = dbinstance_ip_array_name
+        if dbinstance_ip_array_attribute:
+            request.dbinstance_ip_array_attribute = dbinstance_ip_array_attribute
+        if client_token:
+            request.client_token = client_token
 
-            # send api request
-            response = client.modify_security_ips(request)
-            return response.body.to_map()
+        # send api request
+        response = client.modify_security_ips(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"modify security ips error: {str(e)}")
-            raise OpenAPIError(f"modify rds instance security ips failed: {str(e)}")
+    except Exception as e:
+        logger.error(f"modify security ips error: {str(e)}")
+        raise OpenAPIError(f"modify rds instance security ips failed: {str(e)}")
 
 
 @mcp.tool()
-async def restart_db_instance(ctx: Context, 
+async def restart_db_instance(
         region_id: str,
         dbinstance_id: str,
         effective_time: str = "Immediate",
@@ -1418,37 +1385,36 @@ async def restart_db_instance(ctx: Context,
     Returns:
         Dict[str, Any]: Response containing the request ID.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize client
-            client = get_rds_client(region_id)
+    try:
+        # Initialize client
+        client = get_rds_client(region_id)
 
-            # Create request
-            request = rds_20140815_models.RestartDBInstanceRequest(
-                dbinstance_id=dbinstance_id
-            )
+        # Create request
+        request = rds_20140815_models.RestartDBInstanceRequest(
+            dbinstance_id=dbinstance_id
+        )
 
-            # Add optional parameters
-            if effective_time:
-                request.effective_time = effective_time
-            if switch_time:
-                request.switch_time = switch_time
-            if client_token:
-                request.client_token = client_token
+        # Add optional parameters
+        if effective_time:
+            request.effective_time = effective_time
+        if switch_time:
+            request.switch_time = switch_time
+        if client_token:
+            request.client_token = client_token
 
-            # Make the API request
-            response = client.restart_dbinstance(request)
-            return response.body.to_map()
+        # Make the API request
+        response = client.restart_dbinstance(request)
+        return response.body.to_map()
 
-        except Exception as e:
-            logger.error(f"Error occurred while restarting instance: {str(e)}")
-            raise OpenAPIError(f"Failed to restart RDS instance: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error occurred while restarting instance: {str(e)}")
+        raise OpenAPIError(f"Failed to restart RDS instance: {str(e)}")
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_monitor_metrics(ctx: Context, 
+async def describe_monitor_metrics(
         dbinstance_id: str,
-        metrics_list: list[str],
+        metrics_list: list,  # was: metrics_list: list[str]
         db_type: str,
         start_time: str,
         end_time: str,
@@ -1467,69 +1433,68 @@ async def describe_monitor_metrics(ctx: Context,
         the monitor metrics information.
     """
 
-    with metadata_as_request_headers(ctx):
-        try:
-            # Initialize client
-            client = get_das_client()
-            metrics = transform_das_key(db_type, metrics_list)
-            if not metrics:
-                raise OpenAPIError(f"Unsupported das_metric_key: {metrics_list}")
-            start_time = convert_datetime_to_timestamp(start_time)
-            end_time = convert_datetime_to_timestamp(end_time)
+    try:
+        # Initialize client
+        client = get_das_client()
+        metrics = transform_das_key(db_type, metrics_list)
+        if not metrics:
+            raise OpenAPIError(f"Unsupported das_metric_key: {metrics_list}")
+        start_time = convert_datetime_to_timestamp(start_time)
+        end_time = convert_datetime_to_timestamp(end_time)
 
-            # 通过 interval 控制查询粒度
-            interval = int(max((end_time - start_time) / 30000, 5))
-            body = {
-                "InstanceId": dbinstance_id,
-                "Metrics": ",".join(metrics),
-                "StartTime": start_time,
-                "EndTime": end_time,
-                "Interval": interval
-            }
-            req = open_api_models.OpenApiRequest(
-                query=OpenApiUtilClient.query({}),
-                body=OpenApiUtilClient.parse_to_map(body)
-            )
-            params = open_api_models.Params(
-                action='GetPerformanceMetrics',
-                version='2020-01-16',
-                protocol='HTTPS',
-                pathname='/',
-                method='POST',
-                auth_type='AK',
-                style='RPC',
-                req_body_type='formData',
-                body_type='json'
-            )
-            response = client.call_api(params, req, util_models.RuntimeOptions())
-            response_data = response['body']['Data']
-            timestamp_map = {}
-            resp_metrics_list = set()
-            for metric in response_data:
-                name = metric["Name"]
-                values = metric["Value"]
-                timestamps = metric["Timestamp"]
-                resp_metrics_list.add(name)
-                for timestamp, value in zip(timestamps, values):
-                    dt = transform_timestamp_to_datetime(timestamp)
-                    if dt not in timestamp_map:
-                        timestamp_map[dt] = {}
-                    timestamp_map[dt][name] = value
+        # 通过 interval 控制查询粒度
+        interval = int(max((end_time - start_time) / 30000, 5))
+        body = {
+            "InstanceId": dbinstance_id,
+            "Metrics": ",".join(metrics),
+            "StartTime": start_time,
+            "EndTime": end_time,
+            "Interval": interval
+        }
+        req = open_api_models.OpenApiRequest(
+            query=OpenApiUtilClient.query({}),
+            body=OpenApiUtilClient.parse_to_map(body)
+        )
+        params = open_api_models.Params(
+            action='GetPerformanceMetrics',
+            version='2020-01-16',
+            protocol='HTTPS',
+            pathname='/',
+            method='POST',
+            auth_type='AK',
+            style='RPC',
+            req_body_type='formData',
+            body_type='json'
+        )
+        response = client.call_api(params, req, util_models.RuntimeOptions())
+        response_data = response['body']['Data']
+        timestamp_map = {}
+        resp_metrics_list = set()
+        for metric in response_data:
+            name = metric["Name"]
+            values = metric["Value"]
+            timestamps = metric["Timestamp"]
+            resp_metrics_list.add(name)
+            for timestamp, value in zip(timestamps, values):
+                dt = transform_timestamp_to_datetime(timestamp)
+                if dt not in timestamp_map:
+                    timestamp_map[dt] = {}
+                timestamp_map[dt][name] = value
         
-            headers = sorted(list(resp_metrics_list))
-            datas = []
-            for dt in sorted(timestamp_map.keys()):
-                value_map = timestamp_map[dt]
-                value_map["datetime"] = dt
-                datas.append(value_map)
-            headers.insert(0, "datetime")
-            return json_array_to_markdown(headers, datas)
-        except Exception as e:
-            logger.error(f"Error occurred: {str(e)}")
-            raise e
+        headers = sorted(list(resp_metrics_list))
+        datas = []
+        for dt in sorted(timestamp_map.keys()):
+            value_map = timestamp_map[dt]
+            value_map["datetime"] = dt
+            datas.append(value_map)
+        headers.insert(0, "datetime")
+        return json_array_to_markdown(headers, datas)
+    except Exception as e:
+        logger.error(f"Error occurred: {str(e)}")
+        raise e
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def describe_sql_insight_statistic(ctx: Context, 
+async def describe_sql_insight_statistic(
         dbinstance_id: str,
         start_time: str,
         end_time: str,
@@ -1544,73 +1509,72 @@ async def describe_sql_insight_statistic(ctx: Context,
         the sql insight statistic information in csv format.
     """
 
-    with metadata_as_request_headers(ctx):
-        def _descirbe(order_by: str):
-            try:
-                # Initialize client
-                client = get_das_client()
-                page_no = 1
-                page_size = 50
-                total = page_no * page_size + 1
-                result = []
-                while total > page_no * page_size:
-                    state = "RUNNING"
-                    job_id = ""
-                    while state == "RUNNING":
-                        body = {
-                            "InstanceId": dbinstance_id,
-                            "OrderBy": order_by,
-                            "Asc": False,
-                            "PageNo": 1,
-                            "PageSize": 10,
-                            "TemplateId": "",
-                            "DbName": "",
-                            "StartTime": convert_datetime_to_timestamp(start_time),
-                            "EndTime": convert_datetime_to_timestamp(end_time),
-                            "JobId": job_id
-                        }
-                        req = open_api_models.OpenApiRequest(
-                            query=OpenApiUtilClient.query({}),
-                            body=OpenApiUtilClient.parse_to_map(body)
-                        )
-                        params = open_api_models.Params(
-                            action='DescribeSqlInsightStatistic',
-                            version='2020-01-16',
-                            protocol='HTTPS',
-                            pathname='/',
-                            method='POST',
-                            auth_type='AK',
-                            style='RPC',
-                            req_body_type='formData',
-                            body_type='json'
-                        )
-                        response = client.call_api(params, req, util_models.RuntimeOptions())
-                        response_data = response['body']['Data']
-                        state = response_data['State']
-                        if state == "RUNNING":
-                            job_id = response_data['ResultId']
-                            time.sleep(1)
-                            continue
-                        if state == "SUCCESS":
-                            result.extend(response_data['Data']['List'])
-                            total = response_data['Data']['Total']
-                            page_no = page_no + 1
+    def _descirbe(order_by: str):
+        try:
+            # Initialize client
+            client = get_das_client()
+            page_no = 1
+            page_size = 50
+            total = page_no * page_size + 1
+            result = []
+            while total > page_no * page_size:
+                state = "RUNNING"
+                job_id = ""
+                while state == "RUNNING":
+                    body = {
+                        "InstanceId": dbinstance_id,
+                        "OrderBy": order_by,
+                        "Asc": False,
+                        "PageNo": 1,
+                        "PageSize": 10,
+                        "TemplateId": "",
+                        "DbName": "",
+                        "StartTime": convert_datetime_to_timestamp(start_time),
+                        "EndTime": convert_datetime_to_timestamp(end_time),
+                        "JobId": job_id
+                    }
+                    req = open_api_models.OpenApiRequest(
+                        query=OpenApiUtilClient.query({}),
+                        body=OpenApiUtilClient.parse_to_map(body)
+                    )
+                    params = open_api_models.Params(
+                        action='DescribeSqlInsightStatistic',
+                        version='2020-01-16',
+                        protocol='HTTPS',
+                        pathname='/',
+                        method='POST',
+                        auth_type='AK',
+                        style='RPC',
+                        req_body_type='formData',
+                        body_type='json'
+                    )
+                    response = client.call_api(params, req, util_models.RuntimeOptions())
+                    response_data = response['body']['Data']
+                    state = response_data['State']
+                    if state == "RUNNING":
+                        job_id = response_data['ResultId']
+                        time.sleep(1)
+                        continue
+                    if state == "SUCCESS":
+                        result.extend(response_data['Data']['List'])
+                        total = response_data['Data']['Total']
+                        page_no = page_no + 1
 
-                return json_array_to_csv(result)
-            except Exception as e:
-                logger.error(f"Error occurred: {str(e)}")
-                raise e
+            return json_array_to_csv(result)
+        except Exception as e:
+            logger.error(f"Error occurred: {str(e)}")
+            raise e
 
-        rt_rate = _descirbe("rtRate")
-        count_rate = _descirbe("countRate")
-        return {
-            "sql_log_order_by_rt_rate": rt_rate,
-            "sql_log_order_by_count_rate": count_rate
-        }
+    rt_rate = _descirbe("rtRate")
+    count_rate = _descirbe("countRate")
+    return {
+        "sql_log_order_by_rt_rate": rt_rate,
+        "sql_log_order_by_count_rate": count_rate
+    }
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def show_engine_innodb_status(ctx: Context, 
+async def show_engine_innodb_status(
         dbinstance_id: str,
         region_id: str
 ) -> str:
@@ -1622,17 +1586,16 @@ async def show_engine_innodb_status(ctx: Context,
     Returns:
         the sql result.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            async with DBService(region_id, dbinstance_id) as service:
-                return await service.execute_sql("show engine innodb status")
-        except Exception as e:
-            logger.error(f"Error occurred: {str(e)}")
-            raise e
+    try:
+        async with DBService(region_id, dbinstance_id) as service:
+            return await service.execute_sql("show engine innodb status")
+    except Exception as e:
+        logger.error(f"Error occurred: {str(e)}")
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def show_create_table(ctx: Context, 
+async def show_create_table(
         region_id: str,
         dbinstance_id: str,
         db_name: str,
@@ -1648,16 +1611,15 @@ async def show_create_table(ctx: Context,
     Returns:
         the sql result.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            async with DBService(region_id, dbinstance_id, db_name) as service:
-                return await service.execute_sql(f"show create table {db_name}.{table_name}")
-        except Exception as e:
-            logger.error(f"Error occurred: {str(e)}")
-            raise e
+    try:
+        async with DBService(region_id, dbinstance_id, db_name) as service:
+            return await service.execute_sql(f"show create table {db_name}.{table_name}")
+    except Exception as e:
+        logger.error(f"Error occurred: {str(e)}")
+        raise e
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def explain_sql(ctx: Context, 
+async def explain_sql(
         region_id: str,
         dbinstance_id: str,
         db_name: str,
@@ -1673,17 +1635,16 @@ async def explain_sql(ctx: Context,
     Returns:
         the sql execute plan.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            async with DBService(region_id, dbinstance_id, db_name) as service:
-                return await service.execute_sql(f"explain {sql}")
-        except Exception as e:
-            logger.error(f"Error occurred: {str(e)}")
-            raise e
+    try:
+        async with DBService(region_id, dbinstance_id, db_name) as service:
+            return await service.execute_sql(f"explain {sql}")
+    except Exception as e:
+        logger.error(f"Error occurred: {str(e)}")
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
-async def query_sql(ctx: Context, 
+async def query_sql(
         region_id: str,
         dbinstance_id: str,
         db_name: str,
@@ -1699,115 +1660,122 @@ async def query_sql(ctx: Context,
     Returns:
         the sql result.
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            if db_name == 'information_schema':
-                client = get_rds_client(region_id)
-                databases = _get_db_instance_databases_str(client, region_id, dbinstance_id)
-            else:
-                databases = None
-            async with DBService(region_id, dbinstance_id, db_name, databases) as service:
-                return await service.execute_sql(sql=sql)
-        except Exception as e:
-            logger.error(f"Error occurred: {str(e)}")
-            raise e
+    try:
+        if db_name == 'information_schema':
+            client = get_rds_client(region_id)
+            databases = _get_db_instance_databases_str(client, region_id, dbinstance_id)
+        else:
+            databases = None
+        async with DBService(region_id, dbinstance_id, db_name, databases) as service:
+            return await service.execute_sql(sql=sql)
+    except Exception as e:
+        logger.error(f"Error occurred: {str(e)}")
+        raise e
     
 @mcp.tool(annotations=READ_ONLY_TOOL,
           description="Query the top few tables with the highest space occupancy")
-async def show_largest_table(ctx: Context, 
-        region_id: str = Field(description="The region ID of the RDS instance."),
-        dbinstance_id: str = Field(description="The ID of the RDS instance."),
-        topK: int = Field(default=5, description="To display the number of the top few largest tables")
+async def show_largest_table(
+        region_id: str,  # was: Field()
+        dbinstance_id: str,  # was: Field()
+        topK: int = 5  # was: Field(default=5)
 ) -> str:
     """
     Returns:
         The data table with the largest storage space.
+
+    Args:
+        region_id: The region ID of the RDS instance.
+        dbinstance_id: The ID of the RDS instance.
+        topK: To display the number of the top few largest tables
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.DescribeDBInstanceAttributeRequest(dbinstance_id=dbinstance_id)
-            response = client.describe_dbinstance_attribute(request)
-            result = response.body.to_map()
+    try:
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.DescribeDBInstanceAttributeRequest(dbinstance_id=dbinstance_id)
+        response = client.describe_dbinstance_attribute(request)
+        result = response.body.to_map()
 
-            db_type = result['Items']['DBInstanceAttribute'][0]['Engine']
-            db_version = result['Items']['DBInstanceAttribute'][0]['EngineVersion']
-            if db_type.lower() != 'mysql' and db_version not in ["5.6", "5.7", "8.0"]:
-                return f"Unsupported db version {db_version}."
+        db_type = result['Items']['DBInstanceAttribute'][0]['Engine']
+        db_version = result['Items']['DBInstanceAttribute'][0]['EngineVersion']
+        if db_type.lower() != 'mysql' and db_version not in ["5.6", "5.7", "8.0"]:
+            return f"Unsupported db version {db_version}."
 
-            db_name = 'information_schema'
-            databases = _get_db_instance_databases_str(client, region_id, dbinstance_id)
-            # 构建SQL
-            # 限制展示最大表数量的上限
-            topK = min(topK, 100)
-            base_query = f"""
-                    SELECT 
-                      table_schema AS '数据库',
-                      table_name AS '表名',
-                      ROUND((data_length + index_length) / 1024 / 1024, 2) AS '总大小(MB)',
-                      ROUND(INDEX_LENGTH / 1024 / 1024, 2) AS '索引大小(MB)',
-                      table_rows AS '行数'
-                    FROM information_schema.TABLES
-                    ORDER BY (data_length + index_length) DESC
-                    Limit {topK};
-                """
+        db_name = 'information_schema'
+        databases = _get_db_instance_databases_str(client, region_id, dbinstance_id)
+        # 构建SQL
+        # 限制展示最大表数量的上限
+        topK = min(topK, 100)
+        base_query = f"""
+                SELECT 
+                  table_schema AS '数据库',
+                  table_name AS '表名',
+                  ROUND((data_length + index_length) / 1024 / 1024, 2) AS '总大小(MB)',
+                  ROUND(INDEX_LENGTH / 1024 / 1024, 2) AS '索引大小(MB)',
+                  table_rows AS '行数'
+                FROM information_schema.TABLES
+                ORDER BY (data_length + index_length) DESC
+                Limit {topK};
+            """
 
-            async with DBService(region_id, dbinstance_id, db_name, databases) as service:
-                return await service.execute_sql(sql=base_query)
-        except Exception as e:
-            logger.exception("show largest table failed.")
-            logger.error(f"Error occurred: {str(e)}")
-            raise e
+        async with DBService(region_id, dbinstance_id, db_name, databases) as service:
+            return await service.execute_sql(sql=base_query)
+    except Exception as e:
+        logger.exception("show largest table failed.")
+        logger.error(f"Error occurred: {str(e)}")
+        raise e
 
 
 @mcp.tool(annotations=READ_ONLY_TOOL,
           description="Query the tables with the largest table fragments")
-async def show_largest_table_fragment(ctx: Context, 
-        region_id: str = Field(description="The region ID of the RDS instance."),
-        dbinstance_id: str = Field(description="The ID of the RDS instance."),
-        topK: int = Field(default=5, description="To display the number of the top few largest tables")
+async def show_largest_table_fragment(
+        region_id: str,  # was: Field()
+        dbinstance_id: str,  # was: Field()
+        topK: int = 5  # was: Field(default=5)
 ) -> str:
     """
     Returns:
         The largest fragmented data table.
+
+    Args:
+        region_id: The region ID of the RDS instance.
+        dbinstance_id: The ID of the RDS instance.
+        topK: To display the number of the top few largest tables
     """
-    with metadata_as_request_headers(ctx):
-        try:
-            client = get_rds_client(region_id)
-            request = rds_20140815_models.DescribeDBInstanceAttributeRequest(dbinstance_id=dbinstance_id)
-            response = client.describe_dbinstance_attribute(request)
-            result = response.body.to_map()
+    try:
+        client = get_rds_client(region_id)
+        request = rds_20140815_models.DescribeDBInstanceAttributeRequest(dbinstance_id=dbinstance_id)
+        response = client.describe_dbinstance_attribute(request)
+        result = response.body.to_map()
 
-            db_type = result['Items']['DBInstanceAttribute'][0]['Engine']
-            db_version = result['Items']['DBInstanceAttribute'][0]['EngineVersion']
-            if db_type.lower() != 'mysql' and db_version not in ["5.6", "5.7", "8.0"]:
-                return f"Unsupported db version {db_version}."
+        db_type = result['Items']['DBInstanceAttribute'][0]['Engine']
+        db_version = result['Items']['DBInstanceAttribute'][0]['EngineVersion']
+        if db_type.lower() != 'mysql' and db_version not in ["5.6", "5.7", "8.0"]:
+            return f"Unsupported db version {db_version}."
 
-            db_name = 'information_schema'
-            databases = _get_db_instance_databases_str(client, region_id, dbinstance_id)
-            # 构建SQL
-            # 限制展示最大表数量的上限
-            topK = min(topK, 100)
-            base_query = f"""
-                    SELECT 
-                      ENGINE,
-                      TABLE_SCHEMA,
-                      TABLE_NAME,
-                      ROUND(DATA_LENGTH / 1024 / 1024,2) AS '总大小(MB)',
-                      ROUND(INDEX_LENGTH / 1024 / 1024,2) AS '索引大小(MB)',
-                      ROUND(DATA_FREE / 1024 / 1024,2) AS '碎片大小(MB)'
-                    FROM information_schema.TABLES
-                    WHERE DATA_FREE > 0
-                    ORDER BY DATA_FREE DESC
-                    Limit {topK};
-                """
+        db_name = 'information_schema'
+        databases = _get_db_instance_databases_str(client, region_id, dbinstance_id)
+        # 构建SQL
+        # 限制展示最大表数量的上限
+        topK = min(topK, 100)
+        base_query = f"""
+                SELECT 
+                  ENGINE,
+                  TABLE_SCHEMA,
+                  TABLE_NAME,
+                  ROUND(DATA_LENGTH / 1024 / 1024,2) AS '总大小(MB)',
+                  ROUND(INDEX_LENGTH / 1024 / 1024,2) AS '索引大小(MB)',
+                  ROUND(DATA_FREE / 1024 / 1024,2) AS '碎片大小(MB)'
+                FROM information_schema.TABLES
+                WHERE DATA_FREE > 0
+                ORDER BY DATA_FREE DESC
+                Limit {topK};
+            """
 
-            async with DBService(region_id, dbinstance_id, db_name, databases) as service:
-                return await service.execute_sql(sql=base_query)
-        except Exception as e:
-            logger.exception("show largest table failed.")
-            logger.error(f"Error occurred: {str(e)}")
-            raise e
+        async with DBService(region_id, dbinstance_id, db_name, databases) as service:
+            return await service.execute_sql(sql=base_query)
+    except Exception as e:
+        logger.exception("show largest table failed.")
+        logger.error(f"Error occurred: {str(e)}")
+        raise e
 
 # PORT: health_check endpoint removed. It was an HTTP-transport-only
 # probe (Starlette Request/JSONResponse) for container/load-balancer
@@ -1821,9 +1789,10 @@ async def show_largest_table_fragment(ctx: Context,
 #   1. API-key validation (Authorization Bearer check)  → replaced by
 #      MACAW signed invocations validated by the Local Agent BEFORE
 #      the handler runs. Stronger guarantee than bearer comparison.
-#   2. ->(this is imp)"Populating" `current_request_headers` from HTTP headers  → replaced by `metadata_as_request_headers(ctx)` 
-# in utils.py, called from each
-#      tool body. Same ContextVar, different source.
+#   2. Filling `current_request_headers` from HTTP headers  → not replaced.
+#      Upstream only did this on its HTTP transports. On stdio the ContextVar
+#      keeps its default {} and get_aksk() reads the ALIBABA_CLOUD_* env vars.
+#      The port behaves like upstream's stdio transport.
 #
 # class VerifyHeaderMiddleware(BaseHTTPMiddleware):
 #     async def dispatch(self, request: Request, call_next):

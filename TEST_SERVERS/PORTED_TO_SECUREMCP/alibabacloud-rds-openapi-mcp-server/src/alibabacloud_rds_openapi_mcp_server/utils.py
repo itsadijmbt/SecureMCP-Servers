@@ -6,8 +6,6 @@ from io import StringIO
 import tzlocal
 import time
 
-
-
 from alibabacloud_bssopenapi20171214.client import Client as BssOpenApi20171214Client
 from alibabacloud_rds20140815.client import Client as RdsClient
 from alibabacloud_tea_openapi.models import Config
@@ -15,27 +13,6 @@ from alibabacloud_vpc20160428.client import Client as VpcClient
 from alibabacloud_das20200116.client import Client as DAS20200116Client
 
 current_request_headers: ContextVar[dict] = ContextVar("current_request_headers", default={})
-
-# the extra utility so that we dont have to push extract _metadata again and again
-from contextlib import contextmanager
-from macaw_adapters.mcp import Context
-@contextmanager
-def metadata_as_request_headers(ctx: Context):
-      """SecureMCP equivalent of VerifyHeaderMiddleware: populate
-      `current_request_headers` from ctx._metadata for the duration of one
-      tool call, then reset.
-
-      All existing helpers (get_aksk, get_rds_account, get_rds_client, etc.)
-      keep reading from `current_request_headers` — they don't need to know
-      the source changed from HTTP headers to MACAW _metadata.
-      """
-      headers = dict(ctx._metadata or {}) if ctx is not None else {}
-      token = current_request_headers.set(headers)
-      try:
-          yield
-      finally:
-          current_request_headers.reset(token)
-
 
 PERF_KEYS = {
     "mysql": {

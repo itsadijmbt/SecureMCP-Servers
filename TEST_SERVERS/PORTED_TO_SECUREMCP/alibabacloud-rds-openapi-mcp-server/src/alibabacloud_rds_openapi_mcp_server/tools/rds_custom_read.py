@@ -116,8 +116,8 @@ async def describe_rc_instance_ip_address(
     resource_type: str = 'ecs',
     ddos_status: Optional[str] = None,
     instance_ip: Optional[str] = None,
-    current_page: Optional[int] = None,
-    page_size: Optional[int] = None,
+    current_page: int = None,  # was: current_page: Optional[int]
+    page_size: int = None,  # was: page_size: Optional[int]
     instance_name: Optional[str] = None
 ) -> Dict[str, Any]:
     """
@@ -154,8 +154,8 @@ async def describe_rc_instance_ip_address(
 @tool(group=RDS_CUSTOM_GROUP_NAME)
 async def describe_rc_image_list(
     region_id: str,
-    page_number: Optional[int] = None,
-    page_size: Optional[int] = None,
+    page_number: int = None,  # was: page_number: Optional[int]
+    page_size: int = None,  # was: page_size: Optional[int]
     type: Optional[str] = None,
     architecture: Optional[str] = None,
     image_id: Optional[str] = None,
@@ -196,9 +196,9 @@ async def describe_rc_image_list(
 async def describe_rc_snapshots(
     region_id: str,
     disk_id: Optional[str] = None,
-    snapshot_ids: Optional[List[str]] = None,
-    page_number: Optional[int] = None,
-    page_size: Optional[int] = None
+    snapshot_ids: list = None,  # was: snapshot_ids: Optional[List[str]]
+    page_number: int = None,  # was: page_number: Optional[int]
+    page_size: int = None  # was: page_size: Optional[int]
 ) -> Dict[str, Any]:
     """
     Query the list of RDS Custom snapshots information.
@@ -274,10 +274,10 @@ async def describe_rc_metric_list(
 async def describe_rc_disks(
     region_id: str,
     instance_id: Optional[str] = None,
-    disk_ids: Optional[List[str]] = None,
-    page_number: Optional[int] = None,
-    page_size: Optional[int] = None,
-    tag: Optional[List[Dict[str, str]]] = None
+    disk_ids: list = None,  # was: disk_ids: Optional[List[str]]
+    page_number: int = None,  # was: page_number: Optional[int]
+    page_size: int = None,  # was: page_size: Optional[int]
+    tag: list = None  # was: tag: Optional[List[Dict[str, str]]]
 ) -> Dict[str, Any]:
     """
     Query the list of disks for an RDS Custom instance.

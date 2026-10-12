@@ -58,10 +58,10 @@ async def modify_rc_instance_attribute(
     region_id: str,
     instance_id: str,
     password: Optional[str] = None,
-    reboot: Optional[bool] = None,
+    reboot: bool = None,  # was: reboot: Optional[bool]
     host_name: Optional[str] = None,
     security_group_id: Optional[str] = None,
-    deletion_protection: Optional[bool] = None
+    deletion_protection: bool = None  # was: deletion_protection: Optional[bool]
 ) -> Dict[str, Any]:
     """
     modify attributes of a specific rds custom instance.
@@ -92,7 +92,7 @@ async def modify_rc_instance_attribute(
 @tool(group=RDS_CUSTOM_GROUP_NAME)
 async def stop_rc_instances(
     region_id: str,
-    instance_ids: List[str],
+    instance_ids: list,  # was: instance_ids: List[str]
     force_stop: bool = False,
     batch_optimization: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -119,7 +119,7 @@ async def stop_rc_instances(
 @tool(group=RDS_CUSTOM_GROUP_NAME)
 async def start_rc_instances(
     region_id: str,
-    instance_ids: List[str],
+    instance_ids: list,  # was: instance_ids: List[str]
     batch_optimization: Optional[str] = None
 ) -> Dict[str, Any]:
     """
@@ -249,7 +249,7 @@ async def create_rc_snapshot(
     region_id: str,
     disk_id: str,
     description: Optional[str] = None,
-    retention_days: Optional[int] = None
+    retention_days: int = None  # was: retention_days: Optional[int]
 ) -> Dict[str, Any]:
     """
     Create a manual snapshot for a specific cloud disk of an RDS Custom instance.
@@ -283,31 +283,31 @@ async def run_rc_instances(
         image_id: str,
         # --- Optional Parameters ---
         instance_charge_type: Optional[str] = None,
-        amount: Optional[int] = None,
-        period: Optional[int] = None,
+        amount: int = None,  # was: amount: Optional[int]
+        period: int = None,  # was: period: Optional[int]
         period_unit: Optional[str] = None,
-        auto_renew: Optional[bool] = None,
-        auto_pay: Optional[bool] = None,
+        auto_renew: bool = None,  # was: auto_renew: Optional[bool]
+        auto_pay: bool = None,  # was: auto_pay: Optional[bool]
         client_token: Optional[str] = None,
-        auto_use_coupon: Optional[bool] = None,
+        auto_use_coupon: bool = None,  # was: auto_use_coupon: Optional[bool]
         promotion_code: Optional[str] = None,
-        data_disk: Optional[List[Dict[str, Any]]] = None,
-        system_disk: Optional[Dict[str, Any]] = None,
+        data_disk: list = None,  # was: data_disk: Optional[List[Dict[str, Any]]]
+        system_disk: dict = None,  # was: system_disk: Optional[Dict[str, Any]]
         deployment_set_id: Optional[str] = None,
-        internet_max_bandwidth_out: Optional[int] = None,
+        internet_max_bandwidth_out: int = None,  # was: internet_max_bandwidth_out: Optional[int]
         description: Optional[str] = None,
         key_pair_name: Optional[str] = None,
-        dry_run: Optional[bool] = None,
-        tag: Optional[List[Dict[str, str]]] = None,
+        dry_run: bool = None,  # was: dry_run: Optional[bool]
+        tag: list = None,  # was: tag: Optional[List[Dict[str, str]]]
         resource_group_id: Optional[str] = None,
         create_mode: Optional[str] = None,
         host_name: Optional[str] = None,
         spot_strategy: Optional[str] = None,
         support_case: Optional[str] = None,
-        create_ack_edge_param: Optional[Dict[str, Any]] = None,
+        create_ack_edge_param: dict = None,  # was: create_ack_edge_param: Optional[Dict[str, Any]]
         user_data: Optional[str] = None,
-        user_data_in_base_64: Optional[bool] = None,
-        deletion_protection: Optional[bool] = None
+        user_data_in_base_64: bool = None,  # was: user_data_in_base_64: Optional[bool]
+        deletion_protection: bool = None  # was: deletion_protection: Optional[bool]
 ) -> Dict[str, Any]:
     """
     Creates one or more RDS Custom instances by converting dicts to model objects internally.

@@ -67,14 +67,14 @@ async def main():
         print(f"  FAILED: {e}")
 
 
-    print("\n[TEST 2] describe_db_instances — env-var fallback path (no _metadata)")
+    print("\n[TEST 2] describe_db_instances — credentials come from the ALIBABA_CLOUD_* env vars")
     try:
         result = await client.call_tool(
             "describe_db_instances",
             {"region_id": "cn-hangzhou"},
         )
         print(f"  Result: {result}")
-        print("  Note: success here means env vars ARE set. Both paths are reachable.")
+        print("  Note: success here means the env vars ARE set.")
     except Exception as e:
         msg = str(e)
         print(f"  Got error: {msg[:200]}")
@@ -84,30 +84,7 @@ async def main():
             print("  Inspect server logs to confirm error origin (handler ran but failed).")
 
  
-    print("\n[TEST 3] describe_db_instances — per-caller path (_metadata with fake AK/SK)")
-    try:
-        result = await client.call_tool(
-            "describe_db_instances",
-            {
-                "region_id": "cn-hangzhou",
-                "_metadata": {
-                    "ak": "fake-access-key-from-test",
-                    "sk": "fake-secret-from-test",
-                },
-            },
-        )
-        print(f"  Result: {result}")
-        print("  Note: success would be unexpected with fake creds. Check log.")
-    except Exception as e:
-        msg = str(e)
-        print(f"  Got error: {msg[:200]}")
-        if "InvalidAccessKey" in msg or "Forbidden" in msg or "access" in msg.lower():
-            print("  PASS — Aliyun rejected the fake creds (bridge transported values OK)")
-        else:
-            print("  Compare error against TEST 2 — different message means both paths work.")
-
-    
-    print("\n[TEST 4] describe_rc_instances — service-account-only tool (env vars only)")
+    print("\n[TEST 3] describe_rc_instances — rds_custom toolset (needs MCP_TOOLSETS=rds,rds_custom_read on the server)")
     try:
         result = await client.call_tool(
             "describe_rc_instances",
@@ -117,7 +94,6 @@ async def main():
     except Exception as e:
         msg = str(e)
         print(f"  Got error: {msg[:200]}")
-        print("  Note: This tool ignores _metadata by design. Always uses env vars.")
 
 
 
