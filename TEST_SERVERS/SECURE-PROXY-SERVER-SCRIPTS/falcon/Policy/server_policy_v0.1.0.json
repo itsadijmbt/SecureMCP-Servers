@@ -1,0 +1,891 @@
+{
+  "policy_id": "app:falcon-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:falcon-proxy/falcon_check_connectivity",
+    "tool:falcon-proxy/falcon_list_enabled_modules",
+    "tool:falcon-proxy/falcon_search_detections",
+    "tool:falcon-proxy/falcon_get_detection_details",
+    "tool:falcon-proxy/falcon_search_hosts",
+    "tool:falcon-proxy/falcon_get_host_details",
+    "tool:falcon-proxy/falcon_search_iocs",
+    "tool:falcon-proxy/falcon_search_ioa_rule_groups",
+    "tool:falcon-proxy/falcon_get_ioa_platforms",
+    "tool:falcon-proxy/falcon_get_ioa_rule_types",
+    "tool:falcon-proxy/falcon_search_firewall_rules",
+    "tool:falcon-proxy/falcon_search_firewall_rule_groups",
+    "tool:falcon-proxy/falcon_search_firewall_policy_rules",
+    "tool:falcon-proxy/falcon_search_scheduled_reports",
+    "tool:falcon-proxy/falcon_search_report_executions",
+    "tool:falcon-proxy/falcon_download_report_execution",
+    "tool:falcon-proxy/falcon_search_kubernetes_containers",
+    "tool:falcon-proxy/falcon_count_kubernetes_containers",
+    "tool:falcon-proxy/falcon_search_images_vulnerabilities",
+    "tool:falcon-proxy/falcon_search_cspm_assets",
+    "tool:falcon-proxy/falcon_search_actors",
+    "tool:falcon-proxy/falcon_search_indicators",
+    "tool:falcon-proxy/falcon_search_reports",
+    "tool:falcon-proxy/falcon_get_mitre_report",
+    "tool:falcon-proxy/falcon_search_vulnerabilities",
+    "tool:falcon-proxy/falcon_search_applications",
+    "tool:falcon-proxy/falcon_search_unmanaged_assets",
+    "tool:falcon-proxy/falcon_search_serverless_vulnerabilities",
+    "tool:falcon-proxy/falcon_search_sensor_usage",
+    "tool:falcon-proxy/falcon_search_ngsiem",
+    "tool:falcon-proxy/falcon_idp_investigate_entity",
+    "tool:falcon-proxy/falcon_list_enabled_tools",
+    "tool:falcon-proxy/falcon_search_guardian_agents",
+    "tool:falcon-proxy/falcon_get_guardian_agent",
+    "tool:falcon-proxy/falcon_search_guardian_mcp_servers",
+    "tool:falcon-proxy/falcon_get_guardian_agent_sessions",
+    "tool:falcon-proxy/falcon_get_guardian_session_detail",
+    "tool:falcon-proxy/falcon_get_guardian_session_activity",
+    "tool:falcon-proxy/falcon_search_guardian_tools",
+    "tool:falcon-proxy/falcon_search_guardian_tool_usage",
+    "tool:falcon-proxy/falcon_search_guardian_executions",
+    "tool:falcon-proxy/falcon_search_guardian_prompts",
+    "tool:falcon-proxy/falcon_get_guardian_inventory",
+    "tool:falcon-proxy/falcon_search_guardian_skills",
+    "tool:falcon-proxy/falcon_search_guardian_skill_usage",
+    "tool:falcon-proxy/falcon_get_guardian_fleet_skill_inventory",
+    "tool:falcon-proxy/falcon_search_guardian_os_users",
+    "tool:falcon-proxy/falcon_pivot_on_guardian_attribute",
+    "tool:falcon-proxy/falcon_get_guardian_process_tree",
+    "tool:falcon-proxy/falcon_get_guardian_network_events",
+    "tool:falcon-proxy/falcon_get_guardian_file_events",
+    "tool:falcon-proxy/falcon_get_guardian_classified_file_access",
+    "tool:falcon-proxy/falcon_generate_guardian_report",
+    "tool:falcon-proxy/falcon_search_guardian_detections",
+    "tool:falcon-proxy/falcon_get_guardian_detection_scores",
+    "tool:falcon-proxy/falcon_search_guardian_installs",
+    "tool:falcon-proxy/falcon_search_guardian_models",
+    "tool:falcon-proxy/falcon_search_data_protection_classifications",
+    "tool:falcon-proxy/falcon_search_data_protection_policies",
+    "tool:falcon-proxy/falcon_search_data_protection_content_patterns",
+    "tool:falcon-proxy/falcon_search_recon_notifications",
+    "tool:falcon-proxy/falcon_search_recon_rules",
+    "tool:falcon-proxy/falcon_search_recon_exposed_data_records",
+    "tool:falcon-proxy/falcon_aggregate_recon_notifications",
+    "tool:falcon-proxy/falcon_aggregate_recon_exposed_data_records",
+    "tool:falcon-proxy/falcon_preview_recon_rule",
+    "tool:falcon-proxy/falcon_search_exclusions",
+    "tool:falcon-proxy/falcon_get_certificate_details",
+    "tool:falcon-proxy/falcon_search_cloud_insights",
+    "tool:falcon-proxy/falcon_get_cloud_asset_insights",
+    "tool:falcon-proxy/falcon_list_cloud_insight_definitions",
+    "tool:falcon-proxy/falcon_search_iom_findings",
+    "tool:falcon-proxy/falcon_search_cspm_suppression_rules",
+    "tool:falcon-proxy/falcon_search_cloud_risks",
+    "tool:falcon-proxy/falcon_search_cloud_groups",
+    "tool:falcon-proxy/falcon_get_cloud_groups",
+    "tool:falcon-proxy/falcon_search_cases",
+    "tool:falcon-proxy/falcon_get_cases",
+    "tool:falcon-proxy/falcon_list_case_templates",
+    "tool:falcon-proxy/falcon_aggregate_case_slas",
+    "tool:falcon-proxy/falcon_aggregate_case_templates",
+    "tool:falcon-proxy/falcon_aggregate_case_access_tags",
+    "tool:falcon-proxy/falcon_aggregate_case_notification_groups",
+    "tool:falcon-proxy/falcon_aggregate_case_file_details",
+    "tool:falcon-proxy/falcon_search_shield_checks",
+    "tool:falcon-proxy/falcon_get_shield_check_affected_entities",
+    "tool:falcon-proxy/falcon_get_shield_posture_metrics",
+    "tool:falcon-proxy/falcon_get_shield_check_compliance",
+    "tool:falcon-proxy/falcon_search_shield_alerts",
+    "tool:falcon-proxy/falcon_get_shield_activity_monitor",
+    "tool:falcon-proxy/falcon_search_shield_users",
+    "tool:falcon-proxy/falcon_search_shield_devices",
+    "tool:falcon-proxy/falcon_search_shield_apps",
+    "tool:falcon-proxy/falcon_get_shield_app_users",
+    "tool:falcon-proxy/falcon_search_shield_data_shares",
+    "tool:falcon-proxy/falcon_get_shield_integrations",
+    "tool:falcon-proxy/falcon_get_shield_system_users",
+    "tool:falcon-proxy/falcon_get_shield_supported_saas",
+    "tool:falcon-proxy/falcon_get_shield_system_logs",
+    "tool:falcon-proxy/falcon_search_policies",
+    "tool:falcon-proxy/falcon_search_policy_members",
+    "tool:falcon-proxy/falcon_search_correlation_rules",
+    "tool:falcon-proxy/falcon_search_workflow_definitions",
+    "tool:falcon-proxy/falcon_search_workflow_executions",
+    "tool:falcon-proxy/falcon_get_workflow_execution_results",
+    "tool:falcon-proxy/falcon_aggregate_detections",
+    "tool:falcon-proxy/falcon_search_agentworks_agents",
+    "tool:falcon-proxy/falcon_search_agentworks_agent_versions",
+    "tool:falcon-proxy/falcon_search_agentworks_spans",
+    "tool:falcon-proxy/falcon_get_agentworks_agent_invocation",
+    "tool:falcon-proxy/falcon_search_zta_assessments",
+    "tool:falcon-proxy/falcon_get_zta_assessments",
+    "tool:falcon-proxy/falcon_get_zta_audit",
+    "tool:falcon-proxy/falcon_search_rtr_sessions",
+    "tool:falcon-proxy/falcon_search_rtr_audit_sessions",
+    "tool:falcon-proxy/falcon_aggregate_rtr_sessions",
+    "tool:falcon-proxy/falcon_get_rtr_session_details",
+    "tool:falcon-proxy/falcon_check_rtr_command_status",
+    "tool:falcon-proxy/falcon_list_rtr_session_files",
+    "tool:falcon-proxy/falcon_search_host_groups",
+    "tool:falcon-proxy/falcon_search_host_group_members",
+    "tool:falcon-proxy/falcon_search_managed_assets",
+    "tool:falcon-proxy/falcon_search_quarantined_files",
+    "tool:falcon-proxy/falcon_preview_quarantine_actions"
+  ],
+  "denied_resources": [
+    "tool:falcon-proxy/falcon_add_ioc",
+    "tool:falcon-proxy/falcon_remove_iocs",
+    "tool:falcon-proxy/falcon_create_ioa_rule_group",
+    "tool:falcon-proxy/falcon_update_ioa_rule_group",
+    "tool:falcon-proxy/falcon_delete_ioa_rule_groups",
+    "tool:falcon-proxy/falcon_create_ioa_rule",
+    "tool:falcon-proxy/falcon_update_ioa_rule",
+    "tool:falcon-proxy/falcon_delete_ioa_rules",
+    "tool:falcon-proxy/falcon_create_firewall_rule_group",
+    "tool:falcon-proxy/falcon_delete_firewall_rule_groups",
+    "tool:falcon-proxy/falcon_launch_scheduled_report",
+    "tool:falcon-proxy/falcon_create_exclusion",
+    "tool:falcon-proxy/falcon_update_exclusion",
+    "tool:falcon-proxy/falcon_delete_exclusions",
+    "tool:falcon-proxy/falcon_create_cspm_suppression_rule",
+    "tool:falcon-proxy/falcon_delete_cspm_suppression_rules",
+    "tool:falcon-proxy/falcon_create_case",
+    "tool:falcon-proxy/falcon_update_case",
+    "tool:falcon-proxy/falcon_add_case_alert_evidence",
+    "tool:falcon-proxy/falcon_add_case_event_evidence",
+    "tool:falcon-proxy/falcon_manage_case_tags",
+    "tool:falcon-proxy/falcon_dismiss_shield_check",
+    "tool:falcon-proxy/falcon_create_policy",
+    "tool:falcon-proxy/falcon_update_policy",
+    "tool:falcon-proxy/falcon_delete_policies",
+    "tool:falcon-proxy/falcon_perform_policy_action",
+    "tool:falcon-proxy/falcon_set_policy_precedence",
+    "tool:falcon-proxy/falcon_create_correlation_rule",
+    "tool:falcon-proxy/falcon_update_correlation_rule",
+    "tool:falcon-proxy/falcon_delete_correlation_rules",
+    "tool:falcon-proxy/falcon_execute_workflow",
+    "tool:falcon-proxy/falcon_update_detections",
+    "tool:falcon-proxy/falcon_invoke_agentworks_agent",
+    "tool:falcon-proxy/falcon_init_rtr_session",
+    "tool:falcon-proxy/falcon_pulse_rtr_session",
+    "tool:falcon-proxy/falcon_execute_rtr_read_only_command",
+    "tool:falcon-proxy/falcon_run_rtr_read_only_command_and_wait",
+    "tool:falcon-proxy/falcon_delete_rtr_session",
+    "tool:falcon-proxy/falcon_create_host_group",
+    "tool:falcon-proxy/falcon_update_host_group",
+    "tool:falcon-proxy/falcon_delete_host_groups",
+    "tool:falcon-proxy/falcon_perform_host_group_action",
+    "tool:falcon-proxy/falcon_manage_host_grouping_tags",
+    "tool:falcon-proxy/falcon_update_quarantined_files",
+    "tool:falcon-proxy/falcon_delete_quarantined_files"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:falcon-proxy/falcon_search_detections": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 9999
+        }
+      },
+      "tool:falcon-proxy/falcon_search_hosts": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_iocs": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_ioa_rule_groups": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_get_ioa_rule_types": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_firewall_rules": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_firewall_rule_groups": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_firewall_policy_rules": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_scheduled_reports": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_report_executions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_kubernetes_containers": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 9999
+        }
+      },
+      "tool:falcon-proxy/falcon_search_images_vulnerabilities": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 9999
+        }
+      },
+      "tool:falcon-proxy/falcon_search_cspm_assets": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_actors": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_indicators": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_reports": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_vulnerabilities": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_applications": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_unmanaged_assets": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_serverless_vulnerabilities": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_idp_investigate_entity": {
+        "relationship_depth": {
+          "type": "integer",
+          "min": 1,
+          "max": 3
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 200
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_agents": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_mcp_servers": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_get_guardian_agent_sessions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_tools": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_tool_usage": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_executions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_prompts": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_skills": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_skill_usage": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_get_guardian_fleet_skill_inventory": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_os_users": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_pivot_on_guardian_attribute": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_get_guardian_process_tree": {
+        "depth": {
+          "type": "integer",
+          "min": 1,
+          "max": 3
+        }
+      },
+      "tool:falcon-proxy/falcon_get_guardian_file_events": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_detections": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_installs": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_guardian_models": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_data_protection_classifications": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_data_protection_policies": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_data_protection_content_patterns": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_recon_notifications": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_recon_rules": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_recon_exposed_data_records": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_recon_notifications": {
+        "size": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_recon_exposed_data_records": {
+        "size": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_exclusions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_cloud_insights": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_list_cloud_insight_definitions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_iom_findings": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_cspm_suppression_rules": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_cloud_risks": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_cloud_groups": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_cases": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_list_case_templates": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 200
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_case_slas": {
+        "size": {
+          "type": "integer",
+          "min": 1
+        },
+        "from_": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_case_templates": {
+        "size": {
+          "type": "integer",
+          "min": 1
+        },
+        "from_": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_case_access_tags": {
+        "size": {
+          "type": "integer",
+          "min": 1
+        },
+        "from_": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_case_notification_groups": {
+        "size": {
+          "type": "integer",
+          "min": 1
+        },
+        "from_": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_case_file_details": {
+        "size": {
+          "type": "integer",
+          "min": 1
+        },
+        "from_": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_shield_checks": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_get_shield_check_affected_entities": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_get_shield_posture_metrics": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_search_shield_alerts": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_get_shield_activity_monitor": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 10000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_shield_users": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_search_shield_devices": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_search_shield_apps": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_search_shield_data_shares": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_get_shield_system_logs": {
+        "limit": {
+          "type": "integer",
+          "min": 1
+        }
+      },
+      "tool:falcon-proxy/falcon_search_policies": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_policy_members": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_correlation_rules": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_workflow_definitions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_workflow_executions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_detections": {
+        "size": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_agentworks_agents": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_agentworks_agent_versions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      },
+      "tool:falcon-proxy/falcon_search_agentworks_spans": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_zta_assessments": {
+        "min_score": {
+          "type": "integer",
+          "min": 0,
+          "max": 100
+        },
+        "max_score": {
+          "type": "integer",
+          "min": 0,
+          "max": 100
+        },
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_rtr_sessions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_rtr_audit_sessions": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_aggregate_rtr_sessions": {
+        "size": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        }
+      },
+      "tool:falcon-proxy/falcon_check_rtr_command_status": {
+        "sequence_id": {
+          "type": "integer",
+          "min": 0
+        }
+      },
+      "tool:falcon-proxy/falcon_search_host_groups": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_host_group_members": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_managed_assets": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 5000
+        }
+      },
+      "tool:falcon-proxy/falcon_search_quarantined_files": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        }
+      }
+    }
+  },
+  "description": "CrowdStrike Falcon MCP via SecureMCPProxy -- read-only"
+}

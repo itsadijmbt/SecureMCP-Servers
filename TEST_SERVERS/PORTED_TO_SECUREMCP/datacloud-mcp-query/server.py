@@ -70,7 +70,7 @@ DATASPACE_FIELD_DESCRIPTION = "The Data Cloud dataspace name to execute against.
 async def query(
     sql: str,
     dataspace: str = "default",
-    query_settings: Optional[dict[str, str]] = None,
+    query_settings: dict = None,  # was: query_settings: Optional[dict[str, str]]
 ):
     # Returns both data and metadata
     return await run_query(

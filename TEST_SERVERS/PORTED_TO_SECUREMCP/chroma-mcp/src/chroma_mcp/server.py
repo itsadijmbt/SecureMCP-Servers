@@ -28,7 +28,7 @@ from chromadb.utils.embedding_functions import (
 )
 
 # Initialize the MCP server (was FastMCP under the slim SDK).
-# was: mcp = FastMCP("chroma-mcp")
+# was: mcp = FastMCP("chroma")
 mcp = SecureMCP("chroma-mcp")
 
 # Global variables
@@ -89,9 +89,7 @@ def get_chroma_client(args=None):
             args = parser.parse_args()
 
         # Load environment variables from .env file if it exists
-        if args.dotenv_path:
-            load_dotenv(dotenv_path=args.dotenv_path)
-
+        load_dotenv(dotenv_path=args.dotenv_path)
         if args.client_type == 'http':
             if not args.host:
                 raise ValueError("Host must be provided via --host flag or CHROMA_HOST environment variable when using HTTP client")
@@ -154,10 +152,10 @@ def get_chroma_client(args=None):
 
 ##### Collection Tools #####
 
-@mcp.tool(description = "List all collection names in the Chroma database with pagination support")
+@mcp.tool()
 async def chroma_list_collections(
-    limit: int | None = None,
-    offset: int | None = None
+    limit: int = None,  # was: limit: int | None
+    offset: int = None  # was: offset: int | None
     
 ) -> List[str]:
     """List all collection names in the Chroma database with pagination support.
@@ -189,11 +187,11 @@ mcp_known_embedding_functions: Dict[str, EmbeddingFunction] = {
     "voyageai": VoyageAIEmbeddingFunction,
     "roboflow": RoboflowEmbeddingFunction,
 }
-@mcp.tool( description = "Create a new Chroma collection with configurable HNSW parameters")
+@mcp.tool()
 async def chroma_create_collection(
     collection_name: str,
     embedding_function_name: str = "default",
-    metadata: Dict | None = None,
+    metadata: dict = None,  # was: metadata: Dict | None
     
 ) -> str:
     """Create a new Chroma collection with configurable HNSW parameters.
@@ -222,7 +220,7 @@ async def chroma_create_collection(
     except Exception as e:
         raise Exception(f"Failed to create collection '{collection_name}': {str(e)}") from e
 
-@mcp.tool(description="Peek at documents in a Chroma collection.")
+@mcp.tool()
 async def chroma_peek_collection(
     collection_name: str,
     limit: int = 5
@@ -241,7 +239,7 @@ async def chroma_peek_collection(
     except Exception as e:
         raise Exception(f"Failed to peek collection '{collection_name}': {str(e)}") from e
 
-@mcp.tool(description="Get information about a Chroma collection.")
+@mcp.tool()
 async def chroma_get_collection_info(collection_name: str) -> Dict:
     """Get information about a Chroma collection.
     
@@ -266,7 +264,7 @@ async def chroma_get_collection_info(collection_name: str) -> Dict:
     except Exception as e:
         raise Exception(f"Failed to get collection info for '{collection_name}': {str(e)}") from e
     
-@mcp.tool(description="Get information about a Chroma collection.")
+@mcp.tool()
 async def chroma_get_collection_count(collection_name: str) -> int:
     """Get the number of documents in a Chroma collection.
     
@@ -280,11 +278,11 @@ async def chroma_get_collection_count(collection_name: str) -> int:
     except Exception as e:
         raise Exception(f"Failed to get collection count for '{collection_name}': {str(e)}") from e
 
-@mcp.tool(description="Modify a Chroma collection's name or metadata")
+@mcp.tool()
 async def chroma_modify_collection(
     collection_name: str,
     new_name: str | None = None,
-    new_metadata: Dict | None = None,
+    new_metadata: dict = None,  # was: new_metadata: Dict | None
 ) -> str:
     """Modify a Chroma collection's name or metadata.
     
@@ -308,7 +306,7 @@ async def chroma_modify_collection(
     except Exception as e:
         raise Exception(f"Failed to modify collection '{collection_name}': {str(e)}") from e
     
-@mcp.tool(description="Fork a Chroma collection.")
+@mcp.tool()
 async def chroma_fork_collection(
     collection_name: str,
     new_collection_name: str,
@@ -328,7 +326,7 @@ async def chroma_fork_collection(
     except Exception as e:
         raise Exception(f"Failed to fork collection '{collection_name}': {str(e)}") from e
     
-@mcp.tool(description="Delete a Chroma collection.")
+@mcp.tool()
 async def chroma_delete_collection(collection_name: str) -> str:
     """Delete a Chroma collection.
     
@@ -343,12 +341,12 @@ async def chroma_delete_collection(collection_name: str) -> str:
         raise Exception(f"Failed to delete collection '{collection_name}': {str(e)}") from e
 
 ##### Document Tools #####
-@mcp.tool(description="Add documents to a Chroma collection.")
+@mcp.tool()
 async def chroma_add_documents(
     collection_name: str,
-    documents: List[str],
-    ids: List[str],
-    metadatas: List[Dict] | None = None
+    documents: list,  # was: documents: List[str]
+    ids: list,  # was: ids: List[str]
+    metadatas: list = None  # was: metadatas: List[Dict] | None
 ) -> str:
     """Add documents to a Chroma collection.
     
@@ -406,14 +404,14 @@ async def chroma_add_documents(
     except Exception as e:
         raise Exception(f"Failed to add documents to collection '{collection_name}': {str(e)}") from e
 
-@mcp.tool(description="Query documents from a Chroma collection with advanced filtering.")
+@mcp.tool()
 async def chroma_query_documents(
     collection_name: str,
-    query_texts: List[str],
+    query_texts: list,  # was: query_texts: List[str]
     n_results: int = 5,
-    where: Dict | None = None,
-    where_document: Dict | None = None,
-    include: List[str] = ["documents", "metadatas", "distances"]
+    where: dict = None,  # was: where: Dict | None
+    where_document: dict = None,  # was: where_document: Dict | None
+    include: list = ["documents", "metadatas", "distances"]  # was: include: List[str]
 ) -> Dict:
     """Query documents from a Chroma collection with advanced filtering.
     
@@ -453,15 +451,15 @@ async def chroma_query_documents(
     except Exception as e:
         raise Exception(f"Failed to query documents from collection '{collection_name}': {str(e)}") from e
 
-@mcp.tool(description="Get documents from a Chroma collection with optional filtering.")
+@mcp.tool()
 async def chroma_get_documents(
     collection_name: str,
-    ids: List[str] | None = None,
-    where: Dict | None = None,
-    where_document: Dict | None = None,
-    include: List[str] = ["documents", "metadatas"],
-    limit: int | None = None,
-    offset: int | None = None
+    ids: list = None,  # was: ids: List[str] | None
+    where: dict = None,  # was: where: Dict | None
+    where_document: dict = None,  # was: where_document: Dict | None
+    include: list = ["documents", "metadatas"],  # was: include: List[str]
+    limit: int = None,  # was: limit: int | None
+    offset: int = None  # was: offset: int | None
 ) -> Dict:
     """Get documents from a Chroma collection with optional filtering.
     
@@ -503,13 +501,13 @@ async def chroma_get_documents(
     except Exception as e:
         raise Exception(f"Failed to get documents from collection '{collection_name}': {str(e)}") from e
 
-@mcp.tool(description="Update documents in a Chroma collection.")
+@mcp.tool()
 async def chroma_update_documents(
     collection_name: str,
-    ids: List[str],
-    embeddings: List[List[float]] | None = None,
-    metadatas: List[Dict] | None = None,
-    documents: List[str] | None = None
+    ids: list,  # was: ids: List[str]
+    embeddings: list = None,  # was: embeddings: List[List[float]] | None
+    metadatas: list = None,  # was: metadatas: List[Dict] | None
+    documents: list = None  # was: documents: List[str] | None
 ) -> str:
     """Update documents in a Chroma collection.
 
@@ -578,10 +576,10 @@ async def chroma_update_documents(
             f"Failed to update documents in collection '{collection_name}': {str(e)}"
         ) from e
 
-@mcp.tool(description="Delete documents from a Chroma collection.")
+@mcp.tool()
 async def chroma_delete_documents(
     collection_name: str,
-    ids: List[str]
+    ids: list  # was: ids: List[str]
 ) -> str:
     """Delete documents from a Chroma collection.
 

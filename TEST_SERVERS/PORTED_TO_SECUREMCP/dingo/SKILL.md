@@ -1,1 +1,0 @@
-clawhub/SKILL.md

@@ -22,25 +22,16 @@ SamplerName = typing.Literal["TPESampler", "NSGAIISampler", "RandomSampler", "GP
 DirectionName = typing.Literal["minimize", "maximize"]
 
 
-# PORT: was `class OptunaMCP(FastMCP)`. SecureMCP can't be subclassed,
-# so we wrap it: domain state on self, protocol on self.mcp.
-# The tool() forwarder drops `structured_output=` (FastMCP-only).
-class OptunaMCP:
-    _SECUREMCP_TOOL_KWARGS = {"name", "description", "prompts"}
-
-    def __init__(self, name: str, storage: str | None = None) -> None:
-        self.mcp = SecureMCP(name)
+# PORT: was `class OptunaMCP(FastMCP)`. Same subclass with SecureMCP as the base; the body is upstream's.
+class OptunaMCP(SecureMCP):
+    def __init__(
+        self, name: str, storage: str | None = None, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
+        kwargs["name"] = name
+        super().__init__(*args, **kwargs)
         self.storage: str | optuna.storages.BaseStorage | None = storage
         self.study: optuna.study.Study | None = None
         self.dashboard_thread_port: tuple[threading.Thread, int] | None = None
-
-    def tool(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-        """Forwarder that drops FastMCP-only kwargs SecureMCP rejects."""
-        filtered = {k: v for k, v in kwargs.items() if k in self._SECUREMCP_TOOL_KWARGS}
-        return self.mcp.tool(*args, **filtered)
-
-    def run(self) -> None:
-        self.mcp.run()
 
 
 @dataclass
@@ -109,10 +100,10 @@ class TrialResponse(BaseModel):
 
 
 def register_tools(mcp: OptunaMCP) -> OptunaMCP:
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def create_study(
         study_name: str,
-        directions: list[DirectionName] | None = None,
+        directions: list = None,  # was: directions: list[DirectionName] | None
     ) -> StudyResponse:
         """Create a new Optuna study with the given study_name and directions.
 
@@ -130,7 +121,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
         return StudyResponse(study_name=study_name).model_dump()
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def get_all_study_names() -> list[StudyResponse]:
         """Get all study names from the storage."""
         storage: str | optuna.storages.BaseStorage | None = None
@@ -145,7 +136,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
         study_names = optuna.get_all_study_names(storage)
         return [StudyResponse(study_name=name).model_dump() for name in study_names]
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def ask(search_space: dict) -> TrialResponse:
         """Suggest new parameters using Optuna
 
@@ -173,7 +164,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             params=trial.params,
         ).model_dump()
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def tell(trial_number: int, values: float | list[float]) -> TrialResponse:
         """Report the result of a trial"""
         if mcp.study is None:
@@ -191,7 +182,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             values=[values] if isinstance(values, float) else values,
         ).model_dump()
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def set_sampler(
         name: SamplerName,
     ) -> StudyResponse:
@@ -217,7 +208,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             sampler_name=name,
         ).model_dump()
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def set_trial_user_attr(trial_number: int, key: str, value: typing.Any) -> str:
         """Set user attributes for a trial"""
         if mcp.study is None:
@@ -231,7 +222,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
         storage.set_trial_user_attr(trial_id, key, value)
         return f"User attribute {key} set to {json.dumps(value)} for trial {trial_number}"
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def get_trial_user_attrs(trial_number: int) -> TrialResponse:
         """Get user attributes in a trial"""
         if mcp.study is None:
@@ -248,8 +239,8 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             user_attrs=trial.user_attrs,
         ).model_dump()
 
-    @mcp.tool(structured_output=True)
-    def set_metric_names(metric_names: list[str]) -> StudyResponse:
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
+    def set_metric_names(metric_names: list) -> StudyResponse:  # was: metric_names: list[str]
         """Set metric_names. metric_names are labels used to distinguish what each objective value is.
 
         Args:
@@ -266,7 +257,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             metric_names=metric_names,
         ).model_dump()
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def get_metric_names() -> StudyResponse:
         """Get metric_names"""
         if mcp.study is None:
@@ -278,7 +269,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             metric_names=mcp.study.metric_names,
         ).model_dump()
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def get_directions() -> StudyResponse:
         """Get the directions of the study."""
         if mcp.study is None:
@@ -291,7 +282,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             directions=typing.cast(list[DirectionName], directions),
         ).model_dump()
 
-    @mcp.tool(structured_output=False)
+    @mcp.tool()  # was: @mcp.tool(structured_output=False)
     def get_trials() -> str:
         """Get all trials in a CSV format"""
         if mcp.study is None:
@@ -301,7 +292,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
         csv_string = mcp.study.trials_dataframe().to_csv()
         return f"Trials: \n{csv_string}"
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def best_trial() -> TrialResponse:
         """Get the best trial
 
@@ -320,7 +311,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             system_attrs=trial.system_attrs,
         ).model_dump()
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def best_trials() -> list[TrialResponse]:
         """Return trials located at the Pareto front in the study."""
         if mcp.study is None:
@@ -352,20 +343,23 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             system_attrs=trial.system_attrs,
         )
 
-    @mcp.tool(structured_output=True)
-    def add_trial(trial: TrialToAdd) -> str:
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
+    def add_trial(trial: dict) -> str:  # was: trial: TrialToAdd
         """Add a trial to the study."""
         if mcp.study is None:
             # was: raise McpError(ErrorData(code=INTERNAL_ERROR, message="No study has been created. Please create a study first."))
             raise RuntimeError("No study has been created. Please create a study first.")
 
-        mcp.study.add_trial(_create_trial(trial))
+        # was: mcp.study.add_trial(_create_trial(trial))
+        # FastMCP built the TrialToAdd object from the JSON input; SecureMCP passes the plain dict.
+        mcp.study.add_trial(_create_trial(TrialToAdd(**trial)))
         return "Trial was added."
 
-    @mcp.tool(structured_output=True)
-    def add_trials(trials: list[TrialToAdd]) -> str:
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
+    def add_trials(trials: list) -> str:  # was: trials: list[TrialToAdd]
         """Add multiple trials to the study."""
-        frozen_trials = [_create_trial(trial) for trial in trials]
+        # was: frozen_trials = [_create_trial(trial) for trial in trials]
+        frozen_trials = [_create_trial(TrialToAdd(**trial)) for trial in trials]
         if mcp.study is None:
             # was: raise McpError(ErrorData(code=INTERNAL_ERROR, message="No study has been created. Please create a study first."))
             raise RuntimeError("No study has been created. Please create a study first.")
@@ -375,7 +369,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_optimization_history(
-        target: int | None = None,
+        target: int = None,  # was: target: int | None
         target_name: str = "Objective Value",
     ) -> dict:
         """Return the optimization history plot as an image.
@@ -402,7 +396,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_hypervolume_history(
-        reference_point: list[float],
+        reference_point: list,  # was: reference_point: list[float]
     ) -> dict:
         """Return the hypervolume history plot as an image.
 
@@ -422,9 +416,9 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_pareto_front(
-        target_names: list[str] | None = None,
+        target_names: list = None,  # was: target_names: list[str] | None
         include_dominated_trials: bool = True,
-        targets: list[int] | None = None,
+        targets: list = None,  # was: targets: list[int] | None
     ) -> dict:
         """Return the Pareto front plot as an image for multi-objective optimization.
 
@@ -456,7 +450,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_contour(
-        params: list[str] | None = None,
+        params: list = None,  # was: params: list[str] | None
         target: int = 0,
         target_name: str = "Objective Value",
     ) -> dict:
@@ -482,7 +476,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_parallel_coordinate(
-        params: list[str] | None = None,
+        params: list = None,  # was: params: list[str] | None
         target: int = 0,
         target_name: str = "Objective Value",
     ) -> dict:
@@ -511,7 +505,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_slice(
-        params: list[str] | None = None,
+        params: list = None,  # was: params: list[str] | None
         target: int = 0,
         target_name: str = "Objective Value",
     ) -> dict:
@@ -540,8 +534,8 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_param_importances(
-        params: list[str] | None = None,
-        target: int | None = None,
+        params: list = None,  # was: params: list[str] | None
+        target: int = None,  # was: target: int | None
         target_name: str = "Objective Value",
     ) -> dict:
         """Return the parameter importances plot as an image.
@@ -607,7 +601,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
 
     @mcp.tool()
     def plot_rank(
-        params: list[str] | None = None,
+        params: list = None,  # was: params: list[str] | None
         target: int = 0,
         target_name: str = "Objective Value",
     ) -> dict:
@@ -629,7 +623,7 @@ def register_tools(mcp: OptunaMCP) -> OptunaMCP:
             "image_base64": base64.b64encode(plotly.io.to_image(fig)).decode(),
         }
 
-    @mcp.tool(structured_output=True)
+    @mcp.tool()  # was: @mcp.tool(structured_output=True)
     def launch_optuna_dashboard(port: int = 58080) -> str:
         """Launch the Optuna dashboard"""
         storage: str | optuna.storages.BaseStorage | None = None

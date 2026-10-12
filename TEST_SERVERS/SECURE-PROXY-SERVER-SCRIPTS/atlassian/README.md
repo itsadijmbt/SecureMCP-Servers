@@ -5,7 +5,7 @@ Wraps `npx -y mcp-remote https://mcp.atlassian.com/v1/mcp/authv2` — OAuth in t
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
-- Node.js 20+ on `PATH` (`mcp-remote` needs it; Node 18 fails with `ReferenceError: File is not defined`).
+- Node.js 20+ on `PATH` (`mcp-remote` needs it).
 
 No credentials required.
 

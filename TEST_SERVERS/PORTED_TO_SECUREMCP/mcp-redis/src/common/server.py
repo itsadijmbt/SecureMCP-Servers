@@ -1,5 +1,6 @@
 import importlib
 import pkgutil
+# was: from mcp.server.fastmcp import FastMCP
 from macaw_adapters.mcp import SecureMCP
 
 
@@ -11,6 +12,10 @@ def load_tools():
 
 
 # Initialize FastMCP server
+# was:
+# mcp = FastMCP(
+#     "Redis MCP Server", dependencies=["redis", "python-dotenv", "numpy", "aiohttp"]
+# )
 mcp = SecureMCP("securemcp-Redis-mCP-server")
 
 # Load tools

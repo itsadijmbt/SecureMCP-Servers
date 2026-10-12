@@ -1,0 +1,112 @@
+{
+  "policy_id": "app:alibaba-rds-proxy",
+  "version": "0.1.0",
+  "scope": "global",
+  "resources": [
+    "tool:alibaba-rds-proxy/describe_db_instances",
+    "tool:alibaba-rds-proxy/describe_db_instance_attribute",
+    "tool:alibaba-rds-proxy/describe_db_instance_performance",
+    "tool:alibaba-rds-proxy/describe_available_classes",
+    "tool:alibaba-rds-proxy/describe_available_zones",
+    "tool:alibaba-rds-proxy/describe_vpcs",
+    "tool:alibaba-rds-proxy/describe_vswitches",
+    "tool:alibaba-rds-proxy/describe_slow_log_records",
+    "tool:alibaba-rds-proxy/describe_error_logs",
+    "tool:alibaba-rds-proxy/describe_db_instance_net_info",
+    "tool:alibaba-rds-proxy/describe_db_instance_ip_allowlist",
+    "tool:alibaba-rds-proxy/describe_db_instance_databases",
+    "tool:alibaba-rds-proxy/describe_db_instance_accounts",
+    "tool:alibaba-rds-proxy/describe_db_instance_parameters",
+    "tool:alibaba-rds-proxy/describe_all_whitelist_template",
+    "tool:alibaba-rds-proxy/describe_instance_linked_whitelist_template",
+    "tool:alibaba-rds-proxy/describe_monitor_metrics",
+    "tool:alibaba-rds-proxy/describe_sql_insight_statistic",
+    "tool:alibaba-rds-proxy/show_engine_innodb_status",
+    "tool:alibaba-rds-proxy/show_largest_table",
+    "tool:alibaba-rds-proxy/show_largest_table_fragment",
+    "tool:alibaba-rds-proxy/get_current_time",
+    "tool:alibaba-rds-proxy/add_tags_to_db_instance",
+    "tool:alibaba-rds-proxy/modify_db_instance_description",
+    "tool:alibaba-rds-proxy/describe_rc_instances",
+    "tool:alibaba-rds-proxy/describe_rc_instance_attribute",
+    "tool:alibaba-rds-proxy/describe_rc_instance_vnc_url",
+    "tool:alibaba-rds-proxy/describe_rc_instance_ip_address",
+    "tool:alibaba-rds-proxy/describe_rc_image_list",
+    "tool:alibaba-rds-proxy/describe_rc_snapshots",
+    "tool:alibaba-rds-proxy/describe_rc_metric_list",
+    "tool:alibaba-rds-proxy/describe_rc_disks",
+    "tool:alibaba-rds-proxy/describe_rc_instance_ddos_count"
+  ],
+  "denied_resources": [
+    "tool:alibaba-rds-proxy/restart_db_instance",
+    "tool:alibaba-rds-proxy/reboot_rc_instance",
+    "tool:alibaba-rds-proxy/stop_rc_instances",
+    "tool:alibaba-rds-proxy/create_db_instance",
+    "tool:alibaba-rds-proxy/run_rc_instances",
+    "tool:alibaba-rds-proxy/modify_db_instance_spec",
+    "tool:alibaba-rds-proxy/resize_rc_instance_disk",
+    "tool:alibaba-rds-proxy/create_rc_snapshot",
+    "tool:alibaba-rds-proxy/allocate_instance_public_connection",
+    "tool:alibaba-rds-proxy/associate_eip_address_with_rc_instance",
+    "tool:alibaba-rds-proxy/unassociate_eip_address_with_rc_instance",
+    "tool:alibaba-rds-proxy/modify_security_ips",
+    "tool:alibaba-rds-proxy/attach_whitelist_template_to_instance",
+    "tool:alibaba-rds-proxy/sync_rc_security_group",
+    "tool:alibaba-rds-proxy/create_db_instance_account",
+    "tool:alibaba-rds-proxy/modify_rc_instance_attribute",
+    "tool:alibaba-rds-proxy/modify_parameter",
+    "tool:alibaba-rds-proxy/describe_bills",
+    "tool:alibaba-rds-proxy/query_sql",
+    "tool:alibaba-rds-proxy/explain_sql",
+    "tool:alibaba-rds-proxy/show_create_table",
+    "tool:alibaba-rds-proxy/start_rc_instances",
+    "tool:alibaba-rds-proxy/modify_rc_instance_description"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:alibaba-rds-proxy/describe_vpcs": {
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:alibaba-rds-proxy/describe_vswitches": {
+        "page_size": {
+          "type": "integer",
+          "min": 1,
+          "max": 50
+        }
+      },
+      "tool:alibaba-rds-proxy/describe_slow_log_records": {
+        "page_size": {
+          "type": "integer",
+          "min": 30,
+          "max": 100
+        }
+      },
+      "tool:alibaba-rds-proxy/describe_error_logs": {
+        "page_size": {
+          "type": "integer",
+          "min": 30,
+          "max": 100
+        }
+      },
+      "tool:alibaba-rds-proxy/show_largest_table": {
+        "topK": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      },
+      "tool:alibaba-rds-proxy/show_largest_table_fragment": {
+        "topK": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        }
+      }
+    }
+  },
+  "description": "Alibaba Cloud RDS MCP via SecureMCPProxy -- reads, tags and descriptions only"
+}

@@ -9,7 +9,7 @@ from src.common.server import mcp
 
 
 @mcp.tool()
-async def lpush(name: str, value: FieldT, expire: Optional[int] = None) -> str:
+async def lpush(name: str, value: FieldT, expire: int = None) -> str:  # was: expire: Optional[int]
     """Push a value onto the left of a Redis list and optionally set an expiration time."""
     try:
         r = RedisConnectionManager.get_connection()
@@ -22,7 +22,7 @@ async def lpush(name: str, value: FieldT, expire: Optional[int] = None) -> str:
 
 
 @mcp.tool()
-async def rpush(name: str, value: FieldT, expire: Optional[int] = None) -> str:
+async def rpush(name: str, value: FieldT, expire: int = None) -> str:  # was: expire: Optional[int]
     """Push a value onto the right of a Redis list and optionally set an expiration time."""
     try:
         r = RedisConnectionManager.get_connection()

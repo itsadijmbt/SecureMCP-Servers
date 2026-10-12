@@ -1,3 +1,0 @@
-"""
-Falcon MCP Server package
-"""

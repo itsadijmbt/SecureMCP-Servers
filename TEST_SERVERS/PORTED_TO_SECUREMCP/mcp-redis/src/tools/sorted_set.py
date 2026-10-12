@@ -8,7 +8,7 @@ from src.common.server import mcp
 
 @mcp.tool()
 async def zadd(
-    key: str, score: float, member: str, expiration: Optional[int] = None
+    key: str, score: float, member: str, expiration: int = None  # was: expiration: Optional[int]
 ) -> str:
     """Add a member to a Redis sorted set with an optional expiration time.
 

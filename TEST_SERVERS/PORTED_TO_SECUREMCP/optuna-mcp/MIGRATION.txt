@@ -1,0 +1,68 @@
+MIGRATION: optuna-mcp, FastMCP -> SecureMCP
+Upstream base: optuna/optuna-mcp @ 2ca1d11 (2026-04-06)
+
+WHAT
+- optuna_mcp/server.py only. pyproject.toml is identical to upstream again.
+- class OptunaMCP(FastMCP) -> class OptunaMCP(SecureMCP). The class body is upstream's.
+- structured_output=... removed from 16 tool decorators (SecureMCP does not accept it).
+- 11 tools return <Model>.model_dump() instead of the Pydantic model.
+- 10 plot tools return {"image_format": "png", "image_base64": ...} instead of
+  a FastMCP Image.
+- 16 "raise McpError(ErrorData(code=INTERNAL_ERROR, message=...))" became
+  "raise RuntimeError(message)". mcp 2.x no longer has
+  mcp.shared.exceptions.McpError (the import fails on mcp 2.2.0).
+- add_trial and add_trials build TrialToAdd(**dict) at the top of the tool.
+- 12 tool parameters given a plain type.
+    list: create_study.directions; set_metric_names.metric_names;
+          plot_hypervolume_history.reference_point;
+          plot_pareto_front.target_names, .targets;
+          params on plot_contour, plot_parallel_coordinate, plot_slice,
+          plot_param_importances, plot_rank
+    int : plot_optimization_history.target; plot_param_importances.target
+
+CORRECTED IN THIS REVISION (2026-10-12)
+- add_trial and add_trials failed with "'dict' object has no attribute 'params'".
+  FastMCP built the TrialToAdd object from the JSON input; SecureMCP passes the
+  plain dict. The object is now built at the tool boundary. TrialToAdd itself
+  and _create_trial are unchanged.
+- The first port replaced the subclass by a wrapper class with a tool()
+  forwarder that filtered decorator arguments. It is the upstream subclass again
+  and the unsupported argument is removed at each decorator.
+- requires-python is ">=3.12" again, as in upstream.
+
+WHY
+SecureMCP publishes only six parameter types: str, int, float, bool, dict, list.
+Any other annotation (Optional[...], List[...], unions, models) is published as
+"string". Step 2 of the porting playbook therefore gives each tool parameter a
+plain type. Only the annotation changes; the old one is kept in a "# was:"
+comment and no tool body is touched by it.
+
+BROKEN ON PURPOSE
+- structured_output / output schema, and the MCP image content type.
+- The JSON-RPC error code INTERNAL_ERROR. The error message text is unchanged.
+- Argument checking. FastMCP validated and converted every argument before the
+  tool ran. SecureMCP passes arguments as they were sent. With mcp 1.x a normal
+  MCP client still gets a type check against the published schema; with mcp 2.x
+  and for MACAW clients there is none. The MAPL policy is the guard.
+- Per-parameter schema detail (descriptions, item types, "may be null", allowed
+  values) is not published. The tool docstring is the only place it survives.
+  set_sampler.name was a Literal of four names; the policy carries the same
+  four in allowed_values.
+
+KNOWN GAPS
+- Two parameters cannot be published correctly and stay "string":
+  tell.values (a number or a list) and set_trial_user_attr.value (anything).
+- launch_optuna_dashboard starts a web server inside this process. Traffic to it
+  does not pass through MACAW. The policy denies the tool.
+
+VERIFICATION (2026-10-12, macaw-adapters 0.9.10.1, mcp 2.2.0, optuna from PyPI)
+- Compared with the upstream base function by function.
+- Served with run(transport="stdio") and called as a normal MCP client through
+  the MACAW PEP: 26 tools; create_study, ask, tell, add_trial, add_trials,
+  best_trial and set_metric_names returned correct results.
+- get_trials was not verified: it needs pandas, which was not installed.
+- In that run launch_optuna_dashboard was NOT blocked, so the policy was not
+  applied there. Check that the policy is loaded before relying on it.
+
+LINES CHANGED
+1 Python file, 145 lines differ from upstream.

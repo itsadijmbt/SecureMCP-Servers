@@ -8,7 +8,7 @@ from src.common.server import mcp
 
 @mcp.tool()
 async def xadd(
-    key: str, fields: Dict[str, Any], expiration: Optional[int] = None
+    key: str, fields: dict, expiration: int = None  # was: fields: Dict[str, Any]; expiration: Optional[int]
 ) -> str:
     """Add an entry to a Redis stream with an optional expiration time.
 
@@ -131,7 +131,7 @@ async def xreadgroup(
     group_name: str,
     consumer_name: str,
     count: int = 1,
-    block_ms: Optional[int] = None,
+    block_ms: int = None,  # was: block_ms: Optional[int]
     stream_id: str = ">",
 ) -> str:
     """Read entries from a Redis stream using a consumer group.
@@ -183,7 +183,7 @@ async def xreadgroup(
 
 
 @mcp.tool()
-async def xack(key: str, group_name: str, entry_ids: List[str]) -> str:
+async def xack(key: str, group_name: str, entry_ids: list) -> str:  # was: entry_ids: List[str]
     """Acknowledge entries that were processed by a consumer group.
 
     Args:

@@ -5,7 +5,7 @@ Wraps `uvx --python 3.12 mcp-server-qdrant` over stdio. MACAW policy is enforced
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
-- `uvx` on `PATH` (from `uv`). Python 3.12 is pinned: `mcp-server-qdrant` 0.8.1 does not install on Python 3.14.
+- `uvx` on `PATH` (from `uv`). The upstream runs on Python 3.12.
 
 Environment variables:
 
@@ -17,7 +17,7 @@ Environment variables:
 - `QDRANT_SEARCH_LIMIT`
 - `QDRANT_READ_ONLY`
 
-Set `QDRANT_URL` (with `QDRANT_API_KEY` if the server needs one), or `QDRANT_LOCAL_PATH`. One of the two is required, and the upstream does not accept both.
+Set `QDRANT_URL` (with `QDRANT_API_KEY` if the server needs one) or `QDRANT_LOCAL_PATH`. Use one of the two.
 
 ## Setup
 

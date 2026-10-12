@@ -69,8 +69,8 @@ mcp = SecureMCP("excalidraw-architect")
 # decorator only when invoked). Applied to all 4 tools below.
 @mcp.tool()
 def create_diagram(
-    nodes: list[dict[str, Any]],
-    connections: list[dict[str, Any]],
+    nodes: list,  # was: nodes: list[dict[str, Any]]
+    connections: list,  # was: connections: list[dict[str, Any]]
     output_path: str,
     direction: str = "LR",
     theme: str = "default",
@@ -205,7 +205,7 @@ def mermaid_to_excalidraw(
 @mcp.tool()
 def modify_diagram(
     file_path: str,
-    operations: list[dict[str, Any]],
+    operations: list,  # was: operations: list[dict[str, Any]]
     theme: str = "default",
 ) -> str:
     """Modify an existing Excalidraw diagram created by this tool.

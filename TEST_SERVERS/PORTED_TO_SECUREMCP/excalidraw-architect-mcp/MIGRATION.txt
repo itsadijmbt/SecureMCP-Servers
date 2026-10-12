@@ -1,0 +1,44 @@
+MIGRATION: excalidraw-architect-mcp, FastMCP -> SecureMCP
+Upstream base: BV-Venky/excalidraw-architect-mcp @ v0.2.3
+
+WHAT
+- src/excalidraw_mcp/server.py only. Every other file is identical to upstream.
+- "from fastmcp import FastMCP" replaced by SecureMCP. The original lines are
+  kept as comments with the reason for each change.
+- Name "Excalidraw Architect" -> "excalidraw-architect": the name becomes part
+  of the agent id and a space in it broke tool calls.
+- @mcp.tool -> @mcp.tool() on the 4 tools (SecureMCP needs the call form).
+- 3 tool parameters given a plain type (list): create_diagram.nodes,
+  create_diagram.connections, modify_diagram.operations.
+- No tool body changed.
+
+WHY
+SecureMCP publishes only six parameter types: str, int, float, bool, dict, list.
+Any other annotation (Optional[...], List[...], unions, models) is published as
+"string". Step 2 of the porting playbook therefore gives each tool parameter a
+plain type. Only the annotation changes; the old one is kept in a "# was:"
+comment and no tool body is touched by it.
+
+BROKEN ON PURPOSE
+- Constructor argument instructions=... (SecureMCP has no such argument).
+- Argument checking. FastMCP validated and converted every argument before the
+  tool ran. SecureMCP passes arguments as they were sent. With mcp 1.x a normal
+  MCP client still gets a type check against the published schema; with mcp 2.x
+  and for MACAW clients there is none. The MAPL policy is the guard.
+- Per-parameter schema detail (descriptions, item types, "may be null", allowed
+  values) is not published. The tool docstring is the only place it survives.
+
+KNOWN GAPS
+- The tools write to whatever path they are given, as in upstream. The policy
+  limits paths to relative ".excalidraw" files without "..".
+
+VERIFICATION (2026-10-12, macaw-adapters 0.9.10.1, mcp 2.2.0)
+- Compared with the upstream base function by function: no tool body differs.
+- Served with run(transport="stdio") and called as a normal MCP client through
+  the MACAW PEP: create_diagram, get_diagram_info and modify_diagram returned
+  correct results and the file was written.
+- In that run an absolute path and a path with ".." were NOT blocked, so the
+  policy was not applied there. Check that the policy is loaded before relying on it.
+
+LINES CHANGED
+1 Python file, 44 lines differ from upstream.
