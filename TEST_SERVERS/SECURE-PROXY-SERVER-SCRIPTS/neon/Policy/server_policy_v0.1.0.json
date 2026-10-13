@@ -3,7 +3,24 @@
   "version": "0.1.0",
   "scope": "global",
   "resources": [
-    "tool:neon-proxy/**"
+    "tool:neon-proxy/compare_database_schema",
+    "tool:neon-proxy/describe_branch",
+    "tool:neon-proxy/describe_project",
+    "tool:neon-proxy/describe_table_schema",
+    "tool:neon-proxy/fetch",
+    "tool:neon-proxy/get_database_tables",
+    "tool:neon-proxy/get_doc_resource",
+    "tool:neon-proxy/get_neon_auth_config",
+    "tool:neon-proxy/inspect_database",
+    "tool:neon-proxy/list_branch_computes",
+    "tool:neon-proxy/list_log_field_values",
+    "tool:neon-proxy/list_log_fields",
+    "tool:neon-proxy/list_organizations",
+    "tool:neon-proxy/list_projects",
+    "tool:neon-proxy/list_shared_projects",
+    "tool:neon-proxy/list_slow_queries",
+    "tool:neon-proxy/query_logs",
+    "tool:neon-proxy/search"
   ],
   "denied_resources": [
     "tool:neon-proxy/delete_project",

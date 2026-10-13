@@ -27,7 +27,7 @@
         ]
       },
       "tool:chrome-devtools-proxy/type_text": {
-        "value": [
+        "text": [
           "*-----BEGIN*PRIVATE KEY*"
         ]
       }
@@ -61,7 +61,7 @@
         }
       },
       "tool:chrome-devtools-proxy/type_text": {
-        "value": {
+        "text": {
           "type": "string",
           "max_length": 4096
         }

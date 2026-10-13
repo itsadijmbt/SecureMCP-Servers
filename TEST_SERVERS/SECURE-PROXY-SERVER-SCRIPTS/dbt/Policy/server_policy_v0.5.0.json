@@ -12,7 +12,8 @@
     "tool:dbt-proxy/clone",
     "tool:dbt-proxy/trigger_job_run",
     "tool:dbt-proxy/cancel_job_run",
-    "tool:dbt-proxy/retry_job_run"
+    "tool:dbt-proxy/retry_job_run",
+    "tool:dbt-proxy/show"
   ],
   "constraints": {
     "denied_parameters": {
