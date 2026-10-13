@@ -34,16 +34,24 @@
     "tool:postman-proxy/updateWorkspaceGlobalVariables",
     "tool:postman-proxy/addWorkspaceToPrivateNetwork",
     "tool:postman-proxy/removeWorkspaceFromPrivateNetwork",
-    "tool:postman-proxy/respondPrivateNetworkAddRequest"
+    "tool:postman-proxy/respondPrivateNetworkAddRequest",
+    "tool:postman-proxy/createCollectionRequest",
+    "tool:postman-proxy/createCollectionResponse",
+    "tool:postman-proxy/createSpec",
+    "tool:postman-proxy/createSpecFile",
+    "tool:postman-proxy/createWorkspace",
+    "tool:postman-proxy/duplicateCollection",
+    "tool:postman-proxy/generateCollection",
+    "tool:postman-proxy/generateSpecFromCollection",
+    "tool:postman-proxy/syncCollectionWithSpec",
+    "tool:postman-proxy/syncSpecWithCollection",
+    "tool:postman-proxy/updateCollectionRequest",
+    "tool:postman-proxy/updateMock",
+    "tool:postman-proxy/updateSpecFile",
+    "tool:postman-proxy/updateSpecProperties",
+    "tool:postman-proxy/updateWorkspace"
   ],
   "constraints": {
-    "attestations": {
-      "allow_write": {
-        "approval_criteria": "role:manager",
-        "one_time": true,
-        "timeout": 300
-      }
-    },
     "denied_parameters": {
       "tool:postman-proxy/createCollection": {
         "collection": ["*169.254.169.254*", "*metadata.google.internal*", "*webhook.site*", "*burpcollaborator*", "*.oastify.com*"]
@@ -93,8 +101,5 @@
       }
     }
   },
-  "attestations": [
-    "allow_write::{ params.collection MATCHES '*' OR params.environment MATCHES '*' OR params.body MATCHES '*' }"
-  ],
   "description": "Postman MCP via SecureMCPProxy"
 }

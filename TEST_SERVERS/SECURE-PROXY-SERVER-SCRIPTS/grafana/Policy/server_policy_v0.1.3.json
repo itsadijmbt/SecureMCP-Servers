@@ -8,26 +8,35 @@
   "denied_resources": [
     "tool:grafana-proxy/grafana_api_request",
     "tool:grafana-proxy/install_plugin",
-    "tool:grafana-proxy/alerting_manage_rules",
     "tool:grafana-proxy/update_dashboard",
     "tool:grafana-proxy/create_annotation",
     "tool:grafana-proxy/update_annotation",
     "tool:grafana-proxy/create_folder",
     "tool:grafana-proxy/create_incident",
-    "tool:grafana-proxy/add_activity_to_incident"
+    "tool:grafana-proxy/add_activity_to_incident",
+    "tool:grafana-proxy/delete_annotation",
+    "tool:grafana-proxy/update_incident",
+    "tool:grafana-proxy/alerting_rules_write",
+    "tool:grafana-proxy/alerting_routing_write",
+    "tool:grafana-proxy/alerting_silences_write",
+    "tool:grafana-proxy/create_datasource",
+    "tool:grafana-proxy/update_datasource",
+    "tool:grafana-proxy/create_snapshot",
+    "tool:grafana-proxy/delete_snapshot",
+    "tool:grafana-proxy/update_alert_group",
+    "tool:grafana-proxy/ask_assistant",
+    "tool:grafana-proxy/agento11y_manage_eval_collections",
+    "tool:grafana-proxy/agento11y_manage_eval_rules",
+    "tool:grafana-proxy/agento11y_manage_evaluators",
+    "tool:grafana-proxy/agento11y_manage_experiments",
+    "tool:grafana-proxy/agento11y_manage_test_suites"
   ],
   "constraints": {
     "denied_parameters": {
-      "tool:grafana-proxy/query_athena": {
-        "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
-      },
-      "tool:grafana-proxy/query_clickhouse": {
+      "tool:grafana-proxy/query_sql": {
         "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
       },
       "tool:grafana-proxy/query_influxdb": {
-        "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
-      },
-      "tool:grafana-proxy/query_snowflake": {
         "query": ["*DROP *", "*drop *", "*TRUNCATE*", "*truncate*", "*DELETE FROM*", "*delete from*", "*INSERT INTO*", "*insert into*", "* GRANT *", "* grant *"]
       },
       "tool:grafana-proxy/search_dashboards": {

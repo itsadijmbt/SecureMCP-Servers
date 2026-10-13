@@ -94,6 +94,19 @@
           ]
         }
       },
+      "tool:supabase-proxy/query_logs": {
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        },
+        "sql": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 4000
+        }
+      },
       "tool:supabase-proxy/get_organization": {
         "id": {
           "type": "string",

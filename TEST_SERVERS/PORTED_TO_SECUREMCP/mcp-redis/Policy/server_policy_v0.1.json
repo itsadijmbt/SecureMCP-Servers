@@ -14,7 +14,11 @@
         "tool:srem",
         "tool:zrem",
         "tool:hdel",
-        "tool:json_del"
+        "tool:json_del",
+        "tool:lpop",
+        "tool:rpop",
+        "tool:xdel",
+        "tool:xgroup_destroy"
     ],
     "constraints": {
         "parameters": {
@@ -32,8 +36,6 @@
                                  "expire": { "type": "integer", "min": 1 } },
             "tool:rpush":      { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 },
                                  "expire": { "type": "integer", "min": 1 } },
-            "tool:lpop":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
-            "tool:rpop":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
             "tool:lrange":     { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
             "tool:llen":       { "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9:_-]*$", "max_length": 100 } },
 
