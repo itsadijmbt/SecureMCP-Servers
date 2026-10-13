@@ -16,10 +16,10 @@ Prereq:
     export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
 Run:
-    python proxy_salesforce.py
+    python proxy_salesforce_agentforce.py
 
 Claude Code:
-    claude mcp add salesforce-agentforce-macaw python /path/to/proxy_salesforce.py \
+    claude mcp add salesforce-agentforce-macaw python /path/to/proxy_salesforce_agentforce.py \
       -e ACCESS_TOKEN_EXPIRATION_HOURS=... \
       -e AGENTFORCE_PY=... \
       -e AGENTFORCE_REPO=... \

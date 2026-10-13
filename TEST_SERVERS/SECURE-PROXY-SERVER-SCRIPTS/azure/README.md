@@ -5,7 +5,7 @@ Wraps `npx -y @azure/mcp@latest server start` over stdio. MACAW policy is enforc
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
-- Node.js and `npx` on `PATH`.
+- Node.js 22+ and `npx` on `PATH`.
 
 Environment variables:
 

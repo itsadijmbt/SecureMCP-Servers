@@ -37,13 +37,13 @@ export AGENTFORCE_REPO="..."
 export AGENTFORCE_PY="..."
 export MACAW_HOME="/path/to/macaw-client-<version>-Linux-x86_64-py3.12"
 
-python proxy_salesforce.py
+python proxy_salesforce_agentforce.py
 ```
 
 Register with Claude Code:
 
 ```bash
-claude mcp add salesforce-agentforce-macaw python /path/to/proxy_salesforce.py \
+claude mcp add salesforce-agentforce-macaw python /path/to/proxy_salesforce_agentforce.py \
   -e SALESFORCE_SCRT_URL=... \
   -e SALESFORCE_ORG_ID=... \
   -e SALESFORCE_ES_DEVELOPER_NAME=... \

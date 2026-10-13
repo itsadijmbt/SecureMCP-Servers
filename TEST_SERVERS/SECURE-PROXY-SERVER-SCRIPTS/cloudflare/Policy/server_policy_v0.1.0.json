@@ -123,5 +123,5 @@
       }
     }
   },
-  "description": "Cloudflare Workers-bindings MCP via SecureMCPProxy -- arbitrary D1 SQL, all D1/KV/R2 create-delete, Hyperdrive config read-and-write and Worker source disclosure denied; ids pattern-bound and listings page-capped."
+  "description": "Cloudflare Workers-bindings MCP via SecureMCPProxy"
 }

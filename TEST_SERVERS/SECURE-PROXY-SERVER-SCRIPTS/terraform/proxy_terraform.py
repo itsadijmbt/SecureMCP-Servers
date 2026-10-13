@@ -34,7 +34,7 @@ if upstream_env.get("TFE_TOKEN"):
     docker_args += ["-e", "TFE_TOKEN"]
 if upstream_env.get("TFE_ADDRESS"):
     docker_args += ["-e", "TFE_ADDRESS"]
-docker_args += ["hashicorp/terraform-mcp-server:0.5.2"]
+docker_args += ["hashicorp/terraform-mcp-server:1.3.0"]
 
 proxy = SecureMCPProxy(
     app_name="terraform-proxy",

@@ -212,5 +212,5 @@
       }
     }
   },
-  "description": "Airtable MCP via SecureMCPProxy -- schema DDL, record deletion and attachment upload denied; ids pattern-bound, reads and writes size-capped."
+  "description": "Airtable MCP via SecureMCPProxy"
 }

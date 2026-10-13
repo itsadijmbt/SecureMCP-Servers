@@ -5,7 +5,7 @@ Wraps `npx -y chrome-devtools-mcp@latest --headless --isolated` — spawns the s
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
-- Node.js and `npx` on `PATH`.
+- Node.js 20.19+, 22.12+ or 23+, and `npx` on `PATH`.
 - Google Chrome installed (the package launches the system browser).
 
 No credentials required.

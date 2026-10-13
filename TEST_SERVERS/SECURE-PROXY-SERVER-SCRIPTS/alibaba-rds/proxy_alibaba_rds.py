@@ -39,6 +39,8 @@ for k in (
 ):
     if os.environ.get(k):
         upstream_env[k] = os.environ[k]
+if "ALIBABA_CLOUD_ACCESS_KEY_ID" not in upstream_env or "ALIBABA_CLOUD_ACCESS_KEY_SECRET" not in upstream_env:
+    raise ValueError("Set ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET")
 
 proxy = SecureMCPProxy(
     app_name="alibaba-rds-proxy",

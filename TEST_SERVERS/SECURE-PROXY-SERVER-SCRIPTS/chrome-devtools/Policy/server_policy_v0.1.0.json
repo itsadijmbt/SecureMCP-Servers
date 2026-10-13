@@ -80,5 +80,5 @@
       }
     }
   },
-  "description": "Chrome DevTools MCP via SecureMCPProxy -- in-page script execution, page-supplied webmcp tool execution, local file upload, extension and PWA installation, heap capture and dialog handling denied; navigation restricted to http(s) schemes and input values length-capped."
+  "description": "Chrome DevTools MCP via SecureMCPProxy"
 }

@@ -5,7 +5,7 @@ Wraps `npx -y @postman/postman-mcp-server --minimal` over stdio. MACAW policy is
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
-- Node.js and `npx` on `PATH`.
+- Node.js 20+ and `npx` on `PATH`.
 
 Environment variables:
 

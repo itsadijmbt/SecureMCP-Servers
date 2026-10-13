@@ -1,12 +1,12 @@
 # Terraform MCP — SecureMCPProxy
 
-Wraps `hashicorp/terraform-mcp-server:0.5.2` in Docker over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
+Wraps `hashicorp/terraform-mcp-server:1.3.0` in Docker over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
 
 ## What it needs
 
 - MACAW LocalAgent running, `MACAW_HOME` set.
 - Docker daemon running.
-- Image pulled: `docker pull hashicorp/terraform-mcp-server:0.5.2`.
+- Image pulled: `docker pull hashicorp/terraform-mcp-server:1.3.0`.
 
 Environment variables:
 

@@ -172,5 +172,5 @@
       }
     }
   },
-  "description": "Supabase MCP via SecureMCPProxy -- raw SQL, migrations, edge-function deployment, project/branch lifecycle and publishable-key disclosure denied; project refs pattern-bound and read surface enum- and size-capped."
+  "description": "Supabase MCP via SecureMCPProxy"
 }

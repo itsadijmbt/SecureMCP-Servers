@@ -371,5 +371,5 @@
       }
     }
   },
-  "description": "Neon MCP via SecureMCPProxy -- project/branch destruction, arbitrary SQL, migrations, provisioning and connection-string disclosure denied; ids pattern-bound and result sets capped on the read surface."
+  "description": "Neon MCP via SecureMCPProxy"
 }

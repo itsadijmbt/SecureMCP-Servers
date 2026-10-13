@@ -505,5 +505,5 @@
       }
     }
   },
-  "description": "MongoDB MCP via SecureMCPProxy -- raw-connection-string pivot, Atlas provisioning/access-list/user creation, all data mutation and export denied; aggregation pipelines stripped of write and server-side-JavaScript stages, ids pattern-bound and result sets capped."
+  "description": "MongoDB MCP via SecureMCPProxy"
 }

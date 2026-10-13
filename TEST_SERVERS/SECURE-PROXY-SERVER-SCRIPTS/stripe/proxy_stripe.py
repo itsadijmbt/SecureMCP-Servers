@@ -29,10 +29,11 @@ if not api_key:
 
 proxy = SecureMCPProxy(
     app_name="stripe-proxy",
-    command=["npx", "-y", "@stripe/mcp", f"--api-key={api_key}"],
+    command=["npx", "-y", "@stripe/mcp"],
     env={
         "PATH": os.environ["PATH"],
         "HOME": os.environ["HOME"],
+        "STRIPE_SECRET_KEY": api_key,
     },
 )
 logging.info("stripe-proxy: %d tools; serving native clients", len(proxy.list_tools()))
