@@ -1,6 +1,6 @@
 # Azure MCP — SecureMCPProxy
 
-Wraps `npx -y @azure/mcp@latest server start` over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
+Wraps `npx -y @azure/mcp@4.0.0-beta.3 server start --mode all --read-only` over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
 
 ## What it needs
 

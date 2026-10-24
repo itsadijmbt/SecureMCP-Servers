@@ -39,7 +39,7 @@ for k in ("AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET",
 
 proxy = SecureMCPProxy(
     app_name="azure-proxy",
-    command=["npx", "-y", "@azure/mcp@latest", "server", "start"],
+    command=["npx", "-y", "@azure/mcp@4.0.0-beta.3", "server", "start", "--mode", "all", "--read-only"],
     env=upstream_env,
 )
 logging.info("azure-proxy: %d tools; serving native clients", len(proxy.list_tools()))
