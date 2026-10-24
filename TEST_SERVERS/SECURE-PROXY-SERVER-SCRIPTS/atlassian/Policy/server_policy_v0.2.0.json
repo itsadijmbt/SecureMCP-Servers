@@ -2,7 +2,7 @@
   "policy_id": "app:atlassian-proxy",
   "version": "0.2.0",
   "scope": "global",
-  "description": "Atlassian Rovo MCP v2 via SecureMCPProxy: Jira and Confluence; reads via executeRead; no deferred writes or deletes",
+  "description": "Atlassian protected by Secure MCP proxy",
   "resources": [
     "tool:atlassian-proxy/atlassianUserInfo",
     "tool:atlassian-proxy/getAccessibleAtlassianResources",

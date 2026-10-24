@@ -2,7 +2,7 @@
   "policy_id": "app:airtable-proxy",
   "version": "0.2.0",
   "scope": "global",
-  "description": "Airtable MCP via SecureMCPProxy: read and add records; edits need admin approval; no deletes or schema changes",
+  "description": "Airtable protected by Secure MCP proxy",
   "resources": [
     "tool:airtable-proxy/list_bases",
     "tool:airtable-proxy/list_tables",

@@ -2,7 +2,7 @@
   "policy_id": "app:azure-proxy",
   "version": "0.2.0",
   "scope": "global",
-  "description": "Azure MCP 4.0.0-beta.3 (--mode all --read-only) via SecureMCPProxy: read-only tools; no secrets",
+  "description": "Azure protected by Secure MCP proxy",
   "resources": [
     "tool:azure-proxy/microsoft_docs_search",
     "tool:azure-proxy/microsoft_code_sample_search",
