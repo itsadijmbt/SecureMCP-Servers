@@ -273,5 +273,5 @@
       }
     }
   },
-  "description": "arXiv MCP via SecureMCPProxy -- reading, capped"
+  "description": "arXiv protected by Secure MCP proxy"
 }
