@@ -1,9 +1,23 @@
 {
   "policy_id": "app:arxiv-proxy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scope": "global",
   "resources": [
-    "tool:arxiv-proxy/**"
+    "tool:arxiv-proxy/search_papers",
+    "tool:arxiv-proxy/download_paper",
+    "tool:arxiv-proxy/list_papers",
+    "tool:arxiv-proxy/read_paper",
+    "tool:arxiv-proxy/get_abstract",
+    "tool:arxiv-proxy/semantic_search",
+    "tool:arxiv-proxy/citation_graph",
+    "tool:arxiv-proxy/export_citations",
+    "tool:arxiv-proxy/list_watches",
+    "tool:arxiv-proxy/get_paper_latex",
+    "tool:arxiv-proxy/list_paper_latex_sections",
+    "tool:arxiv-proxy/get_paper_latex_section",
+    "tool:arxiv-proxy/get_paper_outline",
+    "tool:arxiv-proxy/read_paper_section",
+    "tool:arxiv-proxy/search_paper_text"
   ],
   "denied_resources": [
     "tool:arxiv-proxy/reindex",
@@ -256,13 +270,6 @@
           "min": 64,
           "max": 2000
         }
-      }
-    },
-    "denied_parameters": {
-      "tool:arxiv-proxy/search_papers": {
-        "query": [
-          "*DENYME*"
-        ]
       }
     }
   },
