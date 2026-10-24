@@ -1,0 +1,234 @@
+{
+  "policy_id": "app:airtable-proxy",
+  "version": "0.2.0",
+  "scope": "global",
+  "description": "Airtable MCP via SecureMCPProxy: read and add records; edits need admin approval; no deletes or schema changes",
+  "resources": [
+    "tool:airtable-proxy/list_bases",
+    "tool:airtable-proxy/list_tables",
+    "tool:airtable-proxy/describe_table",
+    "tool:airtable-proxy/list_records",
+    "tool:airtable-proxy/search_records",
+    "tool:airtable-proxy/get_record",
+    "tool:airtable-proxy/list_comments",
+    "tool:airtable-proxy/create_record",
+    "tool:airtable-proxy/create_comment",
+    "tool:airtable-proxy/update_records"
+  ],
+  "denied_resources": [
+    "tool:airtable-proxy/delete_records",
+    "tool:airtable-proxy/create_table",
+    "tool:airtable-proxy/update_table",
+    "tool:airtable-proxy/create_field",
+    "tool:airtable-proxy/update_field",
+    "tool:airtable-proxy/upload_attachment"
+  ],
+  "constraints": {
+    "rate_limit": 30,
+    "tool:airtable-proxy/update_records": {
+      "attestations": [
+        "airtable_edit_approved"
+      ]
+    },
+    "attestations": {
+      "airtable_edit_approved": {
+        "approval_criteria": "role:admin",
+        "timeout": 120,
+        "one_time": true
+      }
+    },
+    "parameters": {
+      "tool:airtable-proxy/list_tables": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "detailLevel": {
+          "type": "string",
+          "allowed_values": [
+            "tableIdentifiersOnly",
+            "identifiersOnly",
+            "full"
+          ]
+        }
+      },
+      "tool:airtable-proxy/describe_table": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "detailLevel": {
+          "type": "string",
+          "allowed_values": [
+            "tableIdentifiersOnly",
+            "identifiersOnly",
+            "full"
+          ]
+        }
+      },
+      "tool:airtable-proxy/list_records": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        },
+        "view": {
+          "type": "string",
+          "max_length": 128
+        },
+        "filterByFormula": {
+          "type": "string",
+          "max_length": 1000
+        },
+        "fields": {
+          "type": "array",
+          "max_items": 50
+        },
+        "sort": {
+          "type": "array",
+          "max_items": 5
+        }
+      },
+      "tool:airtable-proxy/search_records": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "searchTerm": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        },
+        "maxRecords": {
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        },
+        "fieldIds": {
+          "type": "array",
+          "max_items": 50
+        },
+        "view": {
+          "type": "string",
+          "max_length": 128
+        }
+      },
+      "tool:airtable-proxy/get_record": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "recordId": {
+          "type": "string",
+          "pattern": "^rec[A-Za-z0-9]{14}$"
+        }
+      },
+      "tool:airtable-proxy/list_comments": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "recordId": {
+          "type": "string",
+          "pattern": "^rec[A-Za-z0-9]{14}$"
+        },
+        "pageSize": {
+          "type": "integer",
+          "min": 1,
+          "max": 100
+        },
+        "offset": {
+          "type": "string",
+          "max_length": 256
+        }
+      },
+      "tool:airtable-proxy/create_record": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "fields": {
+          "type": "object"
+        }
+      },
+      "tool:airtable-proxy/create_comment": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "recordId": {
+          "type": "string",
+          "pattern": "^rec[A-Za-z0-9]{14}$"
+        },
+        "text": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 4000
+        },
+        "parentCommentId": {
+          "type": "string",
+          "max_length": 32
+        }
+      },
+      "tool:airtable-proxy/update_records": {
+        "baseId": {
+          "type": "string",
+          "pattern": "^app[A-Za-z0-9]{14}$"
+        },
+        "tableId": {
+          "type": "string",
+          "pattern": "^tbl[A-Za-z0-9]{14}$"
+        },
+        "records": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 10
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:airtable-proxy/list_records": {
+        "tableId": [
+          "{NOT (params.maxRecords > 0)}"
+        ]
+      },
+      "tool:airtable-proxy/search_records": {
+        "tableId": [
+          "{NOT (params.maxRecords > 0)}"
+        ]
+      }
+    }
+  }
+}
