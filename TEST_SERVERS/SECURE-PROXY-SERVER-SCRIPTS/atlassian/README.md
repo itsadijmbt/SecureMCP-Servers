@@ -1,6 +1,6 @@
 # Atlassian MCP — SecureMCPProxy
 
-Wraps `npx -y mcp-remote https://mcp.atlassian.com/v1/mcp/authv2` — OAuth in the browser on first run. MACAW policy is enforced at the proxy before any call reaches the upstream.
+Wraps `npx -y mcp-remote https://mcp.atlassian.com/v2/mcp` — OAuth in the browser on first run. MACAW policy is enforced at the proxy before any call reaches the upstream.
 
 ## What it needs
 

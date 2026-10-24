@@ -20,7 +20,7 @@ from macaw_adapters.mcp import SecureMCPProxy
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-ATLASSIAN_MCP_URL = "https://mcp.atlassian.com/v1/mcp/authv2"
+ATLASSIAN_MCP_URL = "https://mcp.atlassian.com/v2/mcp"
 
 proxy = SecureMCPProxy(
     app_name="atlassian-proxy",
