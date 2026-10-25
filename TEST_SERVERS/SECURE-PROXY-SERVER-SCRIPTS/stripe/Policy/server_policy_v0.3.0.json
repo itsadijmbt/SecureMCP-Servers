@@ -1,0 +1,19 @@
+{
+  "policy_id": "app:stripe-proxy",
+  "version": "0.3.0",
+  "scope": "global",
+  "resources": [
+    "tool:stripe-proxy/get_stripe_account_info",
+    "tool:stripe-proxy/stripe_api_read",
+    "tool:stripe-proxy/stripe_api_search",
+    "tool:stripe-proxy/stripe_api_details",
+    "tool:stripe-proxy/stripe_analytics",
+    "tool:stripe-proxy/search_stripe_documentation",
+    "tool:stripe-proxy/stripe_implementation_planner"
+  ],
+  "denied_resources": [
+    "tool:stripe-proxy/stripe_api_write",
+    "tool:stripe-proxy/send_stripe_feedback"
+  ],
+  "description": "Stripe protected by Secure MCP proxy"
+}
