@@ -1,6 +1,6 @@
 {
   "policy_id": "app:dingo-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
     "tool:dingo-proxy/list_dingo_components",
@@ -28,32 +28,37 @@
           "type": "boolean"
         }
       },
-      "tool:dingo-proxy/run_quick_evaluation": {
-        "input_path": {
-          "type": "string",
-          "min_length": 1
-        },
-        "evaluation_goal": {
-          "type": "string",
-          "min_length": 1
-        }
-      },
       "tool:dingo-proxy/get_rule_details": {
         "rule_name": {
           "type": "string",
-          "min_length": 1
+          "min_length": 1,
+          "max_length": 256
         }
       },
       "tool:dingo-proxy/get_llm_details": {
         "llm_name": {
           "type": "string",
-          "min_length": 1
+          "min_length": 1,
+          "max_length": 256
         }
       },
       "tool:dingo-proxy/get_prompt_details": {
         "llm_name": {
           "type": "string",
-          "min_length": 1
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:dingo-proxy/run_quick_evaluation": {
+        "input_path": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 4096
+        },
+        "evaluation_goal": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 2000
         }
       }
     },
@@ -65,5 +70,5 @@
       }
     }
   },
-  "description": "Dingo data-quality evaluator MCP via SecureMCPProxy"
+  "description": "Dingo protected by Secure MCP proxy"
 }
