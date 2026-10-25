@@ -1,9 +1,11 @@
 {
   "policy_id": "app:mysql-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:mysql-proxy/**"
+    "tool:mysql-proxy/execute_sql",
+    "tool:mysql-proxy/get_schema_info",
+    "tool:mysql-proxy/get_table_sample"
   ],
   "constraints": {
     "parameters": {
@@ -40,7 +42,6 @@
     "denied_parameters": {
       "tool:mysql-proxy/execute_sql": {
         "query": [
-          "*DENYME*",
           "*INTO OUTFILE*",
           "*into outfile*",
           "*INTO DUMPFILE*",
@@ -51,5 +52,5 @@
       }
     }
   },
-  "description": "MySQL MCP via SecureMCPProxy -- read-only SQL"
+  "description": "MySQL protected by Secure MCP proxy"
 }
