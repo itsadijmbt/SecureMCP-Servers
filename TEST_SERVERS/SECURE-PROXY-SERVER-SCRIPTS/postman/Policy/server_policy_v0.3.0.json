@@ -1,0 +1,282 @@
+{
+  "policy_id": "app:postman-proxy",
+  "version": "0.3.0",
+  "scope": "global",
+  "resources": [
+    "tool:postman-proxy/createCollection",
+    "tool:postman-proxy/createCollectionRequest",
+    "tool:postman-proxy/createCollectionResponse",
+    "tool:postman-proxy/createEnvironment",
+    "tool:postman-proxy/createMock",
+    "tool:postman-proxy/createSpec",
+    "tool:postman-proxy/createSpecFile",
+    "tool:postman-proxy/duplicateCollection",
+    "tool:postman-proxy/generateCollection",
+    "tool:postman-proxy/generateSpecFromCollection",
+    "tool:postman-proxy/getAllSpecs",
+    "tool:postman-proxy/getAuthenticatedUser",
+    "tool:postman-proxy/getCollection",
+    "tool:postman-proxy/getCollections",
+    "tool:postman-proxy/getDuplicateCollectionTaskStatus",
+    "tool:postman-proxy/getEnabledTools",
+    "tool:postman-proxy/getEnvironment",
+    "tool:postman-proxy/getEnvironments",
+    "tool:postman-proxy/getGeneratedCollectionSpecs",
+    "tool:postman-proxy/getMock",
+    "tool:postman-proxy/getMocks",
+    "tool:postman-proxy/getSpec",
+    "tool:postman-proxy/getSpecCollections",
+    "tool:postman-proxy/getSpecDefinition",
+    "tool:postman-proxy/getSpecFile",
+    "tool:postman-proxy/getSpecFiles",
+    "tool:postman-proxy/getTaggedEntities",
+    "tool:postman-proxy/getWorkspace",
+    "tool:postman-proxy/getWorkspaces",
+    "tool:postman-proxy/putCollection",
+    "tool:postman-proxy/putEnvironment",
+    "tool:postman-proxy/searchPostmanElements",
+    "tool:postman-proxy/syncCollectionWithSpec",
+    "tool:postman-proxy/syncSpecWithCollection",
+    "tool:postman-proxy/updateCollectionRequest",
+    "tool:postman-proxy/updateMock",
+    "tool:postman-proxy/updateSpecFile",
+    "tool:postman-proxy/updateSpecProperties"
+  ],
+  "denied_resources": [
+    "tool:postman-proxy/createWorkspace",
+    "tool:postman-proxy/publishMock",
+    "tool:postman-proxy/runCollection",
+    "tool:postman-proxy/updateWorkspace"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:postman-proxy/getCollection": {
+        "collectionId": {
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$",
+          "type": "string"
+        },
+        "model": {
+          "allowed_values": [
+            "minimal",
+            "full"
+          ],
+          "type": "string"
+        }
+      },
+      "tool:postman-proxy/getCollections": {
+        "workspace": {
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$",
+          "type": "string"
+        }
+      },
+      "tool:postman-proxy/getWorkspace": {
+        "workspaceId": {
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$",
+          "type": "string"
+        }
+      },
+      "tool:postman-proxy/searchPostmanElements": {
+        "limit": {
+          "max": 100,
+          "min": 1,
+          "type": "integer"
+        },
+        "q": {
+          "max_length": 256,
+          "min_length": 1,
+          "type": "string"
+        }
+      },
+      "tool:postman-proxy/createCollection": {
+        "workspace": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/putCollection": {
+        "collectionId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/createCollectionRequest": {
+        "collectionId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/updateCollectionRequest": {
+        "collectionId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        },
+        "requestId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/createCollectionResponse": {
+        "collectionId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/createEnvironment": {
+        "workspace": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/putEnvironment": {
+        "environmentId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/createMock": {
+        "workspace": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/updateMock": {
+        "mockId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/createSpec": {
+        "workspaceId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        },
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:postman-proxy/createSpecFile": {
+        "specId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/updateSpecFile": {
+        "specId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/updateSpecProperties": {
+        "specId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        },
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 256
+        }
+      },
+      "tool:postman-proxy/duplicateCollection": {
+        "collectionId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        },
+        "workspace": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/generateCollection": {
+        "specId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/generateSpecFromCollection": {
+        "collectionUid": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/syncCollectionWithSpec": {
+        "collectionUid": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        },
+        "specId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      },
+      "tool:postman-proxy/syncSpecWithCollection": {
+        "specId": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        },
+        "collectionUid": {
+          "type": "string",
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9-]{1,128}$"
+        }
+      }
+    },
+    "denied_parameters": {
+      "tool:postman-proxy/createCollection": {
+        "collection": [
+          "*169.254.169.254*",
+          "*metadata.google.internal*",
+          "*webhook.site*",
+          "*burpcollaborator*",
+          "*.oastify.com*"
+        ]
+      },
+      "tool:postman-proxy/putCollection": {
+        "collection": [
+          "*169.254.169.254*",
+          "*metadata.google.internal*",
+          "*webhook.site*",
+          "*burpcollaborator*",
+          "*.oastify.com*"
+        ]
+      },
+      "tool:postman-proxy/createSpecFile": {
+        "path": [
+          "*..*"
+        ]
+      },
+      "tool:postman-proxy/updateSpecFile": {
+        "filePath": [
+          "*..*"
+        ]
+      }
+    }
+  },
+  "description": "Postman protected by Secure MCP proxy"
+}
