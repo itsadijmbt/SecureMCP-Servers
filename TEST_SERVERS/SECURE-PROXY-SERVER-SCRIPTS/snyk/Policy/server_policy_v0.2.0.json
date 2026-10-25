@@ -1,0 +1,24 @@
+{
+  "policy_id": "app:snyk-proxy",
+  "version": "0.2.0",
+  "scope": "global",
+  "resources": [
+    "tool:snyk-proxy/snyk_version",
+    "tool:snyk-proxy/snyk_sca_scan",
+    "tool:snyk-proxy/snyk_code_scan",
+    "tool:snyk-proxy/snyk_container_scan",
+    "tool:snyk-proxy/snyk_iac_scan",
+    "tool:snyk-proxy/snyk_sbom_scan",
+    "tool:snyk-proxy/snyk_aibom",
+    "tool:snyk-proxy/snyk_secret_scan",
+    "tool:snyk-proxy/snyk_package_health_check",
+    "tool:snyk-proxy/snyk_breakability_check"
+  ],
+  "denied_resources": [
+    "tool:snyk-proxy/snyk_auth",
+    "tool:snyk-proxy/snyk_logout",
+    "tool:snyk-proxy/snyk_trust",
+    "tool:snyk-proxy/snyk_send_feedback"
+  ],
+  "description": "Snyk protected by Secure MCP proxy"
+}
