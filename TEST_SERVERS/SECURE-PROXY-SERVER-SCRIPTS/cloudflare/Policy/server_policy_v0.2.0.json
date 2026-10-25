@@ -1,9 +1,19 @@
 {
   "policy_id": "app:cloudflare-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:cloudflare-proxy/**"
+    "tool:cloudflare-proxy/d1_database_get",
+    "tool:cloudflare-proxy/d1_databases_list",
+    "tool:cloudflare-proxy/hyperdrive_configs_list",
+    "tool:cloudflare-proxy/kv_namespace_get",
+    "tool:cloudflare-proxy/kv_namespaces_list",
+    "tool:cloudflare-proxy/migrate_pages_to_workers_guide",
+    "tool:cloudflare-proxy/r2_bucket_get",
+    "tool:cloudflare-proxy/r2_buckets_list",
+    "tool:cloudflare-proxy/search_cloudflare_documentation",
+    "tool:cloudflare-proxy/workers_get_worker",
+    "tool:cloudflare-proxy/workers_list"
   ],
   "denied_resources": [
     "tool:cloudflare-proxy/d1_database_query",
@@ -123,5 +133,5 @@
       }
     }
   },
-  "description": "Cloudflare Workers-bindings MCP via SecureMCPProxy"
+  "description": "Cloudflare protected by Secure MCP proxy"
 }
