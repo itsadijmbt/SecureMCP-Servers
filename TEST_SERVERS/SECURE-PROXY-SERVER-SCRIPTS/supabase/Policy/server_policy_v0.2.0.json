@@ -1,12 +1,29 @@
 {
   "policy_id": "app:supabase-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:supabase-proxy/**"
+    "tool:supabase-proxy/search_docs",
+    "tool:supabase-proxy/execute_sql",
+    "tool:supabase-proxy/list_organizations",
+    "tool:supabase-proxy/get_organization",
+    "tool:supabase-proxy/list_projects",
+    "tool:supabase-proxy/get_project",
+    "tool:supabase-proxy/get_project_url",
+    "tool:supabase-proxy/get_cost",
+    "tool:supabase-proxy/list_tables",
+    "tool:supabase-proxy/list_extensions",
+    "tool:supabase-proxy/list_migrations",
+    "tool:supabase-proxy/query_logs",
+    "tool:supabase-proxy/get_advisors",
+    "tool:supabase-proxy/generate_typescript_types",
+    "tool:supabase-proxy/list_edge_functions",
+    "tool:supabase-proxy/get_edge_function",
+    "tool:supabase-proxy/list_branches"
   ],
   "denied_resources": [
-    "tool:supabase-proxy/execute_sql",
+    "tool:supabase-proxy/get_publishable_keys",
+    "tool:supabase-proxy/confirm_cost",
     "tool:supabase-proxy/apply_migration",
     "tool:supabase-proxy/deploy_edge_function",
     "tool:supabase-proxy/create_project",
@@ -16,12 +33,23 @@
     "tool:supabase-proxy/rebase_branch",
     "tool:supabase-proxy/reset_branch",
     "tool:supabase-proxy/pause_project",
-    "tool:supabase-proxy/restore_project",
-    "tool:supabase-proxy/confirm_cost",
-    "tool:supabase-proxy/get_publishable_keys"
+    "tool:supabase-proxy/restore_project"
   ],
   "constraints": {
     "parameters": {
+      "tool:supabase-proxy/execute_sql": {
+        "project_id": {
+          "type": "string",
+          "min_length": 16,
+          "max_length": 32,
+          "pattern": "^[a-z0-9]{16,32}$"
+        },
+        "query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000
+        }
+      },
       "tool:supabase-proxy/generate_typescript_types": {
         "project_id": {
           "type": "string",
@@ -72,26 +100,6 @@
           "min_length": 1,
           "max_length": 64,
           "pattern": "^[A-Za-z0-9_-]+$"
-        }
-      },
-      "tool:supabase-proxy/get_logs": {
-        "project_id": {
-          "type": "string",
-          "min_length": 16,
-          "max_length": 32,
-          "pattern": "^[a-z0-9]{16,32}$"
-        },
-        "service": {
-          "type": "string",
-          "allowed_values": [
-            "api",
-            "branch-action",
-            "postgres",
-            "edge-function",
-            "auth",
-            "storage",
-            "realtime"
-          ]
         }
       },
       "tool:supabase-proxy/query_logs": {
@@ -185,5 +193,5 @@
       }
     }
   },
-  "description": "Supabase MCP via SecureMCPProxy"
+  "description": "Supabase protected by Secure MCP proxy"
 }
