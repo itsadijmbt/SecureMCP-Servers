@@ -21,6 +21,7 @@ python proxy_chrome_devtools.py
 Register with Claude Code:
 
 ```bash
-claude mcp add chrome-devtools-macaw python /path/to/proxy_chrome_devtools.py \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add chrome-devtools-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  python /path/to/proxy_chrome_devtools.py'
 ```

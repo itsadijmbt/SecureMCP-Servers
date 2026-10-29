@@ -25,8 +25,9 @@ python proxy_snyk.py
 Register with Claude Code:
 
 ```bash
-claude mcp add snyk-macaw python /path/to/proxy_snyk.py \
-  -e SNYK_TOKEN=... \
-  -e SNYK_CFG_ORG=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add snyk-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export SNYK_TOKEN="..." && \
+  export SNYK_CFG_ORG="..." && \
+  python /path/to/proxy_snyk.py'
 ```

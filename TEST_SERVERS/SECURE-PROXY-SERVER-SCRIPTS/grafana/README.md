@@ -26,8 +26,9 @@ python proxy_grafana.py
 Register with Claude Code:
 
 ```bash
-claude mcp add grafana-macaw python /path/to/proxy_grafana.py \
-  -e GRAFANA_URL=... \
-  -e GRAFANA_SERVICE_ACCOUNT_TOKEN=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add grafana-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export GRAFANA_URL="..." && \
+  export GRAFANA_SERVICE_ACCOUNT_TOKEN="..." && \
+  python /path/to/proxy_grafana.py'
 ```

@@ -35,10 +35,11 @@ python proxy_redis.py
 Register with Claude Code:
 
 ```bash
-claude mcp add redis-macaw python /path/to/proxy_redis.py \
-  -e REDIS_HOST=... \
-  -e REDIS_PORT=... \
-  -e REDIS_USERNAME=... \
-  -e REDIS_PWD=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add redis-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export REDIS_HOST="..." && \
+  export REDIS_PORT="..." && \
+  export REDIS_USERNAME="..." && \
+  export REDIS_PWD="..." && \
+  python /path/to/proxy_redis.py'
 ```

@@ -39,15 +39,16 @@ python proxy_dbt.py
 Register with Claude Code:
 
 ```bash
-claude mcp add dbt-macaw python /path/to/proxy_dbt.py \
-  -e DBT_HOST=... \
-  -e DBT_TOKEN=... \
-  -e DBT_PROD_ENV_ID=... \
-  -e DBT_DEV_ENV_ID=... \
-  -e DBT_USER_ID=... \
-  -e DBT_ACCOUNT_ID=... \
-  -e DBT_PROJECT_DIR=... \
-  -e DBT_PATH=... \
-  -e MULTICELL_ACCOUNT_PREFIX=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add dbt-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export DBT_HOST="..." && \
+  export DBT_TOKEN="..." && \
+  export DBT_PROD_ENV_ID="..." && \
+  export DBT_DEV_ENV_ID="..." && \
+  export DBT_USER_ID="..." && \
+  export DBT_ACCOUNT_ID="..." && \
+  export DBT_PROJECT_DIR="..." && \
+  export DBT_PATH="..." && \
+  export MULTICELL_ACCOUNT_PREFIX="..." && \
+  python /path/to/proxy_dbt.py'
 ```

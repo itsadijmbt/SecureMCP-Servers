@@ -20,6 +20,7 @@ python proxy_atlassian.py
 Register with Claude Code:
 
 ```bash
-claude mcp add atlassian-macaw python /path/to/proxy_atlassian.py \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add atlassian-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  python /path/to/proxy_atlassian.py'
 ```

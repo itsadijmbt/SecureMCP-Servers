@@ -34,7 +34,8 @@ python proxy_dingo.py
 Register with Claude Code:
 
 ```bash
-claude mcp add dingo-macaw python /path/to/proxy_dingo.py \
-  -e DINGO_HOME=/path/to/dingo \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add dingo-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export DINGO_HOME="/path/to/dingo" && \
+  python /path/to/proxy_dingo.py'
 ```

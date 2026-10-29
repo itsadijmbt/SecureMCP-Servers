@@ -34,11 +34,12 @@ python proxy_mysql.py
 Register with Claude Code:
 
 ```bash
-claude mcp add mysql-macaw python /path/to/proxy_mysql.py \
-  -e MYSQL_HOST=... \
-  -e MYSQL_PORT=... \
-  -e MYSQL_USER=... \
-  -e MYSQL_PASSWORD=... \
-  -e MYSQL_DATABASE=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add mysql-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export MYSQL_HOST="..." && \
+  export MYSQL_PORT="..." && \
+  export MYSQL_USER="..." && \
+  export MYSQL_PASSWORD="..." && \
+  export MYSQL_DATABASE="..." && \
+  python /path/to/proxy_mysql.py'
 ```

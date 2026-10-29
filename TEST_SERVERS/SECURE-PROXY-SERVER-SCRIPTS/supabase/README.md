@@ -23,7 +23,8 @@ python proxy_supabase.py
 Register with Claude Code:
 
 ```bash
-claude mcp add supabase-macaw python /path/to/proxy_supabase.py \
-  -e SUPABASE_PROJECT_REF=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add supabase-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export SUPABASE_PROJECT_REF="..." && \
+  python /path/to/proxy_supabase.py'
 ```

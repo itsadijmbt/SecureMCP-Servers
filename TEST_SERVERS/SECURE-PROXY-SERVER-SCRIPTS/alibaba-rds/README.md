@@ -30,10 +30,11 @@ python proxy_alibaba_rds.py
 Register with Claude Code:
 
 ```bash
-claude mcp add alibaba-rds-macaw python /path/to/proxy_alibaba_rds.py \
-  -e ALIBABA_CLOUD_ACCESS_KEY_ID=... \
-  -e ALIBABA_CLOUD_ACCESS_KEY_SECRET=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add alibaba-rds-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export ALIBABA_CLOUD_ACCESS_KEY_ID="..." && \
+  export ALIBABA_CLOUD_ACCESS_KEY_SECRET="..." && \
+  python /path/to/proxy_alibaba_rds.py'
 ```
 
 With `MCP_TOOLSETS=rds,rds_custom_all`, startup can exceed Claude Code's 30s default. Run `export MCP_TIMEOUT=120000` before starting Claude Code.

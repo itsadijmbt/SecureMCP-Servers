@@ -23,7 +23,8 @@ python proxy_stripe.py
 Register with Claude Code:
 
 ```bash
-claude mcp add stripe-macaw python /path/to/proxy_stripe.py \
-  -e STRIPE_SECRET_KEY=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add stripe-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export STRIPE_SECRET_KEY="..." && \
+  python /path/to/proxy_stripe.py'
 ```
