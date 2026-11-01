@@ -4,7 +4,7 @@ Wraps `uvx excel-mcp-server stdio --allow-dir <EXCEL_FILES_PATH>` over stdio. MA
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `uvx` on `PATH` (from `uv`).
 - A folder that holds the workbooks.
 

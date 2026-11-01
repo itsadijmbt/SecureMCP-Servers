@@ -4,7 +4,7 @@ Wraps `uvx --with "mcp<2" alibabacloud-rds-openapi-mcp-server@latest` over stdio
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `uvx` on `PATH` (from `uv`).
 - An Alibaba Cloud AccessKey.
 

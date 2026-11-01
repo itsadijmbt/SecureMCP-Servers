@@ -8,8 +8,9 @@ Run:
     python proxy_arxiv.py
 
 Claude Code:
-    claude mcp add arxiv-macaw python /path/to/proxy_arxiv.py \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add arxiv-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      python /path/to/proxy_arxiv.py'
 
     No API key or token: arXiv is a public service. Papers are stored in ~/.arxiv-mcp-server/papers.
 """

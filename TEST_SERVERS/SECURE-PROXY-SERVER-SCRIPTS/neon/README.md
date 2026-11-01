@@ -4,7 +4,7 @@ Wraps `https://mcp.neon.tech/mcp` over HTTPS with a bearer API key. MACAW policy
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 
 Environment variables:
 
@@ -27,3 +27,5 @@ claude mcp add neon-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
   export NEON_API_KEY="..." && \
   python /path/to/proxy_neon.py'
 ```
+
+Startup can exceed Claude Code's 30s default. Run `export MCP_TIMEOUT=120000` before starting Claude Code.

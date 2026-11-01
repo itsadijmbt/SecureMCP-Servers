@@ -4,7 +4,7 @@ Wraps the Agentforce MCP server's own `server.py`, run from a local clone. MACAW
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - The Agentforce MCP server cloned, with its `.venv` built (`pip install -r requirements.txt`).
 
 Environment variables:

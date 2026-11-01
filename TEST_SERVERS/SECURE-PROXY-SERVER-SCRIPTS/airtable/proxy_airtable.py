@@ -9,9 +9,10 @@ Run:
     python proxy_airtable.py
 
 Claude Code:
-    claude mcp add airtable-macaw python /path/to/proxy_airtable.py \
-      -e AIRTABLE_API_KEY=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add airtable-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export AIRTABLE_API_KEY="..." && \
+      python /path/to/proxy_airtable.py'
 """
 
 import os

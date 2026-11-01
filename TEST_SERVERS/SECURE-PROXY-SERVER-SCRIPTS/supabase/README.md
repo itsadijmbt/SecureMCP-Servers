@@ -4,7 +4,7 @@ Wraps `npx -y mcp-remote https://mcp.supabase.com/mcp` — OAuth in the browser 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js 20+ on `PATH` (`mcp-remote` needs it).
 
 Environment variables:

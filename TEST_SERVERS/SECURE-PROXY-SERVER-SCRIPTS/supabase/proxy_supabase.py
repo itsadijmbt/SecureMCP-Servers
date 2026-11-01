@@ -9,9 +9,10 @@ Run:
     python proxy_supabase.py
 
 Claude Code:
-    claude mcp add supabase-macaw python /path/to/proxy_supabase.py \
-      -e SUPABASE_PROJECT_REF=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add supabase-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export SUPABASE_PROJECT_REF="..." && \
+      python /path/to/proxy_supabase.py'
 
     PATH must point at Node 20+: mcp-remote needs undici, which fails on Node 18
     with "ReferenceError: File is not defined".

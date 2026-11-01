@@ -4,7 +4,7 @@ Wraps `jupyter-mcp-server start` over stdio, against a Jupyter server you run. M
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `jupyter-mcp-server` installed and on `PATH`, and a running Jupyter server.
 
 Environment variables:

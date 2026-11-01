@@ -4,7 +4,7 @@ Wraps `npx -y airtable-mcp-server` over stdio. MACAW policy is enforced at the p
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js and `npx` on `PATH`.
 
 Environment variables:

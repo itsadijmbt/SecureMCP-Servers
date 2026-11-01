@@ -4,7 +4,7 @@ Wraps `https://api.githubcopilot.com/mcp/` over HTTPS with a bearer PAT. MACAW p
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 
 Environment variables:
 

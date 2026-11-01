@@ -11,11 +11,12 @@ Run:
     python proxy_mongodb.py
 
 Claude Code:
-    claude mcp add mongodb-macaw python /path/to/proxy_mongodb.py \
-      -e MDB_MCP_API_CLIENT_ID=... \
-      -e MDB_MCP_API_CLIENT_SECRET=... \
-      -e MDB_MCP_CONNECTION_STRING=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add mongodb-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export MDB_MCP_CONNECTION_STRING="..." && \
+      export MDB_MCP_API_CLIENT_ID="..." && \
+      export MDB_MCP_API_CLIENT_SECRET="..." && \
+      python /path/to/proxy_mongodb.py'
 
     Needs a running Docker daemon and the image pulled:
     docker pull mongodb/mongodb-mcp-server:latest

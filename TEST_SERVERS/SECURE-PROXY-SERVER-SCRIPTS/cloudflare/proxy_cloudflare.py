@@ -9,9 +9,10 @@ Run:
     python proxy_cloudflare.py
 
 Claude Code:
-    claude mcp add cloudflare-macaw python /path/to/proxy_cloudflare.py \
-      -e CLOUDFLARE_API_TOKEN=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add cloudflare-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export CLOUDFLARE_API_TOKEN="..." && \
+      python /path/to/proxy_cloudflare.py'
 """
 
 import os

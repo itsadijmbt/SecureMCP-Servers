@@ -9,9 +9,10 @@ Run:
     python proxy_dispatch.py
 
 Claude Code:
-    claude mcp add dispatch-macaw python /path/to/proxy_dispatch.py \
-      -e DISPATCH_API_KEY=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add dispatch-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export DISPATCH_API_KEY="..." && \
+      python /path/to/proxy_dispatch.py'
 
     DISPATCH_API_KEY is a Dispatch API key (it starts with dak_). Without it the upstream uses the
     session saved by `dispatch login`.

@@ -4,7 +4,7 @@ Wraps the Databricks managed MCP endpoint in `DATABRICKS_MCP_URL` over HTTPS wit
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 
 Environment variables:
 

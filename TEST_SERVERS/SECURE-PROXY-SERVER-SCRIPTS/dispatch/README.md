@@ -4,7 +4,7 @@ Wraps `dispatch mcp serve operator` (installed with `uvx` from `datadog-labs/dis
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `uvx` (from `uv`) and `git` on `PATH`. The upstream is installed from its GitHub repository.
 - A Dispatch account.
 

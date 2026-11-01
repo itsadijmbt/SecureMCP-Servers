@@ -4,7 +4,7 @@ Wraps `npx -y @postman/postman-mcp-server --minimal` over stdio. MACAW policy is
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js 20+ and `npx` on `PATH`.
 
 Environment variables:

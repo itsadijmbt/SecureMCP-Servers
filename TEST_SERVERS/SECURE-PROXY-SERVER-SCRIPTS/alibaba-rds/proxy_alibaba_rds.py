@@ -10,10 +10,11 @@ Run:
     python proxy_alibaba_rds.py
 
 Claude Code:
-    claude mcp add alibaba-rds-macaw python /path/to/proxy_alibaba_rds.py \
-      -e ALIBABA_CLOUD_ACCESS_KEY_ID=... \
-      -e ALIBABA_CLOUD_ACCESS_KEY_SECRET=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add alibaba-rds-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export ALIBABA_CLOUD_ACCESS_KEY_ID="..." && \
+      export ALIBABA_CLOUD_ACCESS_KEY_SECRET="..." && \
+      python /path/to/proxy_alibaba_rds.py'
 
     With an STS token also set ALIBABA_CLOUD_SECURITY_TOKEN.
     MCP_TOOLSETS picks the tool groups: rds (default), rds_custom_read, rds_custom_all. Example: MCP_TOOLSETS=rds,rds_custom_all

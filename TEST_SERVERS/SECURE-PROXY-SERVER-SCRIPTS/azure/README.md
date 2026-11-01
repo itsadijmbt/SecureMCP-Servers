@@ -4,7 +4,7 @@ Wraps `npx -y @azure/mcp@4.0.0-beta.3 server start --mode all --read-only` over 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js 22+ and `npx` on `PATH`.
 
 Environment variables:
