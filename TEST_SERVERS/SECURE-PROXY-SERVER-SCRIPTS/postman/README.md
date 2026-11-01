@@ -4,7 +4,7 @@ Wraps `npx -y @postman/postman-mcp-server --minimal` over stdio. MACAW policy is
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js 20+ and `npx` on `PATH`.
 
 Environment variables:
@@ -23,7 +23,8 @@ python proxy_postman.py
 Register with Claude Code:
 
 ```bash
-claude mcp add postman-macaw python /path/to/proxy_postman.py \
-  -e POSTMAN_API_KEY=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add postman-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export POSTMAN_API_KEY="..." && \
+  python /path/to/proxy_postman.py'
 ```

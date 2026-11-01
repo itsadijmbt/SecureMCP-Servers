@@ -9,9 +9,10 @@ Run:
     python proxy_github.py
 
 Claude Code:
-    claude mcp add github-macaw python /path/to/proxy_github.py \
-      -e GITHUB_PERSONAL_ACCESS_TOKEN=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add github-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export GITHUB_PERSONAL_ACCESS_TOKEN="..." && \
+      python /path/to/proxy_github.py'
 """
 
 import os

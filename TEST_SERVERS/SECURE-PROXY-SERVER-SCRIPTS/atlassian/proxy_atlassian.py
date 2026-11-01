@@ -8,8 +8,9 @@ Run:
     python proxy_atlassian.py
 
 Claude Code:
-    claude mcp add atlassian-macaw python /path/to/proxy_atlassian.py \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add atlassian-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      python /path/to/proxy_atlassian.py'
 """
 
 import os
@@ -20,7 +21,7 @@ from macaw_adapters.mcp import SecureMCPProxy
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-ATLASSIAN_MCP_URL = "https://mcp.atlassian.com/v1/mcp/authv2"
+ATLASSIAN_MCP_URL = "https://mcp.atlassian.com/v2/mcp"
 
 proxy = SecureMCPProxy(
     app_name="atlassian-proxy",

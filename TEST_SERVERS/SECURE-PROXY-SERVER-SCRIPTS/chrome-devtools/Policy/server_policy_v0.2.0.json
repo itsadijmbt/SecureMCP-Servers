@@ -1,0 +1,122 @@
+{
+  "policy_id": "app:chrome-devtools-proxy",
+  "version": "0.2.0",
+  "scope": "global",
+  "resources": [
+    "tool:chrome-devtools-proxy/click",
+    "tool:chrome-devtools-proxy/close_page",
+    "tool:chrome-devtools-proxy/drag",
+    "tool:chrome-devtools-proxy/emulate",
+    "tool:chrome-devtools-proxy/fill",
+    "tool:chrome-devtools-proxy/fill_form",
+    "tool:chrome-devtools-proxy/get_console_message",
+    "tool:chrome-devtools-proxy/get_css_styles",
+    "tool:chrome-devtools-proxy/get_network_request",
+    "tool:chrome-devtools-proxy/handle_dialog",
+    "tool:chrome-devtools-proxy/hover",
+    "tool:chrome-devtools-proxy/lighthouse_audit",
+    "tool:chrome-devtools-proxy/list_console_messages",
+    "tool:chrome-devtools-proxy/list_network_requests",
+    "tool:chrome-devtools-proxy/list_pages",
+    "tool:chrome-devtools-proxy/navigate_page",
+    "tool:chrome-devtools-proxy/new_page",
+    "tool:chrome-devtools-proxy/performance_analyze_insight",
+    "tool:chrome-devtools-proxy/performance_start_trace",
+    "tool:chrome-devtools-proxy/performance_stop_trace",
+    "tool:chrome-devtools-proxy/press_key",
+    "tool:chrome-devtools-proxy/resize_page",
+    "tool:chrome-devtools-proxy/screencast_start",
+    "tool:chrome-devtools-proxy/screencast_stop",
+    "tool:chrome-devtools-proxy/select_page",
+    "tool:chrome-devtools-proxy/take_screenshot",
+    "tool:chrome-devtools-proxy/take_snapshot",
+    "tool:chrome-devtools-proxy/type_text",
+    "tool:chrome-devtools-proxy/upload_file",
+    "tool:chrome-devtools-proxy/wait_for"
+  ],
+  "denied_resources": [
+    "tool:chrome-devtools-proxy/evaluate_script",
+    "tool:chrome-devtools-proxy/take_heapsnapshot"
+  ],
+  "constraints": {
+    "denied_parameters": {
+      "tool:chrome-devtools-proxy/navigate_page": {
+        "initScript": [
+          "*"
+        ]
+      },
+      "tool:chrome-devtools-proxy/fill": {
+        "value": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      },
+      "tool:chrome-devtools-proxy/type_text": {
+        "text": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      }
+    },
+    "parameters": {
+      "tool:chrome-devtools-proxy/navigate_page": {
+        "url": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 2048,
+          "pattern": "^https?://.+$"
+        }
+      },
+      "tool:chrome-devtools-proxy/new_page": {
+        "url": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 2048,
+          "pattern": "^https?://.+$"
+        }
+      },
+      "tool:chrome-devtools-proxy/fill": {
+        "uid": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128
+        },
+        "value": {
+          "type": "string",
+          "max_length": 4096,
+          "pattern": "^(?![\\s\\S]*[A-Za-z0-9+/=]{41,})[\\s\\S]*$"
+        }
+      },
+      "tool:chrome-devtools-proxy/type_text": {
+        "text": {
+          "type": "string",
+          "max_length": 4096,
+          "pattern": "^(?![\\s\\S]*[A-Za-z0-9+/=]{41,})[\\s\\S]*$"
+        }
+      },
+      "tool:chrome-devtools-proxy/resize_page": {
+        "width": {
+          "type": "integer",
+          "min": 1,
+          "max": 8192
+        },
+        "height": {
+          "type": "integer",
+          "min": 1,
+          "max": 8192
+        }
+      },
+      "tool:chrome-devtools-proxy/upload_file": {
+        "uid": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128
+        },
+        "filePaths": {
+          "type": "array",
+          "min_items": 1,
+          "max_items": 10
+        }
+      }
+    }
+  },
+  "description": "Chrome DevTools protected by Secure MCP proxy"
+}

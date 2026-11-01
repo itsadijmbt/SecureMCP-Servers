@@ -4,7 +4,7 @@ Wraps `uvx --from redis-mcp-server@latest redis-mcp-server` over stdio. MACAW po
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `uvx` on `PATH` (from `uv`).
 - A Redis server the proxy can reach.
 
@@ -35,10 +35,11 @@ python proxy_redis.py
 Register with Claude Code:
 
 ```bash
-claude mcp add redis-macaw python /path/to/proxy_redis.py \
-  -e REDIS_HOST=... \
-  -e REDIS_PORT=... \
-  -e REDIS_USERNAME=... \
-  -e REDIS_PWD=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add redis-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export REDIS_HOST="..." && \
+  export REDIS_PORT="..." && \
+  export REDIS_USERNAME="..." && \
+  export REDIS_PWD="..." && \
+  python /path/to/proxy_redis.py'
 ```

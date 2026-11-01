@@ -1,11 +1,9 @@
 {
   "policy_id": "app:qdrant-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:qdrant-proxy/**"
-  ],
-  "denied_resources": [
+    "tool:qdrant-proxy/qdrant-find",
     "tool:qdrant-proxy/qdrant-store"
   ],
   "constraints": {
@@ -22,15 +20,21 @@
           "max_length": 128,
           "pattern": "^[A-Za-z0-9_-]+$"
         }
-      }
-    },
-    "denied_parameters": {
-      "tool:qdrant-proxy/qdrant-find": {
-        "query": [
-          "*DENYME*"
-        ]
+      },
+      "tool:qdrant-proxy/qdrant-store": {
+        "information": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 10000
+        },
+        "collection_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       }
     }
   },
-  "description": "Qdrant MCP via SecureMCPProxy -- find only"
+  "description": "Qdrant protected by Secure MCP proxy"
 }

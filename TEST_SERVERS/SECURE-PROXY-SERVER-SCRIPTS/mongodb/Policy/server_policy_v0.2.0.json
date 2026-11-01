@@ -1,9 +1,34 @@
 {
   "policy_id": "app:mongodb-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:mongodb-proxy/**"
+    "tool:mongodb-proxy/aggregate",
+    "tool:mongodb-proxy/aggregate-db",
+    "tool:mongodb-proxy/atlas-connect-cluster",
+    "tool:mongodb-proxy/atlas-get-performance-advisor",
+    "tool:mongodb-proxy/atlas-get-regions",
+    "tool:mongodb-proxy/atlas-inspect-access-list",
+    "tool:mongodb-proxy/atlas-inspect-cluster",
+    "tool:mongodb-proxy/atlas-list-alerts",
+    "tool:mongodb-proxy/atlas-list-clusters",
+    "tool:mongodb-proxy/atlas-list-db-users",
+    "tool:mongodb-proxy/atlas-list-orgs",
+    "tool:mongodb-proxy/atlas-list-projects",
+    "tool:mongodb-proxy/atlas-streams-discover",
+    "tool:mongodb-proxy/collection-indexes",
+    "tool:mongodb-proxy/collection-schema",
+    "tool:mongodb-proxy/collection-storage-size",
+    "tool:mongodb-proxy/count",
+    "tool:mongodb-proxy/db-stats",
+    "tool:mongodb-proxy/explain",
+    "tool:mongodb-proxy/find",
+    "tool:mongodb-proxy/list-collections",
+    "tool:mongodb-proxy/list-connections",
+    "tool:mongodb-proxy/list-databases",
+    "tool:mongodb-proxy/list-knowledge-sources",
+    "tool:mongodb-proxy/mongodb-logs",
+    "tool:mongodb-proxy/search-knowledge"
   ],
   "denied_resources": [
     "tool:mongodb-proxy/connect",
@@ -505,5 +530,5 @@
       }
     }
   },
-  "description": "MongoDB MCP via SecureMCPProxy"
+  "description": "MongoDB protected by Secure MCP proxy"
 }

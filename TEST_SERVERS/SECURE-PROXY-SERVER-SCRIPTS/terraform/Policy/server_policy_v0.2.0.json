@@ -1,0 +1,156 @@
+{
+  "policy_id": "app:terraform-proxy",
+  "version": "0.2.0",
+  "scope": "global",
+  "resources": [
+    "tool:terraform-proxy/search_modules",
+    "tool:terraform-proxy/get_module_details",
+    "tool:terraform-proxy/get_latest_module_version",
+    "tool:terraform-proxy/search_providers",
+    "tool:terraform-proxy/get_provider_details",
+    "tool:terraform-proxy/get_provider_capabilities",
+    "tool:terraform-proxy/get_latest_provider_version",
+    "tool:terraform-proxy/search_policies",
+    "tool:terraform-proxy/get_policy_details"
+  ],
+  "constraints": {
+    "parameters": {
+      "tool:terraform-proxy/search_modules": {
+        "module_query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 500
+        },
+        "current_offset": {
+          "type": "integer",
+          "min": 0,
+          "max": 100000
+        }
+      },
+      "tool:terraform-proxy/get_module_details": {
+        "module_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 200,
+          "pattern": "^[A-Za-z0-9._/-]+$"
+        }
+      },
+      "tool:terraform-proxy/get_latest_module_version": {
+        "module_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "module_provider": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "module_publisher": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        }
+      },
+      "tool:terraform-proxy/search_providers": {
+        "provider_document_type": {
+          "type": "string",
+          "allowed_values": [
+            "resources",
+            "data-sources",
+            "functions",
+            "guides",
+            "overview",
+            "actions",
+            "list-resources"
+          ]
+        },
+        "provider_name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "provider_namespace": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "provider_version": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 32,
+          "pattern": "^[A-Za-z0-9._+-]+$"
+        },
+        "service_slug": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        }
+      },
+      "tool:terraform-proxy/get_provider_details": {
+        "provider_doc_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 200,
+          "pattern": "^[A-Za-z0-9._/-]+$"
+        }
+      },
+      "tool:terraform-proxy/get_provider_capabilities": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "namespace": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "version": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 32,
+          "pattern": "^[A-Za-z0-9._+-]+$"
+        }
+      },
+      "tool:terraform-proxy/get_latest_provider_version": {
+        "name": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "namespace": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        }
+      },
+      "tool:terraform-proxy/search_policies": {
+        "policy_query": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 500
+        }
+      },
+      "tool:terraform-proxy/get_policy_details": {
+        "terraform_policy_id": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 200,
+          "pattern": "^[A-Za-z0-9._/-]+$"
+        }
+      }
+    }
+  },
+  "description": "Terraform protected by Secure MCP proxy"
+}

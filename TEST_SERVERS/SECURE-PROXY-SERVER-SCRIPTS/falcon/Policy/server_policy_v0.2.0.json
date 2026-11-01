@@ -1,6 +1,6 @@
 {
   "policy_id": "app:falcon-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
     "tool:falcon-proxy/falcon_check_connectivity",
@@ -60,9 +60,6 @@
     "tool:falcon-proxy/falcon_get_guardian_detection_scores",
     "tool:falcon-proxy/falcon_search_guardian_installs",
     "tool:falcon-proxy/falcon_search_guardian_models",
-    "tool:falcon-proxy/falcon_search_data_protection_classifications",
-    "tool:falcon-proxy/falcon_search_data_protection_policies",
-    "tool:falcon-proxy/falcon_search_data_protection_content_patterns",
     "tool:falcon-proxy/falcon_search_recon_notifications",
     "tool:falcon-proxy/falcon_search_recon_rules",
     "tool:falcon-proxy/falcon_search_recon_exposed_data_records",
@@ -126,7 +123,9 @@
     "tool:falcon-proxy/falcon_search_host_group_members",
     "tool:falcon-proxy/falcon_search_managed_assets",
     "tool:falcon-proxy/falcon_search_quarantined_files",
-    "tool:falcon-proxy/falcon_preview_quarantine_actions"
+    "tool:falcon-proxy/falcon_preview_quarantine_actions",
+    "tool:falcon-proxy/falcon_search_data_security_entities",
+    "tool:falcon-proxy/falcon_get_data_security_entities"
   ],
   "denied_resources": [
     "tool:falcon-proxy/falcon_add_ioc",
@@ -173,7 +172,9 @@
     "tool:falcon-proxy/falcon_perform_host_group_action",
     "tool:falcon-proxy/falcon_manage_host_grouping_tags",
     "tool:falcon-proxy/falcon_update_quarantined_files",
-    "tool:falcon-proxy/falcon_delete_quarantined_files"
+    "tool:falcon-proxy/falcon_delete_quarantined_files",
+    "tool:falcon-proxy/falcon_create_data_security_entity",
+    "tool:falcon-proxy/falcon_update_data_security_entity"
   ],
   "constraints": {
     "parameters": {
@@ -490,39 +491,6 @@
         }
       },
       "tool:falcon-proxy/falcon_search_guardian_models": {
-        "limit": {
-          "type": "integer",
-          "min": 1,
-          "max": 500
-        },
-        "offset": {
-          "type": "integer",
-          "min": 0
-        }
-      },
-      "tool:falcon-proxy/falcon_search_data_protection_classifications": {
-        "limit": {
-          "type": "integer",
-          "min": 1,
-          "max": 500
-        },
-        "offset": {
-          "type": "integer",
-          "min": 0
-        }
-      },
-      "tool:falcon-proxy/falcon_search_data_protection_policies": {
-        "limit": {
-          "type": "integer",
-          "min": 1,
-          "max": 500
-        },
-        "offset": {
-          "type": "integer",
-          "min": 0
-        }
-      },
-      "tool:falcon-proxy/falcon_search_data_protection_content_patterns": {
         "limit": {
           "type": "integer",
           "min": 1,
@@ -884,8 +852,19 @@
           "min": 1,
           "max": 500
         }
+      },
+      "tool:falcon-proxy/falcon_search_data_security_entities": {
+        "limit": {
+          "type": "integer",
+          "min": 1,
+          "max": 500
+        },
+        "offset": {
+          "type": "integer",
+          "min": 0
+        }
       }
     }
   },
-  "description": "CrowdStrike Falcon MCP via SecureMCPProxy -- read-only"
+  "description": "Falcon protected by Secure MCP proxy"
 }

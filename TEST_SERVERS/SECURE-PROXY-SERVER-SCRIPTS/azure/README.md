@@ -1,10 +1,10 @@
 # Azure MCP — SecureMCPProxy
 
-Wraps `npx -y @azure/mcp@latest server start` over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
+Wraps `npx -y @azure/mcp@4.0.0-beta.3 server start --mode all --read-only` over stdio. MACAW policy is enforced at the proxy before any call reaches the upstream.
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js 22+ and `npx` on `PATH`.
 
 Environment variables:
@@ -29,10 +29,11 @@ python proxy_azure.py
 Register with Claude Code:
 
 ```bash
-claude mcp add azure-macaw python /path/to/proxy_azure.py \
-  -e AZURE_TENANT_ID=... \
-  -e AZURE_CLIENT_ID=... \
-  -e AZURE_CLIENT_SECRET=... \
-  -e AZURE_SUBSCRIPTION_ID=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add azure-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export AZURE_TENANT_ID="..." && \
+  export AZURE_CLIENT_ID="..." && \
+  export AZURE_CLIENT_SECRET="..." && \
+  export AZURE_SUBSCRIPTION_ID="..." && \
+  python /path/to/proxy_azure.py'
 ```

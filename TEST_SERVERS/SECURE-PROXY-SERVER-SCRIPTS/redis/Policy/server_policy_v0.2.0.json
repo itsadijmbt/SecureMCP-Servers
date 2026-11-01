@@ -1,9 +1,27 @@
 {
   "policy_id": "app:redis-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:redis-proxy/**"
+    "tool:redis-proxy/dbsize",
+    "tool:redis-proxy/get",
+    "tool:redis-proxy/get_index_info",
+    "tool:redis-proxy/get_indexed_keys_number",
+    "tool:redis-proxy/get_indexes",
+    "tool:redis-proxy/get_vector_from_hash",
+    "tool:redis-proxy/hexists",
+    "tool:redis-proxy/hget",
+    "tool:redis-proxy/hgetall",
+    "tool:redis-proxy/hybrid_search",
+    "tool:redis-proxy/json_get",
+    "tool:redis-proxy/llen",
+    "tool:redis-proxy/lrange",
+    "tool:redis-proxy/scan_keys",
+    "tool:redis-proxy/smembers",
+    "tool:redis-proxy/type",
+    "tool:redis-proxy/vector_search_hash",
+    "tool:redis-proxy/xrange",
+    "tool:redis-proxy/zrange"
   ],
   "denied_resources": [
     "tool:redis-proxy/hset",
@@ -263,14 +281,7 @@
           "max_length": 256
         }
       }
-    },
-    "denied_parameters": {
-      "tool:redis-proxy/scan_keys": {
-        "pattern": [
-          "*DENYME*"
-        ]
-      }
     }
   },
-  "description": "Redis MCP via SecureMCPProxy -- read-only"
+  "description": "Redis protected by Secure MCP proxy"
 }

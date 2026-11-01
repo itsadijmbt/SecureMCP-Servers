@@ -1,48 +1,56 @@
 {
   "policy_id": "app:excel-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:excel-proxy/**"
+    "tool:excel-proxy/describe_workbook",
+    "tool:excel-proxy/describe_sheet",
+    "tool:excel-proxy/list_workbooks",
+    "tool:excel-proxy/read_range",
+    "tool:excel-proxy/find_cells",
+    "tool:excel-proxy/trace_formula"
   ],
   "denied_resources": [
-    "tool:excel-proxy/create_workbook",
-    "tool:excel-proxy/set_workbook_settings",
-    "tool:excel-proxy/export_workbook",
-    "tool:excel-proxy/import_workbook",
-    "tool:excel-proxy/create_sheet",
-    "tool:excel-proxy/rename_sheet",
-    "tool:excel-proxy/copy_sheet",
-    "tool:excel-proxy/delete_sheet",
-    "tool:excel-proxy/insert_rows_or_columns",
-    "tool:excel-proxy/delete_rows_or_columns",
-    "tool:excel-proxy/write_range",
-    "tool:excel-proxy/clear_range",
-    "tool:excel-proxy/copy_range",
-    "tool:excel-proxy/sort_range",
-    "tool:excel-proxy/transform_range",
-    "tool:excel-proxy/replace_cells",
-    "tool:excel-proxy/format_range",
-    "tool:excel-proxy/merge_cells",
-    "tool:excel-proxy/set_sheet_layout",
     "tool:excel-proxy/add_conditional_format",
     "tool:excel-proxy/add_data_validation",
-    "tool:excel-proxy/set_table",
-    "tool:excel-proxy/create_chart",
-    "tool:excel-proxy/delete_chart",
-    "tool:excel-proxy/add_sparklines",
-    "tool:excel-proxy/delete_sparklines",
-    "tool:excel-proxy/create_pivot_table",
-    "tool:excel-proxy/delete_pivot_table",
     "tool:excel-proxy/add_slicer",
-    "tool:excel-proxy/delete_slicer",
-    "tool:excel-proxy/set_defined_name",
+    "tool:excel-proxy/add_sparklines",
+    "tool:excel-proxy/clear_range",
+    "tool:excel-proxy/copy_range",
+    "tool:excel-proxy/copy_sheet",
+    "tool:excel-proxy/create_chart",
+    "tool:excel-proxy/create_pivot_table",
+    "tool:excel-proxy/create_sheet",
+    "tool:excel-proxy/create_workbook",
+    "tool:excel-proxy/delete_chart",
     "tool:excel-proxy/delete_defined_name",
-    "tool:excel-proxy/set_note",
-    "tool:excel-proxy/delete_note",
-    "tool:excel-proxy/insert_image",
     "tool:excel-proxy/delete_image",
-    "tool:excel-proxy/read_vba"
+    "tool:excel-proxy/delete_note",
+    "tool:excel-proxy/delete_pivot_table",
+    "tool:excel-proxy/delete_rows_or_columns",
+    "tool:excel-proxy/delete_sheet",
+    "tool:excel-proxy/delete_slicer",
+    "tool:excel-proxy/delete_sparklines",
+    "tool:excel-proxy/export_csv",
+    "tool:excel-proxy/export_workbook",
+    "tool:excel-proxy/format_range",
+    "tool:excel-proxy/goal_seek",
+    "tool:excel-proxy/import_csv",
+    "tool:excel-proxy/import_workbook",
+    "tool:excel-proxy/insert_image",
+    "tool:excel-proxy/insert_rows_or_columns",
+    "tool:excel-proxy/merge_cells",
+    "tool:excel-proxy/read_vba",
+    "tool:excel-proxy/rename_sheet",
+    "tool:excel-proxy/replace_cells",
+    "tool:excel-proxy/set_defined_name",
+    "tool:excel-proxy/set_note",
+    "tool:excel-proxy/set_sheet_layout",
+    "tool:excel-proxy/set_table",
+    "tool:excel-proxy/set_workbook_settings",
+    "tool:excel-proxy/sort_range",
+    "tool:excel-proxy/transform_range",
+    "tool:excel-proxy/write_range"
   ],
   "constraints": {
     "parameters": {
@@ -50,12 +58,6 @@
         "path": {
           "type": "string",
           "min_length": 1,
-          "max_length": 260
-        }
-      },
-      "tool:excel-proxy/list_workbooks": {
-        "directory": {
-          "type": "string",
           "max_length": 260
         }
       },
@@ -69,6 +71,15 @@
           "type": "string",
           "min_length": 1,
           "max_length": 31
+        }
+      },
+      "tool:excel-proxy/list_workbooks": {
+        "directory": {
+          "type": "string",
+          "max_length": 260
+        },
+        "recursive": {
+          "type": "boolean"
         }
       },
       "tool:excel-proxy/read_range": {
@@ -128,6 +139,34 @@
           "min": 1,
           "max": 200
         }
+      },
+      "tool:excel-proxy/trace_formula": {
+        "path": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 260
+        },
+        "sheet": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 31
+        },
+        "range": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 64
+        },
+        "direction": {
+          "type": "string",
+          "allowed_values": [
+            "precedents",
+            "dependents",
+            "evaluate"
+          ]
+        },
+        "all_levels": {
+          "type": "boolean"
+        }
       }
     },
     "denied_parameters": {
@@ -136,13 +175,13 @@
           "*..*"
         ]
       },
-      "tool:excel-proxy/list_workbooks": {
-        "directory": [
+      "tool:excel-proxy/describe_sheet": {
+        "path": [
           "*..*"
         ]
       },
-      "tool:excel-proxy/describe_sheet": {
-        "path": [
+      "tool:excel-proxy/list_workbooks": {
+        "directory": [
           "*..*"
         ]
       },
@@ -154,12 +193,14 @@
       "tool:excel-proxy/find_cells": {
         "path": [
           "*..*"
-        ],
-        "query": [
-          "*DENYME*"
+        ]
+      },
+      "tool:excel-proxy/trace_formula": {
+        "path": [
+          "*..*"
         ]
       }
     }
   },
-  "description": "Excel MCP via SecureMCPProxy -- read-only"
+  "description": "Excel protected by Secure MCP proxy"
 }

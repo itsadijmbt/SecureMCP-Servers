@@ -4,7 +4,7 @@ Wraps `npx -y chrome-devtools-mcp@latest --headless --isolated` — spawns the s
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js 20.19+, 22.12+ or 23+, and `npx` on `PATH`.
 - Google Chrome installed (the package launches the system browser).
 
@@ -21,6 +21,7 @@ python proxy_chrome_devtools.py
 Register with Claude Code:
 
 ```bash
-claude mcp add chrome-devtools-macaw python /path/to/proxy_chrome_devtools.py \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add chrome-devtools-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  python /path/to/proxy_chrome_devtools.py'
 ```

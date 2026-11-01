@@ -108,5 +108,5 @@
       }
     }
   },
-  "description": "Alibaba Cloud RDS MCP via SecureMCPProxy -- reads, tags and descriptions only"
+  "description": "Alibaba Cloud RDS protected by Secure MCP proxy"
 }

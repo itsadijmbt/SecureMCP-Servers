@@ -4,7 +4,7 @@ Wraps `https://bindings.mcp.cloudflare.com/mcp` over HTTPS with a bearer token. 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 
 Environment variables:
 
@@ -22,7 +22,8 @@ python proxy_cloudflare.py
 Register with Claude Code:
 
 ```bash
-claude mcp add cloudflare-macaw python /path/to/proxy_cloudflare.py \
-  -e CLOUDFLARE_API_TOKEN=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add cloudflare-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export CLOUDFLARE_API_TOKEN="..." && \
+  python /path/to/proxy_cloudflare.py'
 ```

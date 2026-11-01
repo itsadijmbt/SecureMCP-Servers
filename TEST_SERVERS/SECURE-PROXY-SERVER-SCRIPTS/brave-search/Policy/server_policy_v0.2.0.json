@@ -1,9 +1,15 @@
 {
   "policy_id": "app:brave-search-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:brave-search-proxy/**"
+    "tool:brave-search-proxy/brave_web_search",
+    "tool:brave-search-proxy/brave_local_search",
+    "tool:brave-search-proxy/brave_video_search",
+    "tool:brave-search-proxy/brave_image_search",
+    "tool:brave-search-proxy/brave_news_search",
+    "tool:brave-search-proxy/brave_summarizer",
+    "tool:brave-search-proxy/brave_place_search"
   ],
   "denied_resources": [
     "tool:brave-search-proxy/brave_llm_context"
@@ -13,19 +19,31 @@
       "tool:brave-search-proxy/brave_web_search": {
         "query": [
           "*-----BEGIN*PRIVATE KEY*"
-        ],
-        "goggles": [
-          "*"
-        ]
-      },
-      "tool:brave-search-proxy/brave_news_search": {
-        "goggles": [
-          "*"
         ]
       },
       "tool:brave-search-proxy/brave_local_search": {
-        "goggles": [
-          "*"
+        "query": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      },
+      "tool:brave-search-proxy/brave_news_search": {
+        "query": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      },
+      "tool:brave-search-proxy/brave_video_search": {
+        "query": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      },
+      "tool:brave-search-proxy/brave_image_search": {
+        "query": [
+          "*-----BEGIN*PRIVATE KEY*"
+        ]
+      },
+      "tool:brave-search-proxy/brave_place_search": {
+        "query": [
+          "*-----BEGIN*PRIVATE KEY*"
         ]
       }
     },
@@ -34,15 +52,16 @@
         "query": {
           "type": "string",
           "min_length": 1,
-          "max_length": 400
+          "max_length": 400,
+          "pattern": "^(?!.*[A-Za-z0-9+/=]{41,}).*$"
         },
         "count": {
-          "type": "number",
+          "type": "integer",
           "min": 1,
           "max": 20
         },
         "offset": {
-          "type": "number",
+          "type": "integer",
           "min": 0,
           "max": 9
         },
@@ -73,21 +92,26 @@
             "metric",
             "imperial"
           ]
+        },
+        "goggles": {
+          "type": "string",
+          "max_length": 0
         }
       },
       "tool:brave-search-proxy/brave_local_search": {
         "query": {
           "type": "string",
           "min_length": 1,
-          "max_length": 400
+          "max_length": 400,
+          "pattern": "^(?!.*[A-Za-z0-9+/=]{41,}).*$"
         },
         "count": {
-          "type": "number",
+          "type": "integer",
           "min": 1,
           "max": 20
         },
         "offset": {
-          "type": "number",
+          "type": "integer",
           "min": 0,
           "max": 9
         },
@@ -97,21 +121,26 @@
             "moderate",
             "strict"
           ]
+        },
+        "goggles": {
+          "type": "string",
+          "max_length": 0
         }
       },
       "tool:brave-search-proxy/brave_news_search": {
         "query": {
           "type": "string",
           "min_length": 1,
-          "max_length": 400
+          "max_length": 400,
+          "pattern": "^(?!.*[A-Za-z0-9+/=]{41,}).*$"
         },
         "count": {
-          "type": "number",
+          "type": "integer",
           "min": 1,
           "max": 50
         },
         "offset": {
-          "type": "number",
+          "type": "integer",
           "min": 0,
           "max": 9
         },
@@ -130,21 +159,26 @@
             "pm",
             "py"
           ]
+        },
+        "goggles": {
+          "type": "string",
+          "max_length": 0
         }
       },
       "tool:brave-search-proxy/brave_video_search": {
         "query": {
           "type": "string",
           "min_length": 1,
-          "max_length": 400
+          "max_length": 400,
+          "pattern": "^(?!.*[A-Za-z0-9+/=]{41,}).*$"
         },
         "count": {
-          "type": "number",
+          "type": "integer",
           "min": 1,
           "max": 50
         },
         "offset": {
-          "type": "number",
+          "type": "integer",
           "min": 0,
           "max": 9
         },
@@ -169,10 +203,11 @@
         "query": {
           "type": "string",
           "min_length": 1,
-          "max_length": 400
+          "max_length": 400,
+          "pattern": "^(?!.*[A-Za-z0-9+/=]{41,}).*$"
         },
         "count": {
-          "type": "number",
+          "type": "integer",
           "min": 1,
           "max": 50
         },
@@ -187,10 +222,11 @@
         "query": {
           "type": "string",
           "min_length": 1,
-          "max_length": 400
+          "max_length": 400,
+          "pattern": "^(?!.*[A-Za-z0-9+/=]{41,}).*$"
         },
         "count": {
-          "type": "number",
+          "type": "integer",
           "min": 1,
           "max": 50
         },
@@ -233,5 +269,5 @@
       }
     }
   },
-  "description": "Brave Search MCP via SecureMCPProxy"
+  "description": "Brave Search protected by Secure MCP proxy"
 }

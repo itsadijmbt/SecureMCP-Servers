@@ -4,7 +4,7 @@ Wraps `dispatch mcp serve operator` (installed with `uvx` from `datadog-labs/dis
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `uvx` (from `uv`) and `git` on `PATH`. The upstream is installed from its GitHub repository.
 - A Dispatch account.
 
@@ -27,9 +27,10 @@ python proxy_dispatch.py
 Register with Claude Code:
 
 ```bash
-claude mcp add dispatch-macaw python /path/to/proxy_dispatch.py \
-  -e DISPATCH_API_KEY=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add dispatch-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export DISPATCH_API_KEY="..." && \
+  python /path/to/proxy_dispatch.py'
 ```
 
 Startup can exceed Claude Code's 30s default. Run `export MCP_TIMEOUT=120000` before starting Claude Code.

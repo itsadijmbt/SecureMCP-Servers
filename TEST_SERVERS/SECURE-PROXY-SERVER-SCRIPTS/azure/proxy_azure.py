@@ -12,12 +12,13 @@ Run:
     python proxy_azure.py
 
 Claude Code:
-    claude mcp add azure-macaw python /path/to/proxy_azure.py \
-      -e AZURE_CLIENT_ID=... \
-      -e AZURE_CLIENT_SECRET=... \
-      -e AZURE_SUBSCRIPTION_ID=... \
-      -e AZURE_TENANT_ID=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add azure-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export AZURE_TENANT_ID="..." && \
+      export AZURE_CLIENT_ID="..." && \
+      export AZURE_CLIENT_SECRET="..." && \
+      export AZURE_SUBSCRIPTION_ID="..." && \
+      python /path/to/proxy_azure.py'
 """
 
 import os
@@ -39,7 +40,7 @@ for k in ("AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET",
 
 proxy = SecureMCPProxy(
     app_name="azure-proxy",
-    command=["npx", "-y", "@azure/mcp@latest", "server", "start"],
+    command=["npx", "-y", "@azure/mcp@4.0.0-beta.3", "server", "start", "--mode", "all", "--read-only"],
     env=upstream_env,
 )
 logging.info("azure-proxy: %d tools; serving native clients", len(proxy.list_tools()))

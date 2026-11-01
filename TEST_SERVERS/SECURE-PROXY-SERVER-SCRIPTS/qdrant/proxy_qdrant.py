@@ -11,11 +11,12 @@ Run:
     python proxy_qdrant.py
 
 Claude Code:
-    claude mcp add qdrant-macaw python /path/to/proxy_qdrant.py \
-      -e QDRANT_URL=... \
-      -e QDRANT_API_KEY=... \
-      -e COLLECTION_NAME=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add qdrant-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export QDRANT_URL="..." && \
+      export QDRANT_API_KEY="..." && \
+      export COLLECTION_NAME="..." && \
+      python /path/to/proxy_qdrant.py'
 
     For a local database on disk, set QDRANT_LOCAL_PATH instead of QDRANT_URL and QDRANT_API_KEY.
 """

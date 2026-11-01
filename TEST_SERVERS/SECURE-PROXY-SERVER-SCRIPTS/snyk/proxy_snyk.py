@@ -10,10 +10,11 @@ Run:
     python proxy_snyk.py
 
 Claude Code:
-    claude mcp add snyk-macaw python /path/to/proxy_snyk.py \
-      -e SNYK_CFG_ORG=... \
-      -e SNYK_TOKEN=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add snyk-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export SNYK_TOKEN="..." && \
+      export SNYK_CFG_ORG="..." && \
+      python /path/to/proxy_snyk.py'
 """
 
 import os

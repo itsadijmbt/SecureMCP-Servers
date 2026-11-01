@@ -1,21 +1,34 @@
 {
   "policy_id": "app:notion-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "global",
   "resources": [
-    "tool:notion-proxy/**"
+    "tool:notion-proxy/API-get-block-children",
+    "tool:notion-proxy/API-get-self",
+    "tool:notion-proxy/API-get-user",
+    "tool:notion-proxy/API-get-users",
+    "tool:notion-proxy/API-list-data-source-templates",
+    "tool:notion-proxy/API-post-search",
+    "tool:notion-proxy/API-query-data-source",
+    "tool:notion-proxy/API-retrieve-a-block",
+    "tool:notion-proxy/API-retrieve-a-comment",
+    "tool:notion-proxy/API-retrieve-a-data-source",
+    "tool:notion-proxy/API-retrieve-a-database",
+    "tool:notion-proxy/API-retrieve-a-page",
+    "tool:notion-proxy/API-retrieve-a-page-property",
+    "tool:notion-proxy/API-retrieve-page-markdown"
   ],
   "denied_resources": [
+    "tool:notion-proxy/API-create-a-comment",
+    "tool:notion-proxy/API-create-a-data-source",
     "tool:notion-proxy/API-delete-a-block",
+    "tool:notion-proxy/API-move-page",
+    "tool:notion-proxy/API-patch-block-children",
     "tool:notion-proxy/API-patch-page",
+    "tool:notion-proxy/API-post-page",
     "tool:notion-proxy/API-update-a-block",
     "tool:notion-proxy/API-update-a-data-source",
-    "tool:notion-proxy/API-update-page-markdown",
-    "tool:notion-proxy/API-post-page",
-    "tool:notion-proxy/API-create-a-data-source",
-    "tool:notion-proxy/API-create-a-comment",
-    "tool:notion-proxy/API-move-page",
-    "tool:notion-proxy/API-patch-block-children"
+    "tool:notion-proxy/API-update-page-markdown"
   ],
   "constraints": {
     "parameters": {
@@ -187,5 +200,5 @@
       }
     }
   },
-  "description": "Notion MCP via SecureMCPProxy"
+  "description": "Notion protected by Secure MCP proxy"
 }

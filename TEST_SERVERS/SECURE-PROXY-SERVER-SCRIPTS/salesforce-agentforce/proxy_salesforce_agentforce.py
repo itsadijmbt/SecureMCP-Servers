@@ -19,19 +19,20 @@ Run:
     python proxy_salesforce_agentforce.py
 
 Claude Code:
-    claude mcp add salesforce-agentforce-macaw python /path/to/proxy_salesforce_agentforce.py \
-      -e ACCESS_TOKEN_EXPIRATION_HOURS=... \
-      -e AGENTFORCE_PY=... \
-      -e AGENTFORCE_REPO=... \
-      -e JWT_SECRET=... \
-      -e SALESFORCE_CAPABILITIES_VERSION=... \
-      -e SALESFORCE_CLIENT_ID=... \
-      -e SALESFORCE_CLIENT_SECRET=... \
-      -e SALESFORCE_ES_DEVELOPER_NAME=... \
-      -e SALESFORCE_ORG_ID=... \
-      -e SALESFORCE_SCRT_URL=... \
-      -e SERVER_URL=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add salesforce-agentforce-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export SALESFORCE_SCRT_URL="..." && \
+      export SALESFORCE_ORG_ID="..." && \
+      export SALESFORCE_ES_DEVELOPER_NAME="..." && \
+      export SALESFORCE_CAPABILITIES_VERSION="..." && \
+      export SALESFORCE_CLIENT_ID="..." && \
+      export SALESFORCE_CLIENT_SECRET="..." && \
+      export JWT_SECRET="..." && \
+      export ACCESS_TOKEN_EXPIRATION_HOURS="..." && \
+      export SERVER_URL="..." && \
+      export AGENTFORCE_REPO="..." && \
+      export AGENTFORCE_PY="..." && \
+      python /path/to/proxy_salesforce_agentforce.py'
 
     AGENTFORCE_REPO must be cloned and its .venv built:
     python -m venv .venv && .venv/bin/pip install -r requirements.txt

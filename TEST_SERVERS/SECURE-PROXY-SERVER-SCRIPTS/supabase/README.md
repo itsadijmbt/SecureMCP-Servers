@@ -4,7 +4,7 @@ Wraps `npx -y mcp-remote https://mcp.supabase.com/mcp` — OAuth in the browser 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js 20+ on `PATH` (`mcp-remote` needs it).
 
 Environment variables:
@@ -23,7 +23,8 @@ python proxy_supabase.py
 Register with Claude Code:
 
 ```bash
-claude mcp add supabase-macaw python /path/to/proxy_supabase.py \
-  -e SUPABASE_PROJECT_REF=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add supabase-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export SUPABASE_PROJECT_REF="..." && \
+  python /path/to/proxy_supabase.py'
 ```

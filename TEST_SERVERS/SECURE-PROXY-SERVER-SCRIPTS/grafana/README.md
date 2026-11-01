@@ -4,7 +4,7 @@ Wraps `grafana/mcp-grafana` in Docker over stdio. MACAW policy is enforced at th
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Docker daemon running.
 - Image pulled: `docker pull grafana/mcp-grafana`.
 
@@ -26,8 +26,11 @@ python proxy_grafana.py
 Register with Claude Code:
 
 ```bash
-claude mcp add grafana-macaw python /path/to/proxy_grafana.py \
-  -e GRAFANA_URL=... \
-  -e GRAFANA_SERVICE_ACCOUNT_TOKEN=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add grafana-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export GRAFANA_URL="..." && \
+  export GRAFANA_SERVICE_ACCOUNT_TOKEN="..." && \
+  python /path/to/proxy_grafana.py'
 ```
+
+Startup can exceed Claude Code's 30s default. Run `export MCP_TIMEOUT=120000` before starting Claude Code.

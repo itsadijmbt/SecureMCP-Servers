@@ -4,7 +4,7 @@ Wraps `uvx falcon-mcp` over stdio. MACAW policy is enforced at the proxy before 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `uvx` on `PATH` (from `uv`).
 - A CrowdStrike Falcon API client (client ID and secret).
 
@@ -32,12 +32,12 @@ python proxy_falcon.py
 Register with Claude Code:
 
 ```bash
-export MCP_TIMEOUT=120000
-claude mcp add falcon-macaw python /path/to/proxy_falcon.py \
-  -e FALCON_CLIENT_ID=... \
-  -e FALCON_CLIENT_SECRET=... \
-  -e FALCON_BASE_URL=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add falcon-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export FALCON_CLIENT_ID="..." && \
+  export FALCON_CLIENT_SECRET="..." && \
+  export FALCON_BASE_URL="..." && \
+  python /path/to/proxy_falcon.py'
 ```
 
 Startup takes about 100 seconds with all 169 tools, longer than Claude Code's 30s default, so set `MCP_TIMEOUT` before starting Claude Code. `FALCON_MCP_MODULES` loads fewer tools and starts faster.

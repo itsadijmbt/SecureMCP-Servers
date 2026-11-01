@@ -12,11 +12,12 @@ Run:
 
 Claude Code:
     export MCP_TIMEOUT=120000
-    claude mcp add falcon-macaw python /path/to/proxy_falcon.py \
-      -e FALCON_CLIENT_ID=... \
-      -e FALCON_CLIENT_SECRET=... \
-      -e FALCON_BASE_URL=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add falcon-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export FALCON_CLIENT_ID="..." && \
+      export FALCON_CLIENT_SECRET="..." && \
+      export FALCON_BASE_URL="..." && \
+      python /path/to/proxy_falcon.py'
 
     FALCON_BASE_URL is the API URL of your CrowdStrike region, for example https://api.us-2.crowdstrike.com.
     Without it the upstream uses https://api.crowdstrike.com (US-1).

@@ -4,7 +4,7 @@ Wraps `npx -y @notionhq/notion-mcp-server` over stdio. MACAW policy is enforced 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Node.js and `npx` on `PATH`.
 
 Environment variables:
@@ -23,7 +23,8 @@ python proxy_notion.py
 Register with Claude Code:
 
 ```bash
-claude mcp add notion-macaw python /path/to/proxy_notion.py \
-  -e NOTION_TOKEN=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add notion-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export NOTION_TOKEN="..." && \
+  python /path/to/proxy_notion.py'
 ```

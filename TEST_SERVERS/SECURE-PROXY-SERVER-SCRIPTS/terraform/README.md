@@ -4,7 +4,7 @@ Wraps `hashicorp/terraform-mcp-server:1.3.0` in Docker over stdio. MACAW policy 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - Docker daemon running.
 - Image pulled: `docker pull hashicorp/terraform-mcp-server:1.3.0`.
 
@@ -26,8 +26,9 @@ python proxy_terraform.py
 Register with Claude Code:
 
 ```bash
-claude mcp add terraform-macaw python /path/to/proxy_terraform.py \
-  -e TFE_TOKEN=... \
-  -e TFE_ADDRESS=... \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add terraform-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export TFE_TOKEN="..." && \
+  export TFE_ADDRESS="..." && \
+  python /path/to/proxy_terraform.py'
 ```

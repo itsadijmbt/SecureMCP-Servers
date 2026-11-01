@@ -4,7 +4,7 @@ Wraps `mcp_server.py` from a clone of `MigoXLab/dingo` (run with `uv run`) over 
 
 ## What it needs
 
-- MACAW LocalAgent running, `MACAW_HOME` set.
+- The MACAW client installed in a Python virtual environment, plus `pip install "macaw-adapters[mcp-proxy]"`, and `MACAW_HOME` set to the MACAW client folder.
 - `uv` on `PATH`.
 - A clone of Dingo (the proxy runs its `mcp_server.py`):
   `git clone --depth 1 --branch v2.5.0 https://github.com/MigoXLab/dingo.git`
@@ -34,7 +34,8 @@ python proxy_dingo.py
 Register with Claude Code:
 
 ```bash
-claude mcp add dingo-macaw python /path/to/proxy_dingo.py \
-  -e DINGO_HOME=/path/to/dingo \
-  -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+claude mcp add dingo-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+  export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+  export DINGO_HOME="/path/to/dingo" && \
+  python /path/to/proxy_dingo.py'
 ```

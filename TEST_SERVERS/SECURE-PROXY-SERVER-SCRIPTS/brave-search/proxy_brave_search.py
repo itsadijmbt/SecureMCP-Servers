@@ -9,9 +9,10 @@ Run:
     python proxy_brave_search.py
 
 Claude Code:
-    claude mcp add brave-search-macaw python /path/to/proxy_brave_search.py \
-      -e BRAVE_API_KEY=... \
-      -e MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12
+    claude mcp add brave-search-macaw -- bash -lc 'source /path/to/.venv/bin/activate && \
+      export MACAW_HOME=/path/to/macaw-client-<version>-Linux-x86_64-py3.12 && \
+      export BRAVE_API_KEY="..." && \
+      python /path/to/proxy_brave_search.py'
 """
 
 import os
